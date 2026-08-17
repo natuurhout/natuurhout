@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ProductenPage() {
   const overige = uncollectedProducts();
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
+    <div className="w-full px-4 py-12 sm:px-6 lg:px-10">
       <SectionHeading as="h1" underline="Prijzen">
         Producten &amp;
       </SectionHeading>

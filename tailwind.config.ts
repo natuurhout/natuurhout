@@ -1,24 +1,26 @@
 import type { Config } from "tailwindcss";
 
-// Design direction: GardenGlory e-commerce template (Behance 230941561),
-// adapted for Natuurhout per Xander (2026-08-17): warm ivory ground, deep
-// forest-green surfaces, one vivid green accent, pill buttons, large-radius
-// image cards. Style is adapted, not copied — no assets from the template.
+// Palette per Xander (2026-08-17): browns pulled from the actual Natuurhout
+// logo (logo-natuurhout-new-1.png → #504E44 olive-brown, #A05040 rust,
+// #E8A068 tan). Layout patterns reference kastanjegjerde.no (utility bar,
+// mega menu, calculator, product page) restyled in these brand colors.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
         ground: "#F4F1E8", // warm ivory page background
-        ink: "#1A2420", // near-black green-tinted text
+        ink: "#29261F", // near-black warm brown text
         brand: {
-          DEFAULT: "#24402E", // deep forest green
-          dark: "#16281D", // darkest surface (hero/footer)
-          soft: "#E8EDDD", // pale green-tinted card surface
+          DEFAULT: "#514E43", // logo olive-brown (mid surface / borders)
+          dark: "#322F27", // darkest surface: nav, footer, hero panel
+          soft: "#EAE5D6", // warm sand card surface
         },
         accent: {
-          DEFAULT: "#7DBE3F", // vivid leaf green (buttons/highlights)
-          bright: "#A4E257", // highlight text on dark surfaces
+          DEFAULT: "#A25640", // logo rust — primary buttons/links
+          deep: "#8A4634", // rust hover
+          tan: "#DDA15E", // logo tan — secondary buttons (cards)
+          bright: "#E8B77D", // highlight text on dark surfaces
         },
       },
       fontFamily: {
@@ -27,7 +29,7 @@ const config: Config = {
         sans: ["Brand", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        card: "1.75rem",
+        card: "1.25rem",
       },
     },
   },

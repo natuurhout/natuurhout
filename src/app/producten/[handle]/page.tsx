@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import Button from "@/components/Button";
-import { formatPrice, getProduct, products } from "@/lib/catalog";
+import ProductCard from "@/components/ProductCard";
+import ProductDetail from "@/components/ProductDetail";
+import { getProduct, products, relatedProducts } from "@/lib/catalog";
 
-// Product detail — content (title, description HTML, variants, prices,
-// availability) is VERBATIM shop data. Purchasing always happens on
-// natuurhout.shop (rule 8: the shop is linked, never replaced).
+// Page layout references kastanjegjerde.no/butikk/* per Xander: breadcrumb,
+// gallery + buy panel, related products, description + sidebar cards.
+// Content (title, description HTML, variants, prices, availability) is
+// VERBATIM shop data; purchases happen on natuurhout.shop (rule 8).
 
 export function generateStaticParams() {
   return products.map((p) => ({ handle: p.handle }));
@@ -34,101 +36,87 @@ export default async function ProductPage({
   const { handle } = await params;
   const product = getProduct(handle);
   if (!product) notFound();
+  const related = relatedProducts(product, 4);
 
-  const [main, ...rest] = product.images;
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
-      <div className="grid gap-10 lg:grid-cols-2">
-        <div>
-          {main && (
-            <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-brand-soft">
-              <Image
-                src={main.src}
-                alt={main.alt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                priority
-              />
-            </div>
-          )}
-          {rest.length > 0 && (
-            <div className="mt-4 grid grid-cols-4 gap-3">
-              {rest.slice(0, 4).map((im) => (
-                <div
-                  key={im.src}
-                  className="relative aspect-square overflow-hidden rounded-2xl bg-brand-soft"
-                >
-                  <Image
-                    src={im.src}
-                    alt={im.alt}
-                    fill
-                    sizes="12rem"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-10">
+      {/* Breadcrumb */}
+      <nav className="text-sm text-ink/60" aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="hover:text-accent">Home</Link>
+          </li>
+          <li aria-hidden>›</li>
+          <li>
+            <Link href="/producten/" className="hover:text-accent">
+              Producten &amp; Prijzen
+            </Link>
+          </li>
+          <li aria-hidden>›</li>
+          <li className="font-medium text-ink">{product.title}</li>
+        </ol>
+      </nav>
 
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-            {product.title}
-          </h1>
-          {product.priceFrom && (
-            <p className="mt-3 text-xl font-semibold text-brand">
-              {product.priceFrom !== product.priceTo ? "Vanaf " : ""}
-              {formatPrice(product.priceFrom)}
-            </p>
-          )}
-          <p className="mt-1 text-sm text-ink/60">
-            {product.available ? "Op voorraad" : "Momenteel uitverkocht"}
-          </p>
+      <div className="mt-6">
+        <ProductDetail product={product} />
+      </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button href={product.shopUrl} external>
-              Bestel in de webshop
-            </Button>
-            <Button href="/offerte-aanvragen/" variant="outline">
-              Offerte aanvragen
-            </Button>
+      {/* Related products */}
+      {related.length > 0 && (
+        <section className="mt-16">
+          <h2 className="text-center text-xl font-semibold uppercase tracking-wide">
+            Bijhorende producten
+          </h2>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((p) => (
+              <ProductCard key={p.handle} product={p} />
+            ))}
           </div>
+        </section>
+      )}
 
-          {product.variants.length > 1 && (
-            <div className="mt-8 overflow-hidden rounded-2xl ring-1 ring-brand/10">
-              <table className="w-full text-sm">
-                <thead className="bg-brand-soft text-left text-brand">
-                  <tr>
-                    <th className="px-4 py-2.5 font-semibold">Uitvoering</th>
-                    <th className="px-4 py-2.5 font-semibold">Prijs</th>
-                    <th className="px-4 py-2.5 font-semibold">Voorraad</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-brand/10 bg-white">
-                  {product.variants.map((v) => (
-                    <tr key={v.title}>
-                      <td className="px-4 py-2.5">{v.title}</td>
-                      <td className="px-4 py-2.5">{formatPrice(v.price)}</td>
-                      <td className="px-4 py-2.5">
-                        {v.available ? "Op voorraad" : "Uitverkocht"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {product.bodyHtml && (
+      {/* Description + sidebar */}
+      <section className="mt-16 grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div>
+          <h2 className="border-b-2 border-accent pb-2 text-lg font-semibold">
+            Detailbeschrijving
+          </h2>
+          {product.bodyHtml ? (
             <div
-              className="prose-natuurhout mt-8 space-y-3 text-ink/80 [&_a]:text-brand [&_a]:underline [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-ink"
+              className="mt-5 max-w-3xl space-y-3 text-ink/80 [&_a]:text-accent [&_a]:underline [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-ink"
               // Verbatim shop description HTML (own content, trusted source)
               dangerouslySetInnerHTML={{ __html: product.bodyHtml }}
             />
+          ) : (
+            <p className="mt-5 text-ink/60">
+              Meer informatie over dit product vindt u in de webshop.
+            </p>
           )}
         </div>
-      </div>
+        <aside className="space-y-4">
+          <div className="rounded-card bg-white p-6 ring-1 ring-brand/10">
+            <p className="font-semibold">Waarom Natuurhout?</p>
+            <ul className="mt-3 space-y-2 text-sm text-ink/70">
+              <li>✓ Duurzame Producten</li>
+              <li>✓ Levering mogelijk</li>
+              <li>✓ +15 jaar ervaring</li>
+              <li>✓ Groot assortiment</li>
+            </ul>
+          </div>
+          <div className="rounded-card bg-brand-soft p-6">
+            <p className="font-semibold">Complete afsluiting?</p>
+            <p className="mt-2 text-sm text-ink/70">
+              Stel hekwerk, palen en poort samen en zie meteen een richtprijs.
+            </p>
+            <Link
+              href="/calculator/"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:text-accent-deep"
+            >
+              Naar de calculator →
+            </Link>
+          </div>
+        </aside>
+      </section>
     </div>
   );
 }

@@ -3,14 +3,14 @@ import Link from "next/link";
 type Props = {
   href: string;
   children: React.ReactNode;
-  variant?: "accent" | "dark" | "outline";
+  variant?: "accent" | "tan" | "dark" | "outline";
   external?: boolean;
   className?: string;
 };
 
 const styles = {
-  accent:
-    "bg-accent text-brand-dark hover:bg-accent-bright",
+  accent: "bg-accent text-white hover:bg-accent-deep",
+  tan: "bg-accent-tan text-ink hover:bg-accent-bright",
   dark: "bg-brand-dark text-white hover:bg-brand",
   outline:
     "border border-brand/30 text-brand hover:border-brand hover:bg-brand-soft",

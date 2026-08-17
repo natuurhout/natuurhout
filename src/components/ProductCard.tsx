@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatPrice, type Product } from "@/lib/catalog";
 
-// Titles and prices are verbatim shop data — never reworded or rounded.
+// Card layout references the kastanjegjerde.no product cards (image, title,
+// "Fra …" price, tan action button). Titles and prices are verbatim shop
+// data — never reworded or rounded.
 export default function ProductCard({ product }: { product: Product }) {
   const img = product.images[0];
   const hasRange =
@@ -28,18 +30,21 @@ export default function ProductCard({ product }: { product: Product }) {
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-1 p-5">
-        <h3 className="font-semibold text-ink group-hover:text-brand">
+      <div className="flex flex-1 flex-col gap-2 p-4 text-center">
+        <h3 className="font-semibold text-ink group-hover:text-accent">
           {product.title}
         </h3>
         {product.priceFrom && (
-          <p className="mt-auto pt-2 text-sm text-ink/70">
+          <p className="text-sm text-ink/70">
             {hasRange ? "Vanaf " : ""}
-            <span className="text-base font-semibold text-brand">
+            <span className="text-base font-semibold text-ink">
               {formatPrice(product.priceFrom)}
             </span>
           </p>
         )}
+        <span className="mt-auto inline-flex items-center justify-center rounded-lg bg-accent-tan px-4 py-2 text-sm font-semibold text-ink transition-colors group-hover:bg-accent group-hover:text-white">
+          {product.variants.length > 1 ? "Bekijk opties" : "Bekijk product"}
+        </span>
       </div>
     </Link>
   );

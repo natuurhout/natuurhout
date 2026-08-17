@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="bg-brand-dark text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid w-full gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 lg:px-10">
         <div>
           <p className="text-lg font-semibold">Natuurhout</p>
           <ul className="mt-4 space-y-2 text-sm text-white/80">
@@ -50,7 +50,7 @@ export default function Footer() {
           </p>
           <a
             href="https://natuurhout.shop/"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-accent-bright"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
           >
             Naar webshop
             <span aria-hidden className="text-base leading-none">↗</span>
@@ -58,7 +58,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-white/60">
+        <div className="w-full px-4 py-5 text-xs text-white/60 sm:px-6 lg:px-10">
           © {new Date().getFullYear()} Natuurhout — BEHO comm.v
         </div>
       </div>
