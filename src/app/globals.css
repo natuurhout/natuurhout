@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Self-hosted font slots (weights 400/600 only, per the migration prompt).
+ * Licensed woff2 files drop into public/fonts/ later WITHOUT further CSS
+ * changes — until then the stack falls back to system-ui via Tailwind.
+ */
+@font-face {
+  font-family: "Brand";
+  src: url("/fonts/brand-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Brand";
+  src: url("/fonts/brand-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
