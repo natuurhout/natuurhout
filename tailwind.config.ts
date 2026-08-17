@@ -1,24 +1,33 @@
 import type { Config } from "tailwindcss";
 
-// Brand tokens are PLACEHOLDERS until Xander confirms design direction
-// (migration/phase0-report.md §10.6). Warm neutrals + deep green proposed
-// for a natural-wood brand; every value below may change in Phase 1 design
-// review — nothing else in the codebase should hardcode colors.
+// Design direction: GardenGlory e-commerce template (Behance 230941561),
+// adapted for Natuurhout per Xander (2026-08-17): warm ivory ground, deep
+// forest-green surfaces, one vivid green accent, pill buttons, large-radius
+// image cards. Style is adapted, not copied — no assets from the template.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
+        ground: "#F4F1E8", // warm ivory page background
+        ink: "#1A2420", // near-black green-tinted text
         brand: {
-          DEFAULT: "#2f4a34", // SWAP-LATER: primary (deep green, proposal)
-          dark: "#1f3123", // SWAP-LATER: dark surface
+          DEFAULT: "#24402E", // deep forest green
+          dark: "#16281D", // darkest surface (hero/footer)
+          soft: "#E8EDDD", // pale green-tinted card surface
         },
-        ground: "#faf8f5", // SWAP-LATER: near-white warm background
+        accent: {
+          DEFAULT: "#7DBE3F", // vivid leaf green (buttons/highlights)
+          bright: "#A4E257", // highlight text on dark surfaces
+        },
       },
       fontFamily: {
         // Slots wired for self-hosted licensed woff2 files dropped into
         // public/fonts/ later — see globals.css @font-face stubs.
         sans: ["Brand", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        card: "1.75rem",
       },
     },
   },

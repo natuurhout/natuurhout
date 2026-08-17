@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,7 +33,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="nl-BE">
-      <body className="bg-ground font-sans antialiased">{children}</body>
+      <body className="bg-ground font-sans text-ink antialiased">
+        <Navbar />
+        <main>{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }

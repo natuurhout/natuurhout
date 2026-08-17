@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      // Shop product images stay on the Shopify CDN (catalog is copied from
+      // natuurhout.shop; the shop itself is never modified — rule 8).
+      { protocol: "https", hostname: "cdn.shopify.com" },
+      // Live .be media until the wp-content/uploads mirror lands (Phase 3).
+      { protocol: "https", hostname: "www.natuurhout.be" },
+    ],
+  },
   // WordPress URL parity: every live natuurhout.be URL ends in a trailing
   // slash and the canonical tags point at the slashed variant. Keeping this
   // `true` is what makes the cutover need ZERO redirects for existing URLs.

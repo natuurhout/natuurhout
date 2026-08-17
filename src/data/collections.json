@@ -1,0 +1,104 @@
+[
+ {
+  "handle": "gaas",
+  "title": "Gaas",
+  "products": [
+   "schapengaas-nexum-basic",
+   "schapengaas-nexum-licht",
+   "schapengaas-nexum-zwaar",
+   "nexum-x",
+   "schapengaas-fx",
+   "kippengaas"
+  ]
+ },
+ {
+  "handle": "lariks-schaaldelen",
+  "title": "Lariks Schaaldelen",
+  "products": [
+   "lariks-planken-delen"
+  ]
+ },
+ {
+  "handle": "palen",
+  "title": "Palen",
+  "products": [
+   "palen",
+   "robinia-palen",
+   "vierkant-gezaagde-robinia-palen",
+   "halfronde-palen",
+   "kastanje-palen-copy",
+   "kastanje-paal-met-postsaver",
+   "eiken-palen",
+   "paalhouder-met-punt-rond"
+  ]
+ },
+ {
+  "handle": "plaatsing-materiaal",
+  "title": "Plaatsing materiaal",
+  "products": [
+   "houtschroeven",
+   "paalhouder-met-punt-rond",
+   "hekwerk-draadverbinders",
+   "beslag-hang-sluitwerk",
+   "tuin-voorhamer",
+   "grondboor-kopie",
+   "grondboor"
+  ]
+ },
+ {
+  "handle": "poorten",
+  "title": "Poorten",
+  "products": [
+   "kastanje-poorten",
+   "kastanje-poort-geschroefd",
+   "robinia-poort",
+   "hazelaar-poort",
+   "cleft-field-poorten",
+   "hardhouten-veldpoort"
+  ]
+ },
+ {
+  "handle": "post-rail",
+  "title": "Post & Rail",
+  "products": [
+   "post-rail-omheining"
+  ]
+ },
+ {
+  "handle": "promos",
+  "title": "Promo's",
+  "products": [
+   "kastanje-hekwerk-1-50m",
+   "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte",
+   "kastanje-hekwerk-100cm-4-5cm",
+   "kastanje-hekwerk-100cm-7-9cm",
+   "kastanje-kaderpoort",
+   "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed"
+  ]
+ },
+ {
+  "handle": "raster",
+  "title": "Rasterwerk",
+  "products": [
+   "kastanje-rasterwerk",
+   "hazelaar-hekwerk",
+   "robinia-hekwerk"
+  ]
+ },
+ {
+  "handle": "tuinbakken",
+  "title": "Tuinbakken",
+  "products": [
+   "tuinbakken-hazelaar",
+   "plantenbak-cortenstaal"
+  ]
+ },
+ {
+  "handle": "vlechtschermen",
+  "title": "Vlechtschermen",
+  "products": [
+   "hazelaar-vlechtscherm-hasseltre",
+   "hazelaar-scherm-trepanel"
+  ]
+ }
+]
