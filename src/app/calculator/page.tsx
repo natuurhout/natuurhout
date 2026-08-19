@@ -72,13 +72,14 @@ export default function CalculatorPage() {
   return (
     <div className="w-full px-4 py-12 sm:px-6 lg:px-10">
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Afsluitingscalculator —{" "}
-          <span className="underline decoration-accent decoration-4 underline-offset-8">
-            bereken uw richtprijs
-          </span>
+        <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+          <span aria-hidden className="h-px w-8 bg-accent" />
+          Calculator
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-5xl">
+          Bereken de richtprijs van uw afsluiting
         </h1>
-        <p className="mt-4 text-ink/70">
+        <p className="mt-5 leading-relaxed text-ink/70">
           Stel uw afsluiting samen met hekwerk, palen en eventueel een poort.
           U ziet meteen een richtprijs op basis van de actuele
           webshopprijzen — bestellen doet u nadien eenvoudig via de webshop.

@@ -2,31 +2,31 @@ import type { Config } from "tailwindcss";
 
 // Palette per Xander (2026-08-17): browns pulled from the actual Natuurhout
 // logo (logo-natuurhout-new-1.png → #504E44 olive-brown, #A05040 rust,
-// #E8A068 tan). Layout patterns reference kastanjegjerde.no (utility bar,
-// mega menu, calculator, product page) restyled in these brand colors.
+// #E8A068 tan). Typography: Fraunces (display serif) + Instrument Sans,
+// self-hosted via next/font — see src/app/layout.tsx.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        ground: "#F4F1E8", // warm ivory page background
-        ink: "#29261F", // near-black warm brown text
+        ground: "#F7F3EA", // warm paper background
+        ink: "#26221B", // near-black warm brown text
         brand: {
           DEFAULT: "#514E43", // logo olive-brown (mid surface / borders)
-          dark: "#322F27", // darkest surface: nav, footer, hero panel
-          soft: "#EAE5D6", // warm sand card surface
+          dark: "#2E2B24", // darkest surface: nav, footer, hero panel
+          soft: "#EDE7D8", // warm sand card surface
         },
         accent: {
           DEFAULT: "#A25640", // logo rust — primary buttons/links
-          deep: "#8A4634", // rust hover
-          tan: "#DDA15E", // logo tan — secondary buttons (cards)
+          deep: "#874332", // rust hover
+          tan: "#DDA15E", // logo tan — secondary highlights
           bright: "#E8B77D", // highlight text on dark surfaces
         },
+        line: "#E2DBC9", // hairline borders on light surfaces
       },
       fontFamily: {
-        // Slots wired for self-hosted licensed woff2 files dropped into
-        // public/fonts/ later — see globals.css @font-face stubs.
-        sans: ["Brand", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
       },
       borderRadius: {
         card: "1.25rem",

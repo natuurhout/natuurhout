@@ -211,7 +211,7 @@ export default function FenceCalculator({
   return (
     <div className="relative">
       {/* Running total badge */}
-      <div className="pointer-events-none sticky top-40 z-10 float-right -mr-2 hidden rounded-card bg-white p-4 shadow-lg ring-1 ring-brand/10 lg:block">
+      <div className="pointer-events-none sticky top-40 z-10 float-right -mr-2 hidden rounded-card bg-white p-4 shadow-lg ring-1 ring-line lg:block">
         <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
           Lopend totaal
         </p>
@@ -242,7 +242,7 @@ export default function FenceCalculator({
         </ol>
       </div>
 
-      <div className="max-w-3xl rounded-card bg-white p-6 shadow-sm ring-1 ring-brand/10 sm:p-8">
+      <div className="max-w-3xl rounded-card bg-white p-6 shadow-sm ring-1 ring-line sm:p-8">
         {step === 0 && (
           <div className="space-y-8">
             <div>
@@ -520,7 +520,7 @@ export default function FenceCalculator({
         {step === 3 && (
           <div>
             <p className="font-semibold">Uw materiaallijst voor {meters}m afsluiting</p>
-            <div className="mt-4 overflow-hidden rounded-xl ring-1 ring-brand/10">
+            <div className="mt-4 overflow-hidden rounded-xl ring-1 ring-line">
               <table className="w-full text-sm">
                 <thead className="bg-brand-soft text-left">
                   <tr>
@@ -533,7 +533,7 @@ export default function FenceCalculator({
                   {lines.map((l) => (
                     <tr key={l.label}>
                       <td className="px-4 py-2.5">
-                        <a href={l.url} className="font-medium text-accent hover:underline">
+                        <a href={l.url} target="_blank" rel="noopener" className="font-medium text-accent hover:underline">
                           {l.label}
                         </a>
                         {l.note && <span className="block text-xs text-ink/50">{l.note}</span>}
@@ -567,7 +567,9 @@ export default function FenceCalculator({
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="https://natuurhout.shop/"
-                className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
               >
                 Bestel in de webshop ↗
               </a>

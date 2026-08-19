@@ -1,7 +1,23 @@
 import type { Metadata } from "next";
+import { Fraunces, Instrument_Sans } from "next/font/google";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
+
+// Self-hosted via next/font (downloaded at build, served from our domain —
+// no runtime Google request, satisfies the self-hosted-fonts rule).
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+});
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.natuurhout.be"),
@@ -32,7 +48,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="nl-BE">
+    <html lang="nl-BE" className={`${fraunces.variable} ${instrumentSans.variable}`}>
       <body className="bg-ground font-sans text-ink antialiased">
         <Navbar />
         <main>{children}</main>

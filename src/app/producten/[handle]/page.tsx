@@ -64,10 +64,10 @@ export default async function ProductPage({
       {/* Related products */}
       {related.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-center text-xl font-semibold uppercase tracking-wide">
+          <h2 className="text-center font-display text-2xl font-semibold">
             Bijhorende producten
           </h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.handle} product={p} />
             ))}
@@ -78,7 +78,8 @@ export default async function ProductPage({
       {/* Description + sidebar */}
       <section className="mt-16 grid gap-8 lg:grid-cols-[1fr_320px]">
         <div>
-          <h2 className="border-b-2 border-accent pb-2 text-lg font-semibold">
+          <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+            <span aria-hidden className="h-px w-8 bg-accent" />
             Detailbeschrijving
           </h2>
           {product.bodyHtml ? (
@@ -94,8 +95,8 @@ export default async function ProductPage({
           )}
         </div>
         <aside className="space-y-4">
-          <div className="rounded-card bg-white p-6 ring-1 ring-brand/10">
-            <p className="font-semibold">Waarom Natuurhout?</p>
+          <div className="rounded-card border border-line bg-white p-6">
+            <p className="font-display text-lg font-semibold">Waarom Natuurhout?</p>
             <ul className="mt-3 space-y-2 text-sm text-ink/70">
               <li>✓ Duurzame Producten</li>
               <li>✓ Levering mogelijk</li>
@@ -103,14 +104,14 @@ export default async function ProductPage({
               <li>✓ Groot assortiment</li>
             </ul>
           </div>
-          <div className="rounded-card bg-brand-soft p-6">
-            <p className="font-semibold">Complete afsluiting?</p>
-            <p className="mt-2 text-sm text-ink/70">
+          <div className="rounded-card bg-brand-dark p-6 text-white">
+            <p className="font-display text-lg font-semibold">Complete afsluiting?</p>
+            <p className="mt-2 text-sm text-white/70">
               Stel hekwerk, palen en poort samen en zie meteen een richtprijs.
             </p>
             <Link
               href="/calculator/"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:text-accent-deep"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent-bright hover:text-white"
             >
               Naar de calculator →
             </Link>

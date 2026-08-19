@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ArrowUpRight, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatPrice, type Product } from "@/lib/catalog";
 
@@ -75,7 +76,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       {/* Gallery */}
       <div>
         {img && (
-          <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-white ring-1 ring-brand/10">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-white ring-1 ring-line">
             <Image
               src={img.src}
               alt={img.alt}
@@ -107,7 +108,7 @@ export default function ProductDetail({ product }: { product: Product }) {
 
       {/* Buy panel */}
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           {product.title}
         </h1>
 
@@ -209,16 +210,22 @@ export default function ProductDetail({ product }: { product: Product }) {
           </span>
           <a
             href={shopHref}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-deep sm:flex-none sm:px-10"
+            target="_blank"
+            rel="noopener"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-deep sm:flex-none sm:px-10"
           >
-            Bestel in de webshop ↗
+            Bestel in de webshop
+            <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>
 
-        <ul className="mt-6 space-y-2 border-t border-brand/10 pt-5 text-sm text-ink/70">
-          <li>✓ Bestellen &amp; betalen via natuurhout.shop</li>
-          <li>✓ Levering mogelijk</li>
-          <li>✓ Service op maat</li>
+        <ul className="mt-6 space-y-2.5 border-t border-line pt-5 text-sm text-ink/70">
+          {["Bestellen & betalen via natuurhout.shop", "Levering mogelijk", "Service op maat"].map((t) => (
+            <li key={t} className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-accent" />
+              {t}
+            </li>
+          ))}
         </ul>
       </div>
     </div>

@@ -14,15 +14,17 @@ export default function ProductenPage() {
   const overige = uncollectedProducts();
   return (
     <div className="w-full px-4 py-12 sm:px-6 lg:px-10">
-      <SectionHeading as="h1" underline="Prijzen">
-        Producten &amp;
+      <SectionHeading as="h1" kicker="Assortiment">
+        Producten &amp; Prijzen
       </SectionHeading>
-      <p className="mt-4 max-w-2xl text-ink/70">
-        Alle prijzen en voorraad komen rechtstreeks uit onze webshop. Bestellen
-        kan via{" "}
+      <p className="mt-4 max-w-2xl leading-relaxed text-ink/70">
+        Alle prijzen en voorraad komen rechtstreeks uit onze webshop.
+        Bestellen kan via{" "}
         <a
           href="https://natuurhout.shop/"
-          className="font-semibold text-brand underline decoration-accent underline-offset-4"
+          target="_blank"
+          rel="noopener"
+          className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
         >
           natuurhout.shop
         </a>
@@ -34,8 +36,8 @@ export default function ProductenPage() {
         if (!items.length) return null;
         return (
           <section key={c.handle} id={c.handle} className="mt-14 scroll-mt-24">
-            <h2 className="text-2xl font-semibold text-ink">{c.title}</h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <h2 className="font-display text-2xl font-semibold text-ink">{c.title}</h2>
+            <div className="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
               {items.map((p) => (
                 <ProductCard key={p.handle} product={p} />
               ))}
@@ -46,8 +48,8 @@ export default function ProductenPage() {
 
       {overige.length > 0 && (
         <section id="overige" className="mt-14 scroll-mt-24">
-          <h2 className="text-2xl font-semibold text-ink">Overige producten</h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className="font-display text-2xl font-semibold text-ink">Overige producten</h2>
+          <div className="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {overige.map((p) => (
               <ProductCard key={p.handle} product={p} />
             ))}

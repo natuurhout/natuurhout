@@ -1,30 +1,36 @@
-// GardenGlory-style heading: last word carries an accent underline.
+// Editorial section header: small uppercase kicker + display-serif title.
 export default function SectionHeading({
+  kicker,
   children,
-  underline,
   as: Tag = "h2",
   light = false,
+  className = "",
 }: {
+  kicker?: string;
   children: React.ReactNode;
-  underline?: string;
   as?: "h1" | "h2" | "h3";
   light?: boolean;
+  className?: string;
 }) {
   return (
-    <Tag
-      className={`text-3xl font-semibold tracking-tight sm:text-4xl ${
-        light ? "text-white" : "text-ink"
-      }`}
-    >
-      {children}
-      {underline ? (
-        <>
-          {" "}
-          <span className="underline decoration-accent decoration-4 underline-offset-8">
-            {underline}
-          </span>
-        </>
-      ) : null}
-    </Tag>
+    <div className={className}>
+      {kicker && (
+        <p
+          className={`mb-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] ${
+            light ? "text-accent-bright" : "text-accent"
+          }`}
+        >
+          <span aria-hidden className={`h-px w-8 ${light ? "bg-accent-bright" : "bg-accent"}`} />
+          {kicker}
+        </p>
+      )}
+      <Tag
+        className={`font-display text-3xl font-semibold tracking-tight sm:text-4xl ${
+          light ? "text-white" : "text-ink"
+        }`}
+      >
+        {children}
+      </Tag>
+    </div>
   );
 }
