@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
-import { Fraunces, Instrument_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
 
-// Self-hosted via next/font (downloaded at build, served from our domain —
-// no runtime Google request, satisfies the self-hosted-fonts rule).
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-});
-
-const instrumentSans = Instrument_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+// Satoshi (Fontshare, ITF Free Font License — see public/fonts/
+// SATOSHI-LICENSE-FFL.txt), self-hosted per the migration prompt.
+// Variable font covers all weights in one file; one family for headings
+// and body, differentiated by weight.
+const satoshi = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Satoshi-Variable.woff2",
+      weight: "300 900",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Satoshi-VariableItalic.woff2",
+      weight: "300 900",
+      style: "italic",
+    },
+  ],
   variable: "--font-sans",
 });
 
@@ -48,7 +53,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="nl-BE" className={`${fraunces.variable} ${instrumentSans.variable}`}>
+    <html lang="nl-BE" className={satoshi.variable}>
       <body className="bg-ground font-sans text-ink antialiased">
         <Navbar />
         <main>{children}</main>

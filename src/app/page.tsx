@@ -8,8 +8,8 @@ import { collections, products } from "@/lib/catalog";
 
 /*
  * Homepage — structure per Xander: full-width, hero = main card left + two
- * cards right (calculator + assortiment). Editorial skin: Fraunces display
- * serif + Instrument Sans, logo-brown palette, hairlines over heavy cards.
+ * cards right (calculator + assortiment). Editorial skin: Satoshi
+ * (self-hosted, Fontshare FFL), logo-brown palette, hairlines over cards.
  * ALL Dutch copy is verbatim from the live natuurhout.be homepage
  * (migration/html-snapshot/homepage.html). Do not reword — migration rule 1.
  * Product data is verbatim from natuurhout.shop per Xander.
@@ -38,7 +38,7 @@ export default function Home() {
                   <span aria-hidden className="h-px w-8 bg-accent-bright" />
                   Kastanjehout uit Zele
                 </p>
-                <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-white sm:text-6xl">
+                <h1 className="mt-4 font-display text-4xl font-bold leading-[1.02] tracking-tight text-white sm:text-6xl">
                   Specialist in{" "}
                   <em className="italic text-accent-bright">Kastanjehout</em>
                 </h1>

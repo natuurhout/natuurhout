@@ -76,7 +76,7 @@ export default function CalculatorPage() {
           <span aria-hidden className="h-px w-8 bg-accent" />
           Calculator
         </p>
-        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-5xl">
           Bereken de richtprijs van uw afsluiting
         </h1>
         <p className="mt-5 leading-relaxed text-ink/70">

@@ -25,8 +25,10 @@ const config: Config = {
         line: "#E2DBC9", // hairline borders on light surfaces
       },
       fontFamily: {
+        // One family (Satoshi) for body and display; headings differ by
+        // weight/tracking, not typeface.
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
+        display: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         card: "1.25rem",

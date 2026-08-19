@@ -25,7 +25,7 @@ export default function SectionHeading({
         </p>
       )}
       <Tag
-        className={`font-display text-3xl font-semibold tracking-tight sm:text-4xl ${
+        className={`font-display text-3xl font-bold tracking-tight sm:text-4xl ${
           light ? "text-white" : "text-ink"
         }`}
       >
