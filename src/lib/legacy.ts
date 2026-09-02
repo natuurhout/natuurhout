@@ -15,6 +15,7 @@ export type LegacyPage = {
   schemaTypes: string[];
   lastModified?: string;
   sourceFile: string;
+  html: string;
   blocks: LegacyBlock[];
 };
 
@@ -27,4 +28,9 @@ export function legacyPathname(slug: string[]) {
 export function getLegacyPage(slug: string[]) {
   const pathname = legacyPathname(slug);
   return legacyPages.find((page) => page.pathname === pathname);
+}
+
+export function getLegacyPageByPath(pathname: string) {
+  const normalized = pathname === "/" ? pathname : `${pathname.replace(/\/+$/, "")}/`;
+  return legacyPages.find((page) => page.pathname === normalized);
 }

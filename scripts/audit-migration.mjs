@@ -21,13 +21,6 @@ const redirects = new Set([
   "/moestuinbak-kopen-vlaanderen/",
   "/plantenbakken-kopen/",
 ]);
-const handBuilt = new Set([
-  "/",
-  "/producten/",
-  "/aanbiedingen-2/",
-  "/contact/",
-  "/offerte-aanvragen/",
-]);
 const intentionallyEmpty = new Set(["/logout/"]);
 const generated = new Set(legacyPages.map((page) => page.pathname));
 
@@ -37,16 +30,15 @@ function normalize(url) {
 }
 
 const baseline = rows.map((row) => normalize(row.url));
-const missing = baseline.filter((pathname) => !handBuilt.has(pathname) && !redirects.has(pathname) && !generated.has(pathname));
+const missing = baseline.filter((pathname) => !redirects.has(pathname) && !generated.has(pathname));
 const empty = legacyPages
-  .filter((page) => page.blocks.length === 0 && !intentionallyEmpty.has(page.pathname))
+  .filter((page) => !page.html && !intentionallyEmpty.has(page.pathname))
   .map((page) => page.pathname);
 const duplicatePaths = legacyPages
   .map((page) => page.pathname)
   .filter((pathname, index, all) => all.indexOf(pathname) !== index);
 
 console.log(`WordPress baseline: ${baseline.length} URLs`);
-console.log(`Hand-built routes: ${handBuilt.size}`);
 console.log(`Preserved live redirects: ${redirects.size}`);
 console.log(`Generated legacy routes: ${generated.size}`);
 console.log(`Missing baseline routes: ${missing.length}`);

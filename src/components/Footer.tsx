@@ -15,15 +15,13 @@ export default function Footer() {
               Specialist in kastanjehout — afsluitingen, poorten, palen en
               tuinschermen uit Zele.
             </p>
-            <a
-              href="https://natuurhout.shop/"
-              target="_blank"
-              rel="noopener"
+            <Link
+              href="/shop/"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
             >
-              Naar de webshop
+              Naar de shop
               <ArrowUpRight className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
 
           <div>

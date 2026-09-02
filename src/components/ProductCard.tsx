@@ -10,7 +10,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const hasRange =
     product.priceFrom && product.priceTo && product.priceFrom !== product.priceTo;
   return (
-    <Link href={`/producten/${product.handle}/`} className="group flex flex-col">
+    <Link href={`/shop/${product.handle}/`} className="group flex flex-col">
       <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-brand-soft">
         {img ? (
           <Image

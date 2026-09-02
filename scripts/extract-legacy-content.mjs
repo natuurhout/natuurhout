@@ -21,13 +21,6 @@ const redirects = new Set([
   "/plantenbakken-kopen/",
 ]);
 
-const handBuilt = new Set([
-  "/",
-  "/producten/",
-  "/aanbiedingen-2/",
-  "/contact/",
-  "/offerte-aanvragen/",
-]);
 const semanticSelector = "h1,h2,h3,h4,p,ul,ol,blockquote,table,img";
 
 function pathnameFor(url) {
@@ -104,14 +97,62 @@ function selectContentRoot($) {
   return null;
 }
 
+function cleanLegacyHtml($, root) {
+  const clone = root.clone();
+
+  clone
+    .find(
+      "script,style,noscript,iframe,.gdlr-related-portfolio,.gdlr-sidebar,.comments-area,#comments"
+    )
+    .remove();
+
+  clone.find("*").each((_, element) => {
+    const node = $(element);
+    const attributes = { ...element.attribs };
+
+    for (const attribute of Object.keys(attributes)) {
+      if (attribute.toLowerCase().startsWith("on")) node.removeAttr(attribute);
+    }
+
+    if (element.tagName?.toLowerCase() === "a") {
+      const href = cleanUrl(node.attr("href"));
+      if (href) node.attr("href", href);
+      else node.removeAttr("href");
+      if (/^https?:\/\//.test(href)) node.attr("rel", "noopener");
+    }
+
+    if (element.tagName?.toLowerCase() === "img") {
+      const src = node.attr("src") || node.attr("data-lazy-src");
+      if (src) node.attr("src", src);
+      node.removeAttr("data-lazy-src");
+      node.removeAttr("srcset");
+      node.removeAttr("data-srcset");
+      node.removeAttr("sizes");
+      node.removeAttr("loading");
+    }
+
+    if (element.tagName?.toLowerCase() === "form") {
+      node.removeAttr("action");
+      node.removeAttr("method");
+    }
+  });
+
+  return clone
+    .toString()
+    .replaceAll("https://www.natuurhout.be/wp-content/uploads/", "/wp-content/uploads/")
+    .replaceAll("https://natuurhout.be/wp-content/uploads/", "/wp-content/uploads/")
+    .trim();
+}
+
 function extractBlocks($, root) {
   const blocks = [];
-  const rootNode = root.get(0);
+  const content = root.clone();
+  const rootNode = content.get(0);
   if (!rootNode) return blocks;
 
-  root.find("script,style,noscript,iframe,form,.gdlr-related-portfolio,.gdlr-sidebar,.comments-area,#comments").remove();
+  content.find("script,style,noscript,iframe,form,.gdlr-related-portfolio,.gdlr-sidebar,.comments-area,#comments").remove();
 
-  root.find(semanticSelector).each((_, element) => {
+  content.find(semanticSelector).each((_, element) => {
     const tag = element.tagName?.toLowerCase();
     if (!tag) return;
 
@@ -164,7 +205,7 @@ const warnings = [];
 
 for (const row of rows) {
   const pathname = pathnameFor(row.url);
-  if (handBuilt.has(pathname) || redirects.has(pathname)) continue;
+  if (redirects.has(pathname)) continue;
 
   const sourceFile = snapshotName(pathname);
   const sourcePath = path.join(snapshotDir, sourceFile);
@@ -177,6 +218,7 @@ for (const row of rows) {
   const $ = cheerio.load(html);
   const root = selectContentRoot($);
   const blocks = root ? extractBlocks($, root) : [];
+  const htmlContent = root ? cleanLegacyHtml($, root) : "";
   const lastModified = $("meta[property='article:modified_time']").attr("content") || undefined;
 
   if (blocks.length === 0) warnings.push(`${pathname}: no content blocks extracted`);
@@ -191,6 +233,7 @@ for (const row of rows) {
     schemaTypes: (row.schema_types || "").split(",").filter(Boolean),
     lastModified,
     sourceFile,
+    html: htmlContent,
     blocks,
   });
 }

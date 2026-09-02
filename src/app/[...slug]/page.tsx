@@ -6,7 +6,10 @@ import { getLegacyPage, legacyPages } from "@/lib/legacy";
 type Props = { params: Promise<{ slug: string[] }> };
 
 export function generateStaticParams() {
-  return legacyPages.map((page) => ({ slug: page.pathname.split("/").filter(Boolean) }));
+  const explicit = new Set(["/", "/producten/", "/aanbiedingen-2/", "/contact/", "/offerte-aanvragen/"]);
+  return legacyPages
+    .filter((page) => !explicit.has(page.pathname))
+    .map((page) => ({ slug: page.pathname.split("/").filter(Boolean) }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

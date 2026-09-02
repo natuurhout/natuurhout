@@ -8,15 +8,16 @@ import { ArrowRight, ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 export type NavCollection = {
   handle: string;
   title: string;
-  count: number;
+  count?: number;
   image?: { src: string; alt: string };
 };
 
 // Simple page links — labels/targets follow the live .be menu (URL parity).
 const pageLinks = [
+  { href: "/", label: "Home" },
   { href: "/aanbiedingen-2/", label: "Aanbiedingen" },
   { href: "/onze-realisaties/", label: "Realisaties" },
-  { href: "/natuurhoutadvies/", label: "Houtadvies" },
+  { href: "/offerte-aanvragen/", label: "Offerte aanvragen" },
   { href: "/over-ons/", label: "Over ons" },
   { href: "/contact/", label: "Contact" },
 ];
@@ -55,13 +56,6 @@ export default function MainNav({ collections }: { collections: NavCollection[] 
               className={`h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : ""}`}
             />
           </button>
-          <Link
-            href="/calculator/"
-            className="flex items-center border-b-2 border-transparent px-4 py-3 text-sm font-medium text-ink/70 transition-colors hover:text-ink"
-            onMouseEnter={() => setMegaOpen(false)}
-          >
-            Calculator
-          </Link>
           {pageLinks.map((l) => (
             <Link
               key={l.href}
@@ -102,7 +96,7 @@ export default function MainNav({ collections }: { collections: NavCollection[] 
                 {collections.map((c) => (
                   <Link
                     key={c.handle}
-                    href={`/producten/#${c.handle}`}
+                    href={c.handle}
                     onClick={() => setMegaOpen(false)}
                     className="group flex items-center gap-4 border-b border-line py-3"
                   >
@@ -115,9 +109,7 @@ export default function MainNav({ collections }: { collections: NavCollection[] 
                       <span className="block truncate text-sm font-medium text-ink group-hover:text-accent">
                         {c.title}
                       </span>
-                      <span className="text-xs text-ink/45">
-                        {c.count} {c.count === 1 ? "product" : "producten"}
-                      </span>
+                      {c.count !== undefined && <span className="text-xs text-ink/45">{c.count} {c.count === 1 ? "product" : "producten"}</span>}
                     </span>
                     <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-ink/25 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
                   </Link>
@@ -161,9 +153,9 @@ export default function MainNav({ collections }: { collections: NavCollection[] 
         <nav className="border-t border-line lg:hidden">
           <div className="space-y-1 px-4 py-4">
             {[{ href: "/producten/", label: "Producten & Prijzen" },
-              { href: "/calculator/", label: "Calculator" },
+              { href: "/shop/", label: "Shop" },
               ...pageLinks,
-              { href: "/offerte-aanvragen/", label: "Offerte aanvragen" }].map((l) => (
+            ].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}

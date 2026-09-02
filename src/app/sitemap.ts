@@ -6,12 +6,9 @@ const siteUrl = "https://www.natuurhout.be";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const core: MetadataRoute.Sitemap = [
-    { url: `${siteUrl}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${siteUrl}/producten/`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/shop/`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/shop/kastanje/`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/calculator/`, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${siteUrl}/aanbiedingen-2/`, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${siteUrl}/contact/`, changeFrequency: "yearly", priority: 0.7 },
-    { url: `${siteUrl}/offerte-aanvragen/`, changeFrequency: "yearly", priority: 0.8 },
   ];
   const legacy: MetadataRoute.Sitemap = legacyPages.map((page) => ({
     url: `${siteUrl}${page.pathname}`,
@@ -20,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: page.kind === "project" ? 0.7 : 0.6,
   }));
   const catalogue: MetadataRoute.Sitemap = products.map((product) => ({
-    url: `${siteUrl}/producten/${product.handle}/`,
+    url: `${siteUrl}/shop/${product.handle}/`,
     lastModified: product.publishedAt ? new Date(product.publishedAt) : undefined,
     changeFrequency: "weekly",
     priority: 0.7,
