@@ -8,6 +8,10 @@ const migrationDir = path.join(projectRoot, "migration");
 const snapshotDir = path.join(migrationDir, "html-snapshot");
 const inventoryPath = path.join(migrationDir, "url-inventory.csv");
 const outputPath = path.join(projectRoot, "src", "data", "legacy-pages.json");
+const productPath = path.join(projectRoot, "src", "data", "products.json");
+const productHandles = new Set(
+  JSON.parse(fs.readFileSync(productPath, "utf8")).map((product) => product.handle),
+);
 
 const redirects = new Set([
   "/afsluiting-hazelaar-kopen/",
@@ -54,6 +58,13 @@ function cleanUrl(value) {
     const url = new URL(value, "https://www.natuurhout.be");
     if (url.hostname === "www.natuurhout.be" || url.hostname === "natuurhout.be") {
       return `${url.pathname}${url.search}`;
+    }
+    if (url.hostname === "natuurhout.shop" && url.pathname === "/") {
+      return "/shop/";
+    }
+    if (url.hostname === "natuurhout.shop" && url.pathname.startsWith("/products/")) {
+      const handle = url.pathname.split("/").filter(Boolean)[1];
+      if (handle && productHandles.has(handle)) return `/shop/${handle}/`;
     }
     return url.toString();
   } catch {
@@ -115,10 +126,16 @@ function cleanLegacyHtml($, root) {
     }
 
     if (element.tagName?.toLowerCase() === "a") {
-      const href = cleanUrl(node.attr("href"));
+      const sourceHref = node.attr("href") || "";
+      const href = cleanUrl(sourceHref);
       if (href) node.attr("href", href);
       else node.removeAttr("href");
-      if (/^https?:\/\//.test(href)) node.attr("rel", "noopener");
+      if (/^https?:\/\//.test(href)) {
+        node.attr("rel", "noopener");
+      } else if (/^https?:\/\/(www\.)?natuurhout\.shop\//i.test(sourceHref)) {
+        node.removeAttr("target");
+        node.removeAttr("rel");
+      }
     }
 
     if (element.tagName?.toLowerCase() === "img") {

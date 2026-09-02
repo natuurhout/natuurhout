@@ -7,17 +7,17 @@ import { ArrowUpRight, Clock, Mail, MapPin, Phone, Smartphone } from "lucide-rea
 export default function Footer() {
   return (
     <footer className="bg-brand-dark text-white">
-      <div className="w-full px-4 py-16 sm:px-6 lg:px-10">
+      <div className="mx-auto w-full max-w-[1400px] px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div>
             <p className="font-display text-2xl font-semibold">Natuurhout</p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">
-              Specialist in kastanjehout — afsluitingen, poorten, palen en
+              Specialist in kastanjehout: afsluitingen, poorten, palen en
               tuinschermen uit Zele.
             </p>
             <Link
               href="/shop/"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
+              className="mt-6 inline-flex items-center gap-2 rounded-sm bg-accent px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-deep"
             >
               Naar de shop
               <ArrowUpRight className="h-4 w-4" />
@@ -72,7 +72,7 @@ export default function Footer() {
             </p>
             <ul className="mt-5 space-y-2.5 text-sm">
               {[
-                ["/veelgesteldevragen/", "Veelgestelde Vragen – FAQ"],
+                ["/veelgesteldevragen/", "Veelgestelde Vragen - FAQ"],
                 ["/tipsenideeen/", "Tips & Ideeën"],
                 ["/algemene-voorwaarden-van-beho-comm-v/", "Algemene voorwaarden"],
                 ["/gebruiksvoorwaarden/", "Gebruiksvoorwaarden"],
@@ -91,8 +91,8 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:px-6 lg:px-10">
-          <p>© {new Date().getFullYear()} Natuurhout — BEHO comm.v</p>
+        <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-white/50 sm:px-6 lg:px-8">
+          <p>© {new Date().getFullYear()} Natuurhout - BEHO comm.v</p>
           <p>Adolf Van Der Moerenstraat 39, 9240 Zele</p>
         </div>
       </div>

@@ -1,28 +1,26 @@
 import type { Config } from "tailwindcss";
 
-// Palette per Xander (2026-08-17): browns pulled from the actual Natuurhout
-// logo (logo-natuurhout-new-1.png → #504E44 olive-brown, #A05040 rust,
-// #E8A068 tan). Typography: Fraunces (display serif) + Instrument Sans,
-// self-hosted via next/font — see src/app/layout.tsx.
+// Preservation-led palette based on the original Natuurhout WordPress header:
+// cool greys, charcoal navigation and one practical orange accent.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        ground: "#F7F3EA", // warm paper background
-        ink: "#26221B", // near-black warm brown text
+        ground: "#F5F5F3",
+        ink: "#42474B",
         brand: {
-          DEFAULT: "#514E43", // logo olive-brown (mid surface / borders)
-          dark: "#2E2B24", // darkest surface: nav, footer, hero panel
-          soft: "#EDE7D8", // warm sand card surface
+          DEFAULT: "#565C62",
+          dark: "#303130",
+          soft: "#E7E8E7",
         },
         accent: {
-          DEFAULT: "#A25640", // logo rust — primary buttons/links
-          deep: "#874332", // rust hover
-          tan: "#DDA15E", // logo tan — secondary highlights
-          bright: "#E8B77D", // highlight text on dark surfaces
+          DEFAULT: "#D77D1F",
+          deep: "#B96512",
+          tan: "#CDA27A",
+          bright: "#F2A03D",
         },
-        line: "#E2DBC9", // hairline borders on light surfaces
+        line: "#D7D8D6",
       },
       fontFamily: {
         // One family (Satoshi) for body and display; headings differ by
@@ -31,7 +29,7 @@ const config: Config = {
         display: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        card: "1.25rem",
+        card: "0.375rem",
       },
     },
   },
