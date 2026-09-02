@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { siteIndexingEnabled } from "@/lib/site";
 import "./globals.css";
 
 // Satoshi (Fontshare, ITF Free Font License — see public/fonts/
@@ -44,8 +45,11 @@ export const metadata: Metadata = {
     // Everything is noindex until cutover, then this flips to
     // `index: true, "max-image-preview": "large"` (parity with live).
     // See migration/phase0-report.md — CUTOVER PLAN step 2.
-    index: false,
-    follow: false,
+    index: siteIndexingEnabled,
+    follow: siteIndexingEnabled,
+    googleBot: siteIndexingEnabled
+      ? { index: true, follow: true, "max-image-preview": "large" }
+      : { index: false, follow: false },
   },
 };
 

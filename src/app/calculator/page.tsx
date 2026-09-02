@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: "Afsluitingscalculator | Natuurhout",
   description:
     "Bereken een richtprijs voor uw houten afsluiting: kies houtsoort, hoogte en lengte en krijg meteen een aanbevolen materiaallijst met actuele webshopprijzen.",
+  alternates: { canonical: "https://www.natuurhout.be/calculator/" },
 };
 
 export default function CalculatorPage() {

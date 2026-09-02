@@ -3,7 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
+import JsonLd from "@/components/JsonLd";
 import { getProduct, products, relatedProducts } from "@/lib/catalog";
+import {
+  productBodyHtml,
+  productDescription,
+  productMetadataTitle,
+  productStructuredData,
+} from "@/lib/seo";
 
 export function generateStaticParams() {
   return products.map((product) => ({ handle: product.handle }));
@@ -13,10 +20,17 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   const { handle } = await params;
   const product = getProduct(handle);
   if (!product) return {};
+  const title = productMetadataTitle(product);
   return {
-    title: `${product.title} | Natuurhout`,
+    title,
+    description: productDescription(product),
     alternates: { canonical: `https://www.natuurhout.be/shop/${product.handle}/` },
-    openGraph: { images: product.images[0] ? [product.images[0].src] : [] },
+    openGraph: {
+      title,
+      description: productDescription(product),
+      url: `https://www.natuurhout.be/shop/${product.handle}/`,
+      images: product.images[0] ? [product.images[0].src] : [],
+    },
   };
 }
 
@@ -28,6 +42,7 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
 
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-10">
+      <JsonLd data={productStructuredData(product)} />
       <nav className="text-sm text-ink/60" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li><Link href="/" className="hover:text-accent">Home</Link></li>
@@ -57,7 +72,7 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
           {product.bodyHtml ? (
             <div
               className="mt-5 max-w-3xl space-y-3 text-ink/80 [&_a]:text-accent [&_a]:underline [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink [&_h4]:text-lg [&_h4]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-ink"
-              dangerouslySetInnerHTML={{ __html: product.bodyHtml }}
+              dangerouslySetInnerHTML={{ __html: productBodyHtml(product) }}
             />
           ) : <p className="mt-5 text-ink/60">Meer informatie volgt.</p>}
         </div>

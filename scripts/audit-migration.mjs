@@ -20,6 +20,8 @@ const redirects = new Set([
   "/lariks-schaaldelen-kopen-vlaanderen/",
   "/moestuinbak-kopen-vlaanderen/",
   "/plantenbakken-kopen/",
+  "/homepage-natuurhout-kastanje-afsluiting-kastanjehouten-hekwerk-2/",
+  "/homepage-natuurhout-kastanje-afsluiting-kastanjehouten-hekwerk/",
 ]);
 const intentionallyEmpty = new Set(["/logout/"]);
 const generated = new Set(legacyPages.map((page) => page.pathname));

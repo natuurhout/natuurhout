@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowUpRight, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatPrice, type Product } from "@/lib/catalog";
+import { productDescription } from "@/lib/seo";
 
 /*
  * Product detail interaction — layout references the kastanjegjerde.no
@@ -111,6 +112,9 @@ export default function ProductDetail({ product }: { product: Product }) {
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
           {product.title}
         </h1>
+        <p className="mt-4 max-w-xl leading-7 text-ink/75">
+          {productDescription(product)}
+        </p>
 
         {axes ? (
           <div className="mt-6 space-y-5">

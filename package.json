@@ -11,7 +11,8 @@
     "migration:audit": "node scripts/audit-migration.mjs",
     "migration:assets": "node scripts/fetch-legacy-assets.mjs",
     "migration:assets:prune": "node scripts/prune-legacy-assets.mjs",
-    "migration:audit:built": "node scripts/audit-built-parity.mjs && node scripts/audit-built-assets.mjs"
+    "migration:audit:built": "node scripts/audit-built-parity.mjs && node scripts/audit-built-assets.mjs",
+    "seo:audit": "node scripts/audit-seo-geo.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.32.0",

@@ -25,10 +25,11 @@ const redirects = new Set([
   "/lariks-schaaldelen-kopen-vlaanderen/",
   "/moestuinbak-kopen-vlaanderen/",
   "/plantenbakken-kopen/",
+  "/homepage-natuurhout-kastanje-afsluiting-kastanjehouten-hekwerk-2/",
+  "/homepage-natuurhout-kastanje-afsluiting-kastanjehouten-hekwerk/",
 ]);
 
 const semanticSelector = "h1,h2,h3,h4,p,ul,ol,blockquote,table,img";
-
 function pathnameFor(url) {
   const pathname = new URL(url).pathname;
   return pathname === "/" ? pathname : `${pathname.replace(/\/+$/, "")}/`;
@@ -72,6 +73,19 @@ function cleanUrl(value) {
   } catch {
     return "";
   }
+}
+
+function localizeStructuredData(value) {
+  if (Array.isArray(value)) return value.map(localizeStructuredData);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [key, localizeStructuredData(child)]),
+    );
+  }
+  if (typeof value !== "string") return value;
+  return value
+    .replaceAll("https://www.natuurhout.be/wp-content/uploads/", "/wp-content/uploads/")
+    .replaceAll("https://natuurhout.be/wp-content/uploads/", "/wp-content/uploads/");
 }
 
 function localUploadPath(value) {
@@ -151,6 +165,72 @@ function selectContentRoot($) {
   const generalContent = $(".gdlr-content").first();
   if (generalContent.length) return generalContent;
   return null;
+}
+
+function normalizePrimaryHeading($, root, heading) {
+  root.find("h1").each((_, element) => {
+    if (!$(element).text().replace(/\s+/g, " ").trim()) $(element).remove();
+  });
+
+  const expected = heading.replace(/\s+/g, " ").trim().toLocaleLowerCase("nl");
+  const primaryHeadings = root.find("h1").toArray();
+  if (primaryHeadings.length) {
+    const exact = primaryHeadings.find(
+      (element) => $(element).text().replace(/\s+/g, " ").trim().toLocaleLowerCase("nl") === expected,
+    );
+    const primary = exact || primaryHeadings[0];
+    for (const element of primaryHeadings) {
+      if (element === primary) continue;
+      element.tagName = "h2";
+      element.name = "h2";
+      $(element).attr("data-seo-demoted-heading", "true");
+    }
+    return;
+  }
+
+  const headings = root.find("h2,h3,h4");
+  const exact = headings
+    .toArray()
+    .find((element) => $(element).text().replace(/\s+/g, " ").trim().toLocaleLowerCase("nl") === expected);
+  if (!exact) {
+    root.prepend($("<h1>").attr("data-seo-promoted-heading", "true").text(heading));
+    return;
+  }
+  exact.tagName = "h1";
+  exact.name = "h1";
+  $(exact).attr("data-seo-promoted-heading", "true");
+}
+
+function truncateDescription(value, maxLength = 155) {
+  if (value.length <= maxLength) return value;
+  const clipped = value.slice(0, maxLength - 1);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return `${clipped.slice(0, lastSpace > 110 ? lastSpace : clipped.length).trimEnd()}…`;
+}
+
+function fallbackDescription(pathname, heading, html) {
+  if (pathname.startsWith("/tag/")) {
+    return truncateDescription(`Artikelen met het onderwerp ${heading} bij Natuurhout.`);
+  }
+  if (pathname.startsWith("/category/")) {
+    return truncateDescription(`Bekijk artikelen in de categorie ${heading} bij Natuurhout.`);
+  }
+  if (pathname.startsWith("/project_category/")) {
+    return truncateDescription(`Bekijk projecten en voorbeelden in de categorie ${heading} bij Natuurhout.`);
+  }
+  if (pathname === "/project/" || pathname === "/projecten/") {
+    return "Bekijk realisaties, geplaatste afsluitingen, poorten en andere projecten van Natuurhout.";
+  }
+
+  const text = cheerio.load(html, null, false).text().replace(/\s+/g, " ").trim();
+  const withoutRepeatedHeading = text.toLocaleLowerCase("nl").startsWith(heading.toLocaleLowerCase("nl"))
+    ? text.slice(heading.length).replace(/^\s*[.:-]?\s*/, "")
+    : text;
+  return truncateDescription(
+    withoutRepeatedHeading
+      ? `${heading}. ${withoutRepeatedHeading}`
+      : `${heading}. Informatie van Natuurhout in Zele.`,
+  );
 }
 
 function cleanLegacyHtml($, root) {
@@ -284,9 +364,22 @@ for (const row of rows) {
 
   const html = fs.readFileSync(sourcePath, "utf8");
   const $ = cheerio.load(html);
+  const structuredDataSource = $('script.aioseo-schema[type="application/ld+json"]').first().html()?.trim();
+  let structuredData;
+  if (structuredDataSource) {
+    try {
+      structuredData = localizeStructuredData(JSON.parse(structuredDataSource));
+    } catch {
+      warnings.push(`${pathname}: invalid AIOSEO JSON-LD`);
+    }
+  }
   const root = selectContentRoot($);
-  const blocks = root ? extractBlocks($, root) : [];
-  const htmlContent = root ? cleanLegacyHtml($, root) : "";
+  const heading = displayHeading(row);
+  if (root) normalizePrimaryHeading($, root, heading);
+  const blocks = root ? extractBlocks($, root) : [{ type: "heading", level: 1, text: heading }];
+  const htmlContent = root
+    ? cleanLegacyHtml($, root)
+    : `<h1 data-seo-promoted-heading="true">${heading.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</h1>`;
   const lastModified = $("meta[property='article:modified_time']").attr("content") || undefined;
 
   if (blocks.length === 0) warnings.push(`${pathname}: no content blocks extracted`);
@@ -295,10 +388,11 @@ for (const row of rows) {
     pathname,
     kind: pageKind(pathname),
     title: row.title || row.h1 || "Natuurhout",
-    description: row.meta_description || "",
-    heading: displayHeading(row),
+    description: row.meta_description || fallbackDescription(pathname, heading, htmlContent),
+    heading,
     canonical: row.canonical || row.url,
     schemaTypes: (row.schema_types || "").split(",").filter(Boolean),
+    structuredData,
     lastModified,
     sourceFile,
     html: htmlContent,

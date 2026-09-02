@@ -6,6 +6,7 @@ import { collectionProducts, collections, uncollectedProducts } from "@/lib/cata
 export const metadata: Metadata = {
   title: "Shop | Natuurhout",
   description: "Bekijk het volledige assortiment natuurhout, hekwerk, palen, poorten en plaatsingsmateriaal.",
+  alternates: { canonical: "https://www.natuurhout.be/shop/" },
 };
 
 export default function ShopPage() {

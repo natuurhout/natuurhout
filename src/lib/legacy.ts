@@ -13,6 +13,7 @@ export type LegacyPage = {
   heading: string;
   canonical: string;
   schemaTypes: string[];
+  structuredData?: Record<string, unknown>;
   lastModified?: string;
   sourceFile: string;
   html: string;
@@ -20,6 +21,28 @@ export type LegacyPage = {
 };
 
 export const legacyPages = legacyPagesJson as LegacyPage[];
+
+const permanentNoindexPaths = new Set([
+  "/change-password/",
+  "/logout/",
+  "/lost-password/",
+  "/project/",
+  "/verzoek-toegang-tot-data/",
+  "/view-order/",
+]);
+
+export function isPermanentlyNoindexLegacyPath(pathname: string) {
+  if (permanentNoindexPaths.has(pathname)) return true;
+  if (pathname.startsWith("/tag/") || pathname.startsWith("/project_category/")) return true;
+  return /^\/category\/(?:fit-row|life-style|post-slider|uncategorized|video)\/$/.test(pathname);
+}
+
+export function legacyMetadataTitle(page: LegacyPage) {
+  if (page.pathname === "/project/project-overmere-2/") {
+    return "Project Overmere – Schutting in lariks schaaldelen | Natuurhout";
+  }
+  return page.title;
+}
 
 export function legacyPathname(slug: string[]) {
   return `/${slug.join("/")}/`;

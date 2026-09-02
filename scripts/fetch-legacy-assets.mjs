@@ -6,6 +6,7 @@ const publicDir = path.join(root, "public");
 const pages = JSON.parse(fs.readFileSync(path.join(root, "src", "data", "legacy-pages.json"), "utf8"));
 const sourceFiles = [
   ...pages.map((page) => page.html),
+  ...pages.map((page) => JSON.stringify(page.structuredData || {})),
   fs.readFileSync(path.join(root, "src", "components", "Navbar.tsx"), "utf8"),
 ];
 

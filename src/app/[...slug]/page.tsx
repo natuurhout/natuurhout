@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import LegacyContent from "@/components/LegacyContent";
-import { getLegacyPage, legacyPages } from "@/lib/legacy";
+import {
+  getLegacyPage,
+  isPermanentlyNoindexLegacyPath,
+  legacyMetadataTitle,
+  legacyPages,
+} from "@/lib/legacy";
+import { siteIndexingEnabled } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string[] }> };
 
@@ -16,13 +22,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = getLegacyPage(slug);
   if (!page) return {};
+  const title = legacyMetadataTitle(page);
 
   return {
-    title: page.title,
+    title,
     description: page.description || undefined,
     alternates: { canonical: page.canonical },
+    robots: !siteIndexingEnabled || isPermanentlyNoindexLegacyPath(page.pathname)
+      ? { index: false, follow: false }
+      : undefined,
     openGraph: {
-      title: page.title,
+      title,
       description: page.description || undefined,
       url: page.canonical,
       locale: "nl_BE",
