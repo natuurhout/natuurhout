@@ -9,6 +9,8 @@ const snapshotDir = path.join(migrationDir, "html-snapshot");
 const inventoryPath = path.join(migrationDir, "url-inventory.csv");
 const outputPath = path.join(projectRoot, "src", "data", "legacy-pages.json");
 const productPath = path.join(projectRoot, "src", "data", "products.json");
+const publicUploadsDir = path.resolve(projectRoot, "public", "wp-content", "uploads");
+const uploadsPrefix = "/wp-content/uploads/";
 const productHandles = new Set(
   JSON.parse(fs.readFileSync(productPath, "utf8")).map((product) => product.handle),
 );
@@ -70,6 +72,49 @@ function cleanUrl(value) {
   } catch {
     return "";
   }
+}
+
+function localUploadPath(value) {
+  const cleaned = cleanUrl(value);
+  if (!cleaned.startsWith(uploadsPrefix)) return "";
+
+  const pathname = cleaned.split(/[?#]/, 1)[0];
+  if (!/\.(?:avif|gif|jpe?g|png|webp)$/i.test(pathname)) return "";
+  return pathname;
+}
+
+function publicUploadExists(pathname) {
+  try {
+    const decoded = decodeURIComponent(pathname);
+    const target = path.resolve(projectRoot, "public", `.${decoded}`);
+    if (!target.startsWith(`${publicUploadsDir}${path.sep}`)) return false;
+    return fs.existsSync(target) && fs.statSync(target).size > 0;
+  } catch {
+    return false;
+  }
+}
+
+function unsizedUploadPath(pathname) {
+  return pathname.replace(/-\d+x\d+(?=\.[^./]+$)/i, "");
+}
+
+function preferredImageSource(node) {
+  const currentSource = node.attr("src") || node.attr("data-lazy-src") || "";
+  const candidates = [];
+  const addCandidate = (value) => {
+    const pathname = localUploadPath(value);
+    if (pathname && !candidates.includes(pathname)) candidates.push(pathname);
+  };
+
+  addCandidate(node.attr("data-orig-file"));
+  addCandidate(node.attr("data-large-file"));
+  addCandidate(node.closest("a[href]").first().attr("href"));
+
+  const currentPath = localUploadPath(currentSource);
+  if (currentPath) addCandidate(unsizedUploadPath(currentPath));
+  addCandidate(currentSource);
+
+  return candidates.find(publicUploadExists) || currentPath || currentSource;
 }
 
 function cleanInline($, element, allowedTags) {
@@ -139,8 +184,13 @@ function cleanLegacyHtml($, root) {
     }
 
     if (element.tagName?.toLowerCase() === "img") {
-      const src = node.attr("src") || node.attr("data-lazy-src");
+      const currentSource = node.attr("src") || node.attr("data-lazy-src") || "";
+      const src = preferredImageSource(node);
       if (src) node.attr("src", src);
+      if (localUploadPath(currentSource) !== src) {
+        node.removeAttr("width");
+        node.removeAttr("height");
+      }
       node.removeAttr("data-lazy-src");
       node.removeAttr("srcset");
       node.removeAttr("data-srcset");
@@ -180,8 +230,9 @@ function extractBlocks($, root) {
     }
 
     if (tag === "img") {
-      const src = $(element).attr("src") || $(element).attr("data-lazy-src") || "";
-      if (!/^https:\/\/(www\.)?natuurhout\.be\/wp-content\/uploads\//i.test(src)) return;
+      const node = $(element);
+      const src = preferredImageSource(node);
+      if (!localUploadPath(src)) return;
       blocks.push({
         type: "image",
         src,

@@ -37,16 +37,35 @@ const empty = legacyPages
 const duplicatePaths = legacyPages
   .map((page) => page.pathname)
   .filter((pathname, index, all) => all.indexOf(pathname) !== index);
+const lowResolutionImageSources = legacyPages.flatMap((page) => {
+  const matches = page.html.matchAll(
+    /<img\b[^>]*\bsrc=(["'])([^"']*-150x150\.(?:jpe?g|png|webp|gif)(?:\?[^"']*)?)\1/gi,
+  );
+
+  return Array.from(matches, (match) => `${page.pathname}: ${match[2]}`);
+});
 
 console.log(`WordPress baseline: ${baseline.length} URLs`);
 console.log(`Preserved live redirects: ${redirects.size}`);
 console.log(`Generated legacy routes: ${generated.size}`);
 console.log(`Missing baseline routes: ${missing.length}`);
 console.log(`Generated routes without content: ${empty.length}`);
+console.log(`Low-resolution 150x150 image sources: ${lowResolutionImageSources.length}`);
 
 if (missing.length) console.error(`Missing:\n${missing.join("\n")}`);
 if (empty.length) console.error(`Empty:\n${empty.join("\n")}`);
 if (duplicatePaths.length) console.error(`Duplicates:\n${duplicatePaths.join("\n")}`);
+if (lowResolutionImageSources.length) {
+  console.error(`Low-resolution image sources:\n${lowResolutionImageSources.join("\n")}`);
+}
 
-if (missing.length || empty.length || duplicatePaths.length || baseline.length !== 128) process.exit(1);
+if (
+  missing.length ||
+  empty.length ||
+  duplicatePaths.length ||
+  lowResolutionImageSources.length ||
+  baseline.length !== 128
+) {
+  process.exit(1);
+}
 console.log("Migration route/content gate passed.");
