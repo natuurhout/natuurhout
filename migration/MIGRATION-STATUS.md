@@ -20,6 +20,9 @@ Updated: 2026-09-02
 - `npm audit` reports zero known vulnerabilities.
 - Browser checks passed for the homepage, a long article, and an image-heavy
   project page on the local production server.
+- The GitHub-connected Vercel project deployed the main branch successfully as
+  a protected Production deployment. Authenticated deployment checks confirmed
+  the contact page, article, project page, and the final 161-URL sitemap.
 
 ## Implemented in this pass
 
@@ -50,8 +53,10 @@ Updated: 2026-09-02
 5. **Legacy cleanup decision:** `/logout/` is an empty WordPress account remnant.
    The rebuild currently preserves a 200 route. Approve a 301 or 410 together
    with the other kill-list candidates in `phase0-report.md` before launch.
-6. **Deployment:** no Vercel production project, domain binding, DNS change, or
-   WordPress shutdown was performed in this pass.
+6. **Cutover deployment:** the Vercel project is connected and builds `main`, but
+   deployment protection is active and `natuurhout.be` still points to
+   WordPress. No domain binding, DNS change, indexing change, or WordPress
+   shutdown was performed in this pass.
 
 ## Cutover sequence
 
