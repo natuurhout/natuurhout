@@ -9,6 +9,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${siteUrl}/producten/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${siteUrl}/calculator/`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${siteUrl}/aanbiedingen-2/`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteUrl}/contact/`, changeFrequency: "yearly", priority: 0.7 },
+    { url: `${siteUrl}/offerte-aanvragen/`, changeFrequency: "yearly", priority: 0.8 },
   ];
   const legacy: MetadataRoute.Sitemap = legacyPages.map((page) => ({
     url: `${siteUrl}${page.pathname}`,
