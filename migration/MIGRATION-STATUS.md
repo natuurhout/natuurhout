@@ -23,8 +23,10 @@ Updated: 2026-09-02
   image-heavy kastanje project page, and `/shop/kastanje-rasterwerk/` on the
   local production server.
 - The GitHub-connected Vercel project deployed the main branch successfully as
-  a protected Production deployment. Authenticated deployment checks confirmed
-  the contact page, article, project page, and the final 161-URL sitemap.
+  Production at `https://natuurhout.vercel.app` from commit `92c6bb8`.
+  Deployed browser checks confirmed the kastanje project page, its nine local
+  images and price table, the shop product and category routes, and the old
+  staging product redirect. The sitemap contains 163 unique URLs.
 
 ## Implemented in this pass
 
