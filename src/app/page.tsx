@@ -47,7 +47,11 @@ export default function Home() {
                   hoogwaardige houtconstructies voor buitengebruik van
                   Natuurhout.be uit Zele. Als ervaren specialist in natuurhout
                   creëren wij tijdloze oplossingen voor tuinen, opritten en
-                  buitenruimtes.
+                  buitenruimtes. Dankzij een diepgewortelde passie voor ambacht
+                  en vakmanschap werken wij uitsluitend met duurzame houtsoorten
+                  die bestand zijn tegen weer en wind. Elk project wordt met de
+                  grootste zorg uitgevoerd, waarbij esthetiek en functionaliteit
+                  hand in hand gaan.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-4">
                   <Button href="/producten/">Bekijk producten</Button>

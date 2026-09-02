@@ -1,5 +1,9 @@
 # migration/ — Phase 0 inventory artifacts (natuurhout.be → Next.js)
 
+Current implementation and cutover blockers are tracked in
+`MIGRATION-STATUS.md`. The files below remain the frozen 2026-08-16 source
+baseline.
+
 Generated 2026-08-16 from a live crawl of https://www.natuurhout.be/.
 
 - `phase0-report.md` — the Phase 0 report: archetypes, tracking, forms, media, shop links, kill-list proposal, open questions. **Read this first.**
