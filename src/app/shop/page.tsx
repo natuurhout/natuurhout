@@ -24,7 +24,7 @@ export default function ShopPage() {
         return (
           <section key={collection.handle} id={collection.handle} className="mt-14 scroll-mt-24">
             <h2 className="font-display text-2xl font-semibold text-ink">{collection.title}</h2>
-            <div className="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
               {items.map((product) => <ProductCard key={product.handle} product={product} />)}
             </div>
           </section>
@@ -34,7 +34,7 @@ export default function ShopPage() {
       {overige.length > 0 && (
         <section id="overige" className="mt-14 scroll-mt-24">
           <h2 className="font-display text-2xl font-semibold text-ink">Overige producten</h2>
-          <div className="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
             {overige.map((product) => <ProductCard key={product.handle} product={product} />)}
           </div>
         </section>

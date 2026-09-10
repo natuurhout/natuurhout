@@ -95,6 +95,34 @@ export function relatedProducts(product: Product, limit = 4): Product[] {
   return out;
 }
 
+/**
+ * Shopify keeps `compare_at` even when it no longer undercuts the price, so a
+ * value only counts as a discount when it is genuinely higher than what the
+ * customer pays. Returns the "was" price, or null when there is no sale.
+ */
+export function compareAtPrice(variant: ProductVariant): number | null {
+  if (!variant.compare_at) return null;
+  const was = parseFloat(variant.compare_at);
+  const now = parseFloat(variant.price);
+  if (!Number.isFinite(was) || !Number.isFinite(now)) return null;
+  return was > now ? was : null;
+}
+
+/** Whole-percent saving on a variant, or null when it is not discounted. */
+export function discountPercent(variant: ProductVariant): number | null {
+  const was = compareAtPrice(variant);
+  if (was === null) return null;
+  return Math.round((1 - parseFloat(variant.price) / was) * 100);
+}
+
+/** Best saving across a product's variants — drives the listing badge. */
+export function productDiscountPercent(product: Product): number | null {
+  const percentages = product.variants
+    .map(discountPercent)
+    .filter((n): n is number => n !== null);
+  return percentages.length ? Math.max(...percentages) : null;
+}
+
 export function formatPrice(p: string | number): string {
   const n = typeof p === "number" ? p : parseFloat(p);
   return `€${n.toFixed(2).replace(".", ",")}`;

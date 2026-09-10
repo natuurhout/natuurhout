@@ -40,8 +40,12 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
   if (!product) notFound();
   const related = relatedProducts(product, 4);
 
+  // Shop pages are additive (they are not in the frozen WordPress inventory),
+  // so this route uses a capped reading width instead of the full-bleed
+  // container the migrated pages need. Order follows the conventional
+  // storefront funnel: buy box, then detail, then cross-sell.
   return (
-    <div className="w-full px-4 py-8 sm:px-6 lg:px-10">
+    <div className="mx-auto w-full max-w-[80rem] px-4 py-8 sm:px-6 lg:px-10">
       <JsonLd data={productStructuredData(product)} />
       <nav className="text-sm text-ink/60" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1.5">
@@ -55,16 +59,7 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
 
       <div className="mt-6"><ProductDetail product={product} /></div>
 
-      {related.length > 0 && (
-        <section className="mt-16">
-          <h2 className="text-center font-display text-2xl font-semibold">Bijhorende producten</h2>
-          <div className="mt-6 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((item) => <ProductCard key={item.handle} product={item} />)}
-          </div>
-        </section>
-      )}
-
-      <section className="mt-16 grid gap-8 lg:grid-cols-[1fr_320px]">
+      <section className="mt-16 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
           <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
             <span aria-hidden className="h-px w-8 bg-accent" />Detailbeschrijving
@@ -78,10 +73,17 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
         </div>
         <aside className="space-y-4">
           <div className="rounded-card border border-line bg-white p-6">
-            <p className="font-display text-lg font-semibold">Waarom Natuurhout?</p>
-            <ul className="mt-3 space-y-2 text-sm text-ink/70">
-              <li>✓ Duurzame Producten</li><li>✓ Levering mogelijk</li><li>✓ +15 jaar ervaring</li><li>✓ Groot assortiment</li>
-            </ul>
+            <p className="font-display text-lg font-semibold">Vragen over dit product?</p>
+            <p className="mt-2 text-sm text-ink/70">
+              Bel of mail ons voor advies op maat, een prijs voor een grotere hoeveelheid of een afspraak in Zele.
+            </p>
+            <div className="mt-4 space-y-1.5 text-sm">
+              <a href="tel:+3252558858" className="block font-medium text-accent hover:text-accent-deep">+32 5 255 88 58</a>
+              <a href="mailto:info@natuurhout.be" className="block text-ink/70 hover:text-accent">info@natuurhout.be</a>
+            </div>
+            <Link href="/offerte-aanvragen/" className="mt-4 inline-flex text-sm font-medium text-accent hover:text-accent-deep">
+              Offerte aanvragen →
+            </Link>
           </div>
           <div className="rounded-card bg-brand-dark p-6 text-white">
             <p className="font-display text-lg font-semibold">Complete afsluiting?</p>
@@ -90,6 +92,20 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
           </div>
         </aside>
       </section>
+
+      {related.length > 0 && (
+        <section className="mt-16 border-t border-line pt-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="font-display text-2xl font-semibold">Bijhorende producten</h2>
+            <Link href="/shop/" className="text-sm font-medium text-accent hover:text-accent-deep">
+              Bekijk het volledige assortiment →
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+            {related.map((item) => <ProductCard key={item.handle} product={item} />)}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function KastanjeShopPage() {
       <p className="mt-10 text-xs font-semibold uppercase tracking-[0.22em] text-accent">Shopcategorie</p>
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight sm:text-6xl">Kastanje</h1>
       <p className="mt-5 max-w-2xl leading-7 text-ink/70">Alle producten van duurzaam Europees kastanjehout bij elkaar.</p>
-      <div className="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
         {kastanjeProducts.map((product) => <ProductCard key={product.handle} product={product} />)}
       </div>
     </div>

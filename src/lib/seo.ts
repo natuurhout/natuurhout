@@ -32,6 +32,25 @@ export function productDescription(product: Product) {
   return contextual.length <= 155 ? contextual : `${contextual.slice(0, 152).trimEnd()}…`;
 }
 
+/**
+ * On-page lead for the buy panel. Unlike productDescription() this is not
+ * clipped to a meta-description budget and never repeats the title that the
+ * h1 already carries, so the panel opens with whole sentences.
+ */
+export function productLead(product: Product) {
+  const text = plainTextFromHtml(product.bodyHtml);
+  if (!text) return `${product.title} van Natuurhout.`;
+  if (text.length <= 260) return text;
+  const clipped = text.slice(0, 260);
+  const sentenceEnd = Math.max(
+    clipped.lastIndexOf(". "),
+    clipped.lastIndexOf("! "),
+    clipped.lastIndexOf("? "),
+  );
+  if (sentenceEnd > 90) return clipped.slice(0, sentenceEnd + 1).trim();
+  return `${clipped.slice(0, clipped.lastIndexOf(" ")).trimEnd()}…`;
+}
+
 export function productBodyHtml(product: Product) {
   return product.bodyHtml
     .replace(/<h1\b/gi, "<h2")
