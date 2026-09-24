@@ -1,0 +1,10 @@
+{
+  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate.",
+  "routes": [
+    {
+      "pathname": "/",
+      "approvedBy": "Xander",
+      "reason": "Homepage rebuilt as a storefront: category tiles, per-collection product rails, company/SEO copy and the Natuurhout mascot. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go."
+    }
+  ]
+}
