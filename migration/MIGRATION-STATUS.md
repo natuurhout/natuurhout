@@ -22,8 +22,12 @@ Updated: 2026-09-02
 - Browser checks passed for the homepage, the legacy `/producten/` grid, the
   image-heavy kastanje project page, and `/shop/kastanje-rasterwerk/` on the
   local production server.
-- The GitHub-connected Vercel project deployed the main branch successfully as
-  Production at `https://natuurhout.vercel.app` from commit `92c6bb8`.
+- The GitHub-connected Vercel project (team "Natuurhout", project
+  `natuurhout`) deploys every push to `main` as Production. Its project domain
+  is `https://natuurhout-ten.vercel.app`. `natuurhout.vercel.app` is NOT this
+  project — it serves an old build and never updates; do not use it to check
+  a deploy. Each commit's exact deployment URL is on its GitHub deployment
+  status.
   Deployed browser checks confirmed the kastanje project page, its nine local
   images and price table, the shop product and category routes, and the old
   staging product redirect. The sitemap contains 163 unique URLs.
