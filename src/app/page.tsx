@@ -40,13 +40,15 @@ const usps = [
   { icon: Store, title: "Groot assortiment", text: "Hekwerk, poorten, palen en plaatsingsmateriaal." },
 ];
 
-// Labels and hrefs are the snapshot's own — link targets stay untouched so
-// the homepage keeps feeding the same pages. Images are the lead photo of
-// each destination page.
+// Labels and hrefs are the snapshot's own, so the homepage keeps feeding the
+// same pages. One exception, recorded in migration/handbuilt-routes.json:
+// WordPress pointed "Hazelaar Rasterwerk" at /project/robiniarasterwerk/,
+// which 301s to the robinia page; it now goes to the hazelaar page itself.
+// Images are the lead photo of each destination page.
 const categories = [
   { label: "Kastanje Rasterwerk", href: "/project/rasterwerk-kastanjehout/", src: "/wp-content/uploads/2023/01/Kastanjeafsluiting3-scaled.jpg" },
   { label: "Franse Poorten", href: "/project/franse-poorten/", src: "/wp-content/uploads/2024/10/Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Religieuze-Labels-1.png" },
-  { label: "Hazelaar Rasterwerk", href: "/project/robiniarasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
+  { label: "Hazelaar Rasterwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
   { label: "Franse Maatwerk poorten", href: "/project/maatwerk-poorten/", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
   { label: "Kastanje Palen", href: "/project/kastanjepalen/", src: "/wp-content/uploads/2016/01/901799_752360984796607_487253914146542605_o.jpg" },
   { label: "Lariks Schaal delen", href: "/project/lariks-schaal-delen-2/", src: "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-scaled.jpg" },

@@ -7,6 +7,8 @@ import {
   compareAtPrice,
   discountPercent,
   formatPrice,
+  shopCartAddUrl,
+  shopVariantUrl,
   type Product,
 } from "@/lib/catalog";
 import { productLead } from "@/lib/seo";
@@ -15,8 +17,8 @@ import { productLead } from "@/lib/seo";
  * Product detail interaction — layout references the kastanjegjerde.no
  * product page: gallery + thumbnails left; title, option chips, price,
  * quantity and CTA right. Variant titles/prices are verbatim shop data.
- * There is no cart on this site: the CTA deep-links to the webshop with
- * the chosen variant preselected (rule 8 — the shop handles purchases).
+ * There is no cart on this site: the CTA adds the chosen variant and
+ * quantity to the natuurhout.shop cart (rule 8 — the shop handles purchases).
  *
  * The media frame is square because 103 of the catalogue's ~150 shop photos
  * are 1:1; a landscape frame letterboxed most of them into empty space.
@@ -84,18 +86,15 @@ export default function ProductDetail({ product }: { product: Product }) {
     if (v) setVariantId(v.id);
   }
 
-  const shopHref = variant
-    ? `${product.shopUrl}?variant=${variant.id}`
-    : product.shopUrl;
+  // Available variants go straight into the webshop cart with the chosen
+  // quantity; a sold-out one cannot be added, so it opens the product page.
+  const canAdd = Boolean(variant?.available);
+  const shopHref =
+    variant && canAdd ? shopCartAddUrl(product, variant, qty) : shopVariantUrl(product, variant);
   const img = product.images[imageIdx] ?? product.images[0];
   const wasPrice = variant ? compareAtPrice(variant) : null;
   const saving = variant ? discountPercent(variant) : null;
   const unitPrice = variant ? parseFloat(variant.price) : 0;
-
-  // A single "Default Title" variant is Shopify's placeholder for a product
-  // without options — there is nothing for the customer to choose.
-  const hasChoice =
-    product.variants.length > 1 || (variant && variant.title !== "Default Title");
 
   const chipClass = (state: "active" | "available" | "soldOut") =>
     `rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
@@ -280,14 +279,14 @@ export default function ProductDetail({ product }: { product: Product }) {
             rel="noopener"
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
           >
-            Bestel in de webshop
+            {canAdd ? "In winkelmand" : "Bekijk in de webshop"}
             <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>
         <p className="mt-2.5 text-xs text-ink/55">
-          {hasChoice
-            ? "Uw keuze staat klaar op natuurhout.shop — daar rondt u de bestelling en betaling af."
-            : "Bestellen en betalen verloopt via natuurhout.shop."}
+          {canAdd
+            ? `Opent natuurhout.shop met ${qty} × dit product in uw winkelmand — daar rekent u af.`
+            : "Deze uitvoering is uitverkocht — kies een andere of neem contact met ons op."}
         </p>
 
         {/* Assurances */}

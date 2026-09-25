@@ -128,6 +128,17 @@ export function formatPrice(p: string | number): string {
   return `€${n.toFixed(2).replace(".", ",")}`;
 }
 
+/**
+ * Adds a variant to the customer's cart on natuurhout.shop and opens the cart.
+ * Shopify's GET /cart/add keeps whatever is already in the cart, unlike the
+ * /cart/{id}:{qty} permalink, which replaces it and jumps to checkout.
+ */
+export function shopCartAddUrl(product: Product, variant: ProductVariant, quantity: number): string {
+  const origin = new URL(product.shopUrl).origin;
+  const qty = Math.max(1, Math.floor(quantity));
+  return `${origin}/cart/add?id=${variant.id}&quantity=${qty}`;
+}
+
 /** Deep link that preselects a variant in the webshop. */
 export function shopVariantUrl(product: Product, variant?: ProductVariant): string {
   return variant ? `${product.shopUrl}?variant=${variant.id}` : product.shopUrl;

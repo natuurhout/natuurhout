@@ -71,7 +71,13 @@ function auditHandBuilt(page, route, built$) {
   );
   const sourceHrefs = [...new Set(source$("a[href]").map((_, a) => source$(a).attr("href")).get())]
     .filter((href) => href.startsWith("/"));
-  const dropped = sourceHrefs.filter((href) => !builtPaths.has(linkPath(href)));
+  // An approved retarget counts as preserved only if its replacement is live.
+  const retargeted = route.retargetedLinks ?? {};
+  const dropped = sourceHrefs.filter((href) => {
+    if (builtPaths.has(linkPath(href))) return false;
+    const replacement = retargeted[href];
+    return !(replacement?.to && replacement.reason && builtPaths.has(linkPath(replacement.to)));
+  });
   if (dropped.length) {
     failures.push(`${where}: internal links dropped -> ${dropped.join(", ")}`);
   }
