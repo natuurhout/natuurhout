@@ -12,9 +12,8 @@ import type { Product } from "@/lib/catalog";
  * progressive enhancement and sit inside the header row rather than floating
  * over it, where they used to cover the "Alles bekijken" link.
  *
- * Only groups with enough products to fill a row get a rail — the page merges
- * the smaller collections into one grid instead, so no row is left with a
- * single card and three empty columns.
+ * The homepage curates its sections so each holds enough products to fill a
+ * row; a rail with one card would leave three empty columns beside it.
  */
 
 export default function ProductSlider({

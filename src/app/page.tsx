@@ -4,8 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import ProductSlider from "@/components/ProductSlider";
-import ProductCard from "@/components/ProductCard";
-import { collectionProducts, collections } from "@/lib/catalog";
+import { getProduct, products, type Product } from "@/lib/catalog";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
@@ -44,18 +43,19 @@ const usps = [
 // same pages. One exception, recorded in migration/handbuilt-routes.json:
 // WordPress pointed "Hazelaar Rasterwerk" at /project/robiniarasterwerk/,
 // which 301s to the robinia page; it now goes to the hazelaar page itself.
-// Images are the lead photo of each destination page.
+// Images are the lead photo of each destination page. Tiles follow the same
+// order as the product rails: fencing, gates, posts, then the rest.
 const categories = [
   { label: "Kastanje Rasterwerk", href: "/project/rasterwerk-kastanjehout/", src: "/wp-content/uploads/2023/01/Kastanjeafsluiting3-scaled.jpg" },
-  { label: "Franse Poorten", href: "/project/franse-poorten/", src: "/wp-content/uploads/2024/10/Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Religieuze-Labels-1.png" },
-  { label: "Hazelaar Rasterwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
-  { label: "Franse Maatwerk poorten", href: "/project/maatwerk-poorten/", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
-  { label: "Kastanje Palen", href: "/project/kastanjepalen/", src: "/wp-content/uploads/2016/01/901799_752360984796607_487253914146542605_o.jpg" },
-  { label: "Lariks Schaal delen", href: "/project/lariks-schaal-delen-2/", src: "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-scaled.jpg" },
-  { label: "Eiken Palen", href: "/project/eiken-palen/", src: "/wp-content/uploads/2020/09/ffa351a0-0fc0-4adc-8cf9-392cf0a0c642.jpg" },
   { label: "Robinia Rasterwerk", href: "/project/robinia-rasterwerk/", src: "/wp-content/uploads/2022/05/2-1.png" },
-  { label: "Hazelaar Vlechtscherm", href: "/project/hazelaar-vlechtschermen-halve-latten/", src: "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg" },
+  { label: "Hazelaar Rasterwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
+  { label: "Franse Poorten", href: "/project/franse-poorten/", src: "/wp-content/uploads/2024/10/Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Religieuze-Labels-1.png" },
+  { label: "Franse Maatwerk poorten", href: "/project/maatwerk-poorten/", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
   { label: "Cleft & Field Veldpoorten", href: "/project/cleft-field-veldpoorten/", src: "/wp-content/uploads/2016/01/Untitled-design-3.png" },
+  { label: "Kastanje Palen", href: "/project/kastanjepalen/", src: "/wp-content/uploads/2016/01/901799_752360984796607_487253914146542605_o.jpg" },
+  { label: "Eiken Palen", href: "/project/eiken-palen/", src: "/wp-content/uploads/2020/09/ffa351a0-0fc0-4adc-8cf9-392cf0a0c642.jpg" },
+  { label: "Hazelaar Vlechtscherm", href: "/project/hazelaar-vlechtschermen-halve-latten/", src: "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg" },
+  { label: "Lariks Schaal delen", href: "/project/lariks-schaal-delen-2/", src: "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-scaled.jpg" },
 ];
 
 const principles = [
@@ -76,25 +76,109 @@ const principles = [
   },
 ];
 
-// A rail needs enough products to fill a row; the collections that fall short
-// (one or two items each) are pooled into a single grid so the homepage never
-// shows a lone card beside three empty columns.
-const RAIL_MIN = 4;
+// Homepage order is Xander's, not the shop's collection order: fencing first
+// (kastanje, robinia, hazelaar), then gates, then posts, with the rest of the
+// range and mesh last. Within each rail the same species order holds.
+// Handles are verbatim shop data. Anything the shop adds later that is not
+// listed here lands in the "meer" rail, so a new product never disappears
+// from the homepage; a handle the shop drops is simply skipped.
+type HomeSection = { title: string; href: string; handles: string[]; catchAll?: boolean };
 
-const grouped = collections
-  .map((collection) => ({ collection, items: collectionProducts(collection) }))
-  .filter(({ items }) => items.length > 0);
-
-const rails = grouped.filter(({ items }) => items.length >= RAIL_MIN);
-
-const remainder = [
-  ...new Map(
-    grouped
-      .filter(({ items }) => items.length < RAIL_MIN)
-      .flatMap(({ items }) => items)
-      .map((product) => [product.handle, product] as const),
-  ).values(),
+const homeSections: HomeSection[] = [
+  {
+    title: "Hekwerk",
+    href: "/shop/#raster",
+    handles: [
+      "kastanje-rasterwerk",
+      "kastanje-hekwerk-100cm-4-5cm",
+      "kastanje-hekwerk-100cm-7-9cm",
+      "kastanje-hekwerk-1-50m",
+      "robinia-hekwerk",
+      "hazelaar-hekwerk",
+      "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte", // "Hazelaar hekwerk 90cm" despite its handle
+    ],
+  },
+  {
+    title: "Poorten",
+    href: "/shop/#poorten",
+    handles: [
+      "kastanje-poorten",
+      "kastanje-poort-geschroefd",
+      "kastanje-kaderpoort",
+      "robinia-poort",
+      "hazelaar-poort",
+      "cleft-field-poorten",
+      "hardhouten-veldpoort",
+    ],
+  },
+  {
+    title: "Palen",
+    href: "/shop/#palen",
+    handles: [
+      "palen",
+      "kastanje-palen-copy",
+      "robinia-palen",
+      "vierkant-gezaagde-robinia-palen",
+      "halfronde-palen",
+      "eiken-palen",
+      "kastanje-paal-met-postsaver",
+      "paalhouder-met-punt-rond",
+    ],
+  },
+  {
+    title: "Tuinschermen, tuinbakken & meer",
+    href: "/shop/",
+    catchAll: true,
+    handles: [
+      "hazelaar-vlechtscherm-hasseltre",
+      "hazelaar-scherm-trepanel",
+      "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed",
+      "post-rail-omheining",
+      "tuinbakken-hazelaar",
+      "plantenbak-cortenstaal",
+      "lariks-planken-delen",
+    ],
+  },
+  {
+    title: "Plaatsingsmateriaal",
+    href: "/shop/#plaatsing-materiaal",
+    handles: [
+      "houtschroeven",
+      "hekwerk-draadverbinders",
+      "beslag-hang-sluitwerk",
+      "grondboor",
+      "grondboor-kopie",
+      "tuin-voorhamer",
+    ],
+  },
+  {
+    title: "Gaas",
+    href: "/shop/#gaas",
+    handles: [
+      "schapengaas-nexum-basic",
+      "schapengaas-nexum-licht",
+      "schapengaas-nexum-zwaar",
+      "nexum-x",
+      "schapengaas-fx",
+      "kippengaas",
+    ],
+  },
 ];
+
+const listed = new Set(homeSections.flatMap((section) => section.handles));
+const unlisted = products.filter((product) => !listed.has(product.handle));
+
+const rails = homeSections
+  .map((section) => ({
+    ...section,
+    items: [
+      ...section.handles
+        .map((handle) => getProduct(handle))
+        .filter((product): product is Product => Boolean(product)),
+      ...(section.catchAll ? unlisted : []),
+    ],
+  }))
+  .filter((section) => section.items.length > 0);
 
 export default function HomePage() {
   return (
@@ -213,8 +297,9 @@ export default function HomePage() {
                 Direct leverbaar uit voorraad
               </h2>
               <p className="mt-3 max-w-2xl leading-relaxed text-ink/70">
-                Ons volledige webshopassortiment, per groep. Prijzen zijn incl.
-                btw; bestellen en betalen gebeurt op natuurhout.shop.
+                Ons volledige webshopassortiment: eerst hekwerk, dan poorten en
+                palen. Prijzen zijn incl. btw; bestellen en betalen gebeurt op
+                natuurhout.shop.
               </p>
             </div>
             <Link href="/shop/" className="text-sm font-medium text-accent hover:text-accent-deep">
@@ -223,32 +308,14 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 space-y-14">
-            {rails.map(({ collection, items }) => (
+            {rails.map((section) => (
               <ProductSlider
-                key={collection.handle}
-                products={items}
-                title={collection.title}
-                href={`/shop/#${collection.handle}`}
+                key={section.title}
+                products={section.items}
+                title={section.title}
+                href={section.href}
               />
             ))}
-
-            {remainder.length > 0 && (
-              <div>
-                <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                  <h3 className="font-display text-xl font-semibold text-ink">
-                    Verder in het assortiment
-                  </h3>
-                  <Link href="/shop/" className="text-sm font-medium text-accent hover:text-accent-deep">
-                    Alles bekijken →
-                  </Link>
-                </div>
-                <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
-                  {remainder.map((product) => (
-                    <ProductCard key={product.handle} product={product} />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
