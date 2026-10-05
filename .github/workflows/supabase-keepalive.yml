@@ -8,8 +8,9 @@ name: Supabase keep-alive
 #
 # Setup (Settings → Secrets and variables → Actions):
 #   secret   SUPABASE_ACCESS_TOKEN  supabase.com/dashboard/account/tokens (choose "never expires")
-#   variable SUPABASE_PROJECT_REFS  the project ref(s), comma separated
-#                                   (the id in supabase.com/dashboard/project/<ref>)
+#   variable SUPABASE_PROJECT_REFS  the project ref(s), comma separated — the id in
+#                                   supabase.com/dashboard/project/<ref>; the project
+#                                   URL https://<ref>.supabase.co works too
 
 on:
   schedule:
@@ -33,12 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: scripts/supabase-keepalive.mjs
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 

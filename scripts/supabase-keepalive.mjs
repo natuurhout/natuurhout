@@ -9,15 +9,31 @@
 //
 // Env:
 //   SUPABASE_ACCESS_TOKEN  personal access token (dashboard → Account → Access Tokens)
-//   SUPABASE_PROJECT_REFS  one or more project refs, comma or space separated
+//   SUPABASE_PROJECT_REFS  one or more project refs, comma or space separated; a
+//                          project URL or dashboard link is reduced to its ref
 //   SUPABASE_API_BASE      optional, defaults to https://api.supabase.com (tests point it elsewhere)
 
 const API = (process.env.SUPABASE_API_BASE || "https://api.supabase.com").replace(/\/+$/, "");
 const TOKEN = process.env.SUPABASE_ACCESS_TOKEN?.trim();
-const REFS = (process.env.SUPABASE_PROJECT_REFS || "")
-  .split(/[\s,]+/)
-  .map((ref) => ref.trim())
-  .filter(Boolean);
+// Accept what people actually paste: the bare ref, the project URL
+// (https://<ref>.supabase.co) or a dashboard link (.../project/<ref>).
+function toRef(value) {
+  const text = value.trim().toLowerCase();
+  const fromHost = text.match(/(?:^|\/\/)([a-z0-9]+)\.supabase\.(?:co|in)\b/);
+  if (fromHost) return fromHost[1];
+  const fromDashboard = text.match(/\/project\/([a-z0-9]+)/);
+  if (fromDashboard) return fromDashboard[1];
+  return text;
+}
+
+const REFS = [
+  ...new Set(
+    (process.env.SUPABASE_PROJECT_REFS || "")
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .map(toRef),
+  ),
+];
 
 const HEALTHY = "ACTIVE_HEALTHY";
 const PAUSED = "INACTIVE";
@@ -74,6 +90,9 @@ async function retry(method, path, body, attempt, reason) {
 }
 
 async function keepAlive(ref) {
+  if (!/^[a-z0-9]+$/.test(ref)) {
+    return { ref, ok: false, note: "not a project ref — use the id from supabase.com/dashboard/project/<ref>" };
+  }
   const project = await call("GET", `/v1/projects/${ref}`);
   const name = project?.name ? `${project.name} (${ref})` : ref;
   const status = project?.status ?? "UNKNOWN";
