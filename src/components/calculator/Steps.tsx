@@ -24,6 +24,9 @@ import {
 import {
   CLEFT_FIELD,
   CUSTOM_GATE,
+  canAddLooseSaver,
+  fieldGateLatch,
+  looseSaver,
   fenceRoll,
   fenceRollCount,
   gateOption,
@@ -39,6 +42,7 @@ import {
   screenResolved,
   type Gate,
   type ProductType,
+  type SaverMode,
   type State,
 } from "@/components/calculator/model";
 import { Chip, MetersInput, OptionCard, Question, Stepper } from "@/components/calculator/ui";
@@ -393,6 +397,19 @@ export function PalenStep({ data, state, update }: StepProps) {
               <Question title="Aantal">
                 <Stepper label="Aantal palen" value={p?.count ?? 0} onChange={(v) => setLine(line.id, { count: v })} />
               </Question>
+              {p && canAddLooseSaver(product.kind) && looseSaver(data, p.pole.diameter) && (
+                <Question
+                  title="Losse postsavers?"
+                  hint={'Een postsaver beschermt de paal tegen rot in de grond. Liever al aangebracht? Kies dan "Kastanje paal met postsaver".'}
+                >
+                  <div className="flex flex-wrap gap-2">
+                    <Chip active={!line.looseSaver} onClick={() => setLine(line.id, { looseSaver: false })}>Zonder postsaver</Chip>
+                    <Chip active={line.looseSaver} onClick={() => setLine(line.id, { looseSaver: true })}>
+                      Losse postsaver per paal (+{formatPrice(looseSaver(data, p.pole.diameter)!.opt.price)}, zelf aanbrengen)
+                    </Chip>
+                  </div>
+                </Question>
+              )}
             </div>
           </section>
         );
@@ -403,7 +420,7 @@ export function PalenStep({ data, state, update }: StepProps) {
         onClick={() =>
           update((s) => ({
             ...s,
-            poles: [...s.poles, { id: newId(), handle: options[0]?.handle ?? "", variantId: null, count: 1 }],
+            poles: [...s.poles, { id: newId(), handle: options[0]?.handle ?? "", variantId: null, count: 1, looseSaver: false }],
           }))
         }
         className="inline-flex items-center gap-2 rounded-full border border-dashed border-accent px-5 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/5"
@@ -421,6 +438,58 @@ function gateFrom(data: CalculatorData, handle: string): number | null {
   const g = data.gates.find((x) => x.handle === handle);
   const prices = g?.sizes.filter((s) => s.available).map((s) => s.price) ?? [];
   return prices.length ? Math.min(...prices) : null;
+}
+
+/** Postsaver on gate posts: none, fitted by Natuurhout (surcharge), or loose (shop price). */
+function SaverChoice({
+  data,
+  mode,
+  onMode,
+  choosableKey,
+  onKey,
+  fixedKey,
+}: {
+  data: CalculatorData;
+  mode: SaverMode;
+  onMode: (m: SaverMode) => void;
+  choosableKey?: string;
+  onKey?: (k: string) => void;
+  fixedKey?: string;
+}) {
+  const key = fixedKey ?? choosableKey ?? "8-10cm";
+  const mounted = GATE_POSTSAVER_SURCHARGE[key];
+  const loose = looseSaver(data, key);
+  const priceFor = (k: string) => (mode === "loose" ? looseSaver(data, k)?.opt.price : GATE_POSTSAVER_SURCHARGE[k]);
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Chip active={mode === "none"} onClick={() => onMode("none")}>Zonder postsaver</Chip>
+        <Chip active={mode === "mounted"} onClick={() => onMode("mounted")}>
+          Aangebracht door ons{fixedKey && mounted !== undefined ? ` (+${formatPrice(mounted)}/paal)` : ""}
+        </Chip>
+        {(choosableKey !== undefined || loose) && (
+          <Chip active={mode === "loose"} onClick={() => onMode("loose")}>
+            Los, zelf aanbrengen{fixedKey && loose ? ` (${formatPrice(loose.opt.price)}/paal)` : ""}
+          </Chip>
+        )}
+      </div>
+      {mode !== "none" && choosableKey !== undefined && onKey && (
+        <div>
+          <p className="text-sm font-medium text-ink/80">Diameter van de poortpalen</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {Object.keys(GATE_POSTSAVER_SURCHARGE).map((k) => {
+              const price = priceFor(k);
+              return price === undefined ? null : (
+                <Chip key={k} active={choosableKey === k} onClick={() => onKey(k)}>
+                  ø{k} ({mode === "loose" ? "" : "+"}{formatPrice(price)}/paal)
+                </Chip>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function GateEditor({ data, gate, index, total, set, remove }: {
@@ -442,10 +511,12 @@ function GateEditor({ data, gate, index, total, set, remove }: {
       ? validateCustomGate(parseFloat(gate.customWidth.replace(",", ".")), parseFloat(gate.customHeight.replace(",", ".")))
       : null;
   const pole = !postsIncluded(data, gate) ? gatePoleResolved(data, gate) : null;
-  const poleSaverKey = pole && pole.product.kind === "kastanje" ? postsaverKey(pole.pole.diameter) : null;
+  const poleSaverKey = pole && canAddLooseSaver(pole.product.kind) ? postsaverKey(pole.pole.diameter) : null;
+  const hw = option?.fieldGate ? data.fieldGateHardware : null;
+  const latch = fieldGateLatch(data, gate);
 
   const pickType = (handle: string) =>
-    set({ handle, height: null, variantId: null, customWidth: "", customHeight: "", postsaver: null, poleHandle: null, poleVariantId: null, polePostsaver: false });
+    set({ handle, height: null, variantId: null, customWidth: "", customHeight: "", saver: "none", poleHandle: null, poleVariantId: null, hinges: true, latch: null, groundPins: 0, black: false });
 
   const typeCards = [
     ...data.gates.map((g) => ({
@@ -596,14 +667,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
 
             {postsIncluded(data, gate) ? (
               <Question title="Poortpalen" hint={`De ${POSTS_PER_GATE} kastanje poortpalen zijn inbegrepen. Een postsaver beschermt de paal tegen rot in de grond.`}>
-                <div className="flex flex-wrap gap-2">
-                  <Chip active={gate.postsaver === null} onClick={() => set({ postsaver: null })}>Zonder postsaver</Chip>
-                  {Object.entries(GATE_POSTSAVER_SURCHARGE).map(([key, price]) => (
-                    <Chip key={key} active={gate.postsaver === key} onClick={() => set({ postsaver: key })}>
-                      Met postsaver ø{key} (+{formatPrice(price)}/paal)
-                    </Chip>
-                  ))}
-                </div>
+                <SaverChoice data={data} mode={gate.saver} onMode={(saver) => set({ saver })} choosableKey={gate.saverKey} onKey={(saverKey) => set({ saverKey })} />
               </Question>
             ) : (
               pole && (
@@ -611,7 +675,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
                       {data.gatePoles.map((o) => (
-                        <Chip key={o.handle} active={o.handle === pole.product.handle} onClick={() => set({ poleHandle: o.handle, poleVariantId: null, polePostsaver: false })}>
+                        <Chip key={o.handle} active={o.handle === pole.product.handle} onClick={() => set({ poleHandle: o.handle, poleVariantId: null })}>
                           {o.title}
                         </Chip>
                       ))}
@@ -628,30 +692,70 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                         />
                       ))}
                     </div>
-                    {poleSaverKey && (
-                      <div className="flex flex-wrap gap-2">
-                        <Chip active={!gate.polePostsaver} onClick={() => set({ polePostsaver: false })}>Zonder postsaver</Chip>
-                        <Chip active={gate.polePostsaver} onClick={() => set({ polePostsaver: true })}>
-                          Met postsaver (+{formatPrice(GATE_POSTSAVER_SURCHARGE[poleSaverKey])}/paal)
-                        </Chip>
-                      </div>
-                    )}
+                    {poleSaverKey && <SaverChoice data={data} mode={gate.saver} onMode={(saver) => set({ saver })} fixedKey={poleSaverKey} />}
                   </div>
                 </Question>
               )
             )}
 
-            <Question
-              title="Beslag"
-              hint={option?.fieldGate ? "Veldpoorten worden zonder beslag verkocht; we rekenen een scharnierset en sluiting per vleugel mee." : "Verzinkt hang- en sluitwerk is inbegrepen."}
-            >
-              <div className="flex flex-wrap gap-2">
-                <Chip active={!gate.black} onClick={() => set({ black: false })}>Standaard verzinkt</Chip>
-                <Chip active={gate.black} onClick={() => set({ black: true })}>
-                  Zwart beslag (+{formatPrice(BLACK_HARDWARE_SURCHARGE)} per vleugel)
-                </Chip>
-              </div>
-            </Question>
+            {hw ? (
+              <Question title="Beslag" hint="Veldpoorten worden zonder hang- en sluitwerk verkocht. Kies wat u nodig heeft.">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-ink/80">Scharnieren</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Chip active={gate.hinges} onClick={() => set({ hinges: true })}>
+                        {hw.hinges.title} ({formatPrice(hw.hinges.price)} per vleugel)
+                      </Chip>
+                      <Chip active={!gate.hinges} onClick={() => set({ hinges: false, black: false })}>Geen scharnieren</Chip>
+                    </div>
+                  </div>
+                  {hw.latches.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-ink/80">Sluiting</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {hw.latches.map((l) => (
+                          <Chip key={l.variantId} active={latch?.variantId === l.variantId} disabled={!l.available} onClick={() => set({ latch: l.variantId })}>
+                            {l.title} ({formatPrice(l.price)})
+                          </Chip>
+                        ))}
+                        <Chip active={gate.latch === "none"} onClick={() => set({ latch: "none" })}>Geen sluiting</Chip>
+                      </div>
+                    </div>
+                  )}
+                  {hw.groundPin && (
+                    <div>
+                      <p className="text-sm font-medium text-ink/80">
+                        {hw.groundPin.title} <span className="font-normal text-ink/55">({formatPrice(hw.groundPin.price)}/stuk — zet de poort vast in open of gesloten stand)</span>
+                      </p>
+                      <div className="mt-2">
+                        <Stepper label="Aantal grondpennen" value={gate.groundPins} max={4} onChange={(v) => set({ groundPins: v })} />
+                      </div>
+                    </div>
+                  )}
+                  {gate.hinges && (
+                    <div>
+                      <p className="text-sm font-medium text-ink/80">Kleur</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Chip active={!gate.black} onClick={() => set({ black: false })}>Verzinkt</Chip>
+                        <Chip active={gate.black} onClick={() => set({ black: true })}>
+                          Zwart (+{formatPrice(BLACK_HARDWARE_SURCHARGE)} per vleugel)
+                        </Chip>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Question>
+            ) : (
+              <Question title="Beslag" hint="Verzinkt hang- en sluitwerk is inbegrepen.">
+                <div className="flex flex-wrap gap-2">
+                  <Chip active={!gate.black} onClick={() => set({ black: false })}>Standaard verzinkt</Chip>
+                  <Chip active={gate.black} onClick={() => set({ black: true })}>
+                    Zwart beslag (+{formatPrice(BLACK_HARDWARE_SURCHARGE)} per vleugel)
+                  </Chip>
+                </div>
+              </Question>
+            )}
           </>
         )}
       </div>

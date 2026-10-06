@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, Copy, Mail } from "lucide-react";
+import { Check, Copy, Loader2, Mail } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import { contactErrors, quoteText, total, type Line, type State } from "@/components/calculator/model";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
@@ -75,7 +75,10 @@ export function MaterialTable({ lines }: { lines: Line[] }) {
 
 export function OverviewStep({ state, update, lines }: StepProps & { lines: Line[] }) {
   const [attempted, setAttempted] = useState(false);
-  const [sent, setSent] = useState(false);
+  // sent = delivered to our inbox; mailto = handed to the customer's mail program
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "mailto" | "error">("idle");
+  const [honeypot, setHoneypot] = useState("");
+  const openedAt = useRef(Date.now());
   const [copied, setCopied] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const [agreed, setAgreed] = useState(false);
@@ -89,14 +92,37 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
   const text = quoteText(state, lines);
   const subject = `Offerteaanvraag afsluiting – ${c.name.trim() || "natuurhout.be"}`;
 
-  function submit() {
+  function openMailProgram() {
+    window.location.href = `mailto:${QUOTE_ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+    setStatus("mailto");
+  }
+
+  async function submit() {
     setAttempted(true);
     if (Object.keys(errors).length) {
       formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
       return;
     }
-    window.location.href = `mailto:${QUOTE_ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
-    setSent(true);
+    setStatus("sending");
+    try {
+      const response = await fetch("/api/offerte/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: c.name,
+          email: c.email,
+          text,
+          website: honeypot,
+          elapsedMs: Date.now() - openedAt.current,
+        }),
+      });
+      if (response.ok) setStatus("sent");
+      // Sending not set up on this deployment yet: hand over to the mail program.
+      else if (response.status === 503) openMailProgram();
+      else setStatus("error");
+    } catch {
+      setStatus("error");
+    }
   }
 
   async function copy() {
@@ -121,7 +147,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
         </p>
       </div>
 
-      <div ref={formRef} className="space-y-7 border-t border-line pt-8">
+      <div ref={formRef} className="relative space-y-7 border-t border-line pt-8">
         <div>
           <h2 className="font-display text-2xl font-semibold">Offerte aanvragen</h2>
           <p className="mt-1 text-sm text-ink/65">We sturen u een offerte op maat met deze materiaallijst.</p>
@@ -137,7 +163,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           />
         </Question>
 
-        <Question title="Levering" hint="Leveren doen we in heel België; in Oost-Vlaanderen zijn de kosten minimaal.">
+        <Question title="Levering" hint="Leveren doen we in heel België.">
           <div className="flex flex-wrap gap-2">
             <Chip active={!c.delivery} onClick={() => set({ delivery: false })}>Ik haal af in Zele</Chip>
             <Chip active={c.delivery} onClick={() => set({ delivery: true })}>Graag leveren</Chip>
@@ -153,7 +179,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
               <Field label="Gemeente" required error={shown.city}>
                 {(p) => <input {...p} className={inputClass} autoComplete="address-level2" value={c.city} onChange={(e) => set({ city: e.target.value })} />}
               </Field>
-              <p className="text-xs text-ink/60 sm:col-span-3">De leveringskosten berekenen we in uw offerte op basis van dit adres.</p>
+              <p className="text-xs text-ink/60 sm:col-span-3">De leveringskosten bekijken we op basis van uw postcode en laten we u per mail weten.</p>
             </div>
           )}
         </Question>
@@ -188,18 +214,54 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           <p className="text-sm font-medium text-red-700">Vul de aangeduide velden aan.</p>
         )}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={submit}
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
-          >
-            <Mail className="h-4 w-4" /> Offerte aanvragen
-          </button>
-          <p className="text-xs text-ink/55">Opent uw e-mailprogramma met de volledige aanvraag naar {QUOTE_ADDRESS}.</p>
+        {/* Honeypot: invisible to people, irresistible to form bots. */}
+        <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+          <label>
+            Website
+            <input tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
+          </label>
         </div>
 
-        {sent && (
+        {status === "sent" ? (
+          <div role="status" className="rounded-xl border border-emerald-600/30 bg-emerald-50 p-5 text-sm text-ink/80">
+            <p className="flex items-center gap-2 font-semibold text-ink">
+              <Check className="h-4 w-4 text-emerald-700" /> Uw aanvraag is verstuurd.
+            </p>
+            <p className="mt-1">
+              Bedankt, {c.name.trim().split(" ")[0]}. We bekijken uw aanvraag en antwoorden zo snel mogelijk op{" "}
+              <strong>{c.email.trim()}</strong>.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={submit}
+              disabled={status === "sending"}
+              className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep disabled:opacity-70"
+            >
+              {status === "sending" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+              {status === "sending" ? "Bezig met versturen…" : "Offerte aanvragen"}
+            </button>
+            <p className="text-xs text-ink/55">We antwoorden op het e-mailadres dat u hierboven invulde.</p>
+          </div>
+        )}
+
+        {status === "error" && (
+          <div role="alert" className="rounded-xl border border-red-700/30 bg-red-50 p-4 text-sm text-ink/80">
+            <p className="font-semibold text-red-800">Het versturen is niet gelukt.</p>
+            <p className="mt-1">Probeer het opnieuw, of verstuur uw aanvraag via uw eigen e-mailprogramma.</p>
+            <button
+              type="button"
+              onClick={openMailProgram}
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-accent hover:text-accent"
+            >
+              <Mail className="h-4 w-4" /> Open in mijn e-mailprogramma
+            </button>
+          </div>
+        )}
+
+        {status === "mailto" && (
           <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-sm text-ink/80">
             <p className="font-semibold text-ink">Uw e-mailprogramma werd geopend — verstuur het bericht daar om uw aanvraag af te ronden.</p>
             <p className="mt-1">

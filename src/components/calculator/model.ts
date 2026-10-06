@@ -43,7 +43,11 @@ export type PoleLine = {
   handle: string;
   variantId: number | null; // null = recommended for the fence height
   count: number | null; // null = recommended (first line only)
+  looseSaver: boolean; // add loose postsavers (round posts only)
 };
+
+/** Postsaver on gate posts: none, fitted by Natuurhout, or loose to fit yourself. */
+export type SaverMode = "none" | "mounted" | "loose";
 
 export type Gate = {
   id: number;
@@ -55,10 +59,13 @@ export type Gate = {
   leaves: 1 | 2;
   hinge: "links" | "rechts";
   opens: "binnen" | "buiten";
-  postsaver: string | null; // diameter key, gates with posts included
+  saver: SaverMode;
+  saverKey: string; // post diameter for gates whose posts are included
   poleHandle: string | null; // gates without posts
   poleVariantId: number | null;
-  polePostsaver: boolean;
+  hinges: boolean; // field gates: add the hinge set
+  latch: number | "none" | null; // field gates: null = the shop's first veldpoort latch
+  groundPins: number; // field gates
   black: boolean;
 };
 
@@ -103,10 +110,13 @@ export function newGate(handle: string | null = null): Gate {
     leaves: 1,
     hinge: "links",
     opens: "binnen",
-    postsaver: null,
+    saver: "none",
+    saverKey: "8-10cm",
     poleHandle: null,
     poleVariantId: null,
-    polePostsaver: false,
+    hinges: true,
+    latch: null,
+    groundPins: 0,
     black: false,
   };
 }
@@ -117,7 +127,7 @@ export function initialState(data: CalculatorData): State {
     fences: [newFenceLine(data)],
     screen: { handle: data.screens[0]?.handle ?? "", variantId: null, meters: 6, count: null },
     postRail: { rails: 3, meters: 20, corners: 0, peeled: false },
-    poles: [{ id: newId(), handle: data.fencePoles[0]?.handle ?? "", variantId: null, count: null }],
+    poles: [{ id: newId(), handle: data.fencePoles[0]?.handle ?? "", variantId: null, count: null, looseSaver: false }],
     gates: [],
     planters: {},
     contact: { name: "", email: "", phone: "", delivery: false, street: "", postcode: "", city: "", remarks: "" },
@@ -284,6 +294,39 @@ export type Line = {
   url?: string;
 };
 
+/** Shop postsavers fit round posts; square oak takes none. */
+export function canAddLooseSaver(kind: PoleOption["kind"]): boolean {
+  return kind === "kastanje" || kind === "robinia";
+}
+
+export function looseSaver(data: CalculatorData, diameter: string) {
+  const key = postsaverKey(diameter);
+  const opt = key ? data.loosePostsavers?.byKey[key] : undefined;
+  return key && opt ? { key, opt, url: `${data.loosePostsavers!.shopUrl}?variant=${opt.variantId}` } : null;
+}
+
+export function fieldGateLatch(data: CalculatorData, gate: Gate) {
+  const latches = data.fieldGateHardware?.latches ?? [];
+  if (gate.latch === "none") return null;
+  return latches.find((l) => l.variantId === gate.latch) ?? latches[0] ?? null;
+}
+
+function gateSaverLines(data: CalculatorData, group: string, mode: SaverMode, key: string): Line[] {
+  if (mode === "mounted") {
+    const surcharge = GATE_POSTSAVER_SURCHARGE[key];
+    return surcharge === undefined
+      ? []
+      : [{ group, label: `Postsaver aangebracht op poortpaal ø${key}`, detail: "meerkost per poortpaal", qty: POSTS_PER_GATE, unit: surcharge }];
+  }
+  if (mode === "loose") {
+    const loose = looseSaver(data, key);
+    return loose
+      ? [{ group, label: `Losse postsaver ø${loose.key} (zelf aanbrengen)`, qty: POSTS_PER_GATE, unit: loose.opt.price, url: loose.url }]
+      : [];
+  }
+  return [];
+}
+
 export function buildLines(data: CalculatorData, state: State): Line[] {
   const lines: Line[] = [];
   const has = (t: ProductType) => state.types.includes(t);
@@ -330,6 +373,16 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         unit: p.pole.price,
         url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
       });
+      const loose = line.looseSaver && canAddLooseSaver(p.product.kind) ? looseSaver(data, p.pole.diameter) : null;
+      if (loose) {
+        lines.push({
+          group: "Palen",
+          label: `Losse postsaver ø${loose.key} (zelf aanbrengen)`,
+          qty: p.count,
+          unit: loose.opt.price,
+          url: loose.url,
+        });
+      }
     });
   }
 
@@ -379,16 +432,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
       });
 
       if (postsIncluded(data, gate)) {
-        const surcharge = gate.postsaver ? GATE_POSTSAVER_SURCHARGE[gate.postsaver] : undefined;
-        if (gate.postsaver && surcharge !== undefined) {
-          lines.push({
-            group,
-            label: `Postsaver op poortpaal ø${gate.postsaver}`,
-            detail: "meerkost per poortpaal",
-            qty: POSTS_PER_GATE,
-            unit: surcharge,
-          });
-        }
+        lines.push(...gateSaverLines(data, group, gate.saver, gate.saverKey));
       } else {
         const p = gatePoleResolved(data, gate);
         if (p) {
@@ -399,20 +443,25 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             unit: p.pole.price,
             url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
           });
-          const key = p.product.kind === "kastanje" ? postsaverKey(p.pole.diameter) : null;
-          const surcharge = key ? GATE_POSTSAVER_SURCHARGE[key] : undefined;
-          if (gate.polePostsaver && surcharge !== undefined) {
-            lines.push({ group, label: `Postsaver op poortpaal ø${key}`, detail: "meerkost per poortpaal", qty: POSTS_PER_GATE, unit: surcharge });
-          }
+          const key = canAddLooseSaver(p.product.kind) ? postsaverKey(p.pole.diameter) : null;
+          if (key) lines.push(...gateSaverLines(data, group, gate.saver, key));
         }
       }
 
+      let hardware = !option?.fieldGate; // every other gate ships with galvanised hardware
       if (option?.fieldGate && data.fieldGateHardware) {
         const hw = data.fieldGateHardware;
-        lines.push({ group, label: `Beslag: ${hw.hinges.title}`, qty: gate.leaves, unit: hw.hinges.price, url: `${hw.shopUrl}?variant=${hw.hinges.variantId}` });
-        lines.push({ group, label: `Beslag: ${hw.latch.title}`, qty: gate.leaves, unit: hw.latch.price, url: `${hw.shopUrl}?variant=${hw.latch.variantId}` });
+        if (gate.hinges) {
+          hardware = true;
+          lines.push({ group, label: `Beslag: ${hw.hinges.title}`, detail: "per vleugel", qty: gate.leaves, unit: hw.hinges.price, url: `${hw.shopUrl}?variant=${hw.hinges.variantId}` });
+        }
+        const latch = fieldGateLatch(data, gate);
+        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: `${hw.shopUrl}?variant=${latch.variantId}` });
+        if (hw.groundPin && gate.groundPins > 0) {
+          lines.push({ group, label: `Beslag: ${hw.groundPin.title}`, qty: gate.groundPins, unit: hw.groundPin.price, url: `${hw.shopUrl}?variant=${hw.groundPin.variantId}` });
+        }
       }
-      if (gate.black) {
+      if (gate.black && hardware) {
         lines.push({ group, label: "Zwart beslag in plaats van verzinkt", detail: "meerkost per poortvleugel", qty: gate.leaves, unit: BLACK_HARDWARE_SURCHARGE });
       }
     });
@@ -484,7 +533,7 @@ export function quoteText(state: State, lines: Line[]): string {
   }
   out.push("", `Richtprijs materiaal: ${formatPrice(total(lines))}`);
   if (lines.some((l) => l.unit === null)) out.push("+ posten op aanvraag");
-  if (c.delivery) out.push("+ leveringskosten (te berekenen)");
+  if (c.delivery) out.push("+ leveringskosten: Natuurhout bekijkt ze op basis van de postcode en laat ze per mail weten");
   if (c.remarks.trim()) out.push("", "Opmerkingen:", c.remarks.trim());
   return out.join("\n");
 }

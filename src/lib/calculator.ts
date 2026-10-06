@@ -181,9 +181,28 @@ function fieldGateHardware(): CalculatorData["fieldGateHardware"] {
   const product = getProduct("beslag-hang-sluitwerk");
   if (!product) return null;
   const hinges = product.variants.find((v) => /scharnieren set - veldpoort/i.test(v.title));
-  const latch = product.variants.find((v) => /sluiting veldpoort met pen/i.test(v.title));
-  if (!hinges || !latch) return null;
-  return { hinges: opt(hinges), latch: opt(latch), shopUrl: product.shopUrl };
+  if (!hinges) return null;
+  // "Sluiting veldpoort met pen", "Veersluiting veldpoort", "Overslag grendel veldpoort"
+  const latches = product.variants.filter((v) => /veldpoort/i.test(v.title) && /sluiting|grendel/i.test(v.title));
+  const groundPin = product.variants.find((v) => /grondpen/i.test(v.title));
+  return {
+    hinges: opt(hinges),
+    latches: latches.map(opt),
+    groundPin: groundPin ? opt(groundPin) : null,
+    shopUrl: product.shopUrl,
+  };
+}
+
+function loosePostsavers(): CalculatorData["loosePostsavers"] {
+  // "Postsaver ronde paal ø8-10cm" → "8-10cm"
+  const product = getProduct("kastanje-paal-met-postsaver");
+  if (!product) return null;
+  const byKey: Record<string, Opt> = {};
+  for (const v of product.variants) {
+    const m = v.title.match(/ø\s*(\d+-\d+)\s*cm/i);
+    if (m) byKey[`${m[1]}cm`] = opt(v);
+  }
+  return Object.keys(byKey).length ? { byKey, shopUrl: product.shopUrl } : null;
 }
 
 export function calculatorData(): CalculatorData {
@@ -199,5 +218,6 @@ export function calculatorData(): CalculatorData {
     postRail: postRailPrices(),
     planters: planterOptions(),
     fieldGateHardware: fieldGateHardware(),
+    loosePostsavers: loosePostsavers(),
   };
 }

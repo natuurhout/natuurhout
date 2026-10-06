@@ -40,7 +40,10 @@ export type ScreenOption = { handle: string; title: string; label: string; shopU
 export type PlanterOption = { handle: string; title: string; shopUrl: string; sizes: Opt[] };
 
 export type PostRailPrices = { post2: Opt; post3: Opt; rail: Opt; shopUrl: string };
-export type FieldGateHardware = { hinges: Opt; latch: Opt; shopUrl: string };
+/** Field gates ship bare: the customer picks hinges, a latch and ground pins from the shop's beslag. */
+export type FieldGateHardware = { hinges: Opt; latches: Opt[]; groundPin: Opt | null; shopUrl: string };
+/** Loose postsavers to fit yourself, by round-post diameter key ("8-10cm"). */
+export type LoosePostsavers = { byKey: Record<string, Opt>; shopUrl: string };
 
 export type CalculatorData = {
   fences: FenceOption[];
@@ -52,13 +55,14 @@ export type CalculatorData = {
   postRail: PostRailPrices | null;
   planters: PlanterOption[];
   fieldGateHardware: FieldGateHardware | null;
+  loosePostsavers: LoosePostsavers | null;
 };
 
 /* ------------------------------------------------------------------ */
 /* Rules set by Natuurhout (not shop data)                             */
 /* ------------------------------------------------------------------ */
 
-/** Surcharge per gate post for a postsaver, by post diameter. */
+/** Surcharge per gate post for a postsaver fitted by Natuurhout, by post diameter. */
 export const GATE_POSTSAVER_SURCHARGE: Record<string, number> = {
   "6-8cm": 3.2,
   "8-10cm": 4.0,
@@ -72,7 +76,7 @@ export const BLACK_HARDWARE_SURCHARGE = 15.5;
 export const POSTS_PER_GATE = 2;
 
 /** Made-to-measure gate limits (cm). */
-export const CUSTOM_GATE_MAX_WIDTH = 220;
+export const CUSTOM_GATE_MAX_WIDTH = 210;
 export const CUSTOM_GATE_MAX_HEIGHT = 180;
 export const CUSTOM_GATE_MIN = 50;
 
