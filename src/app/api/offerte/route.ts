@@ -7,13 +7,18 @@
  *   RESEND_API_KEY  required; without it this route answers 503 and the page
  *                   falls back to opening the customer's mail program
  *   QUOTE_TO        optional, default info@natuurhout.be (comma separated)
- *   QUOTE_FROM      optional, default "Natuurhout calculator <onboarding@resend.dev>";
- *                   set it to an address on natuurhout.be once that domain
- *                   is verified in Resend
+ *   QUOTE_FROM      optional, default "Natuurhout offerte <offerte@natuurhout.be>"
+ *
+ * offerte@natuurhout.be only sends once natuurhout.be is verified in Resend
+ * (Domains → DNS records). Until then Resend refuses that sender, and the
+ * request is retried from Resend's own onboarding address, so quotes keep
+ * arriving and the switch happens by itself the moment the domain verifies.
  */
 
 // Overridable only so the route can be exercised against a local stand-in.
 const RESEND_URL = process.env.RESEND_API_URL || "https://api.resend.com/emails";
+const DEFAULT_FROM = "Natuurhout offerte <offerte@natuurhout.be>";
+const FALLBACK_FROM = "Natuurhout offerte <onboarding@resend.dev>";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_TEXT = 20_000;
 const MIN_FILL_MS = 3_000;
@@ -68,23 +73,37 @@ export async function POST(request: Request) {
   }
 
   const to = (process.env.QUOTE_TO || "info@natuurhout.be").split(",").map((s) => s.trim()).filter(Boolean);
-  const from = process.env.QUOTE_FROM || "Natuurhout calculator <onboarding@resend.dev>";
+  const from = process.env.QUOTE_FROM || DEFAULT_FROM;
   const subject = `Offerteaanvraag afsluiting – ${name}`;
   const html = `<div style="font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.55;color:#303130">
 <p style="margin:0 0 12px">Beantwoord deze mail om <strong>${escapeHtml(name)}</strong> (${escapeHtml(email)}) rechtstreeks te antwoorden.</p>
 <pre style="white-space:pre-wrap;font-family:inherit;margin:0">${escapeHtml(text)}</pre>
 </div>`;
 
-  try {
-    const response = await fetch(RESEND_URL, {
+  const send = (sender: string) =>
+    fetch(RESEND_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, reply_to: email, subject, text, html }),
+      body: JSON.stringify({ from: sender, to, reply_to: email, subject, text, html }),
       signal: AbortSignal.timeout(15_000),
     });
+
+  try {
+    let response = await send(from);
     if (!response.ok) {
-      console.error("Resend rejected the quote request", response.status, await response.text());
-      return Response.json({ error: "send-failed" }, { status: 502 });
+      const detail = await response.text();
+      // An unverified sender domain is a setup gap, not a lost quote.
+      if (response.status === 403 && /domain/i.test(detail) && from !== FALLBACK_FROM) {
+        console.warn("Sender domain not verified in Resend, sending from the onboarding address:", detail);
+        response = await send(FALLBACK_FROM);
+        if (!response.ok) {
+          console.error("Resend rejected the quote request", response.status, await response.text());
+          return Response.json({ error: "send-failed" }, { status: 502 });
+        }
+      } else {
+        console.error("Resend rejected the quote request", response.status, detail);
+        return Response.json({ error: "send-failed" }, { status: 502 });
+      }
     }
   } catch (error) {
     console.error("Resend unreachable", error);
