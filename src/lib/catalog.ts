@@ -143,3 +143,13 @@ export function shopCartAddUrl(product: Product, variant: ProductVariant, quanti
 export function shopVariantUrl(product: Product, variant?: ProductVariant): string {
   return variant ? `${product.shopUrl}?variant=${variant.id}` : product.shopUrl;
 }
+
+/**
+ * Several variants at once: Shopify's cart permalink builds a checkout with
+ * exactly these lines (it does not merge with an existing cart).
+ */
+export function shopCartPermalink(product: Product, lines: { variant: ProductVariant; quantity: number }[]): string {
+  const origin = new URL(product.shopUrl).origin;
+  const items = lines.map(({ variant, quantity }) => `${variant.id}:${Math.max(1, Math.floor(quantity))}`);
+  return `${origin}/cart/${items.join(",")}`;
+}

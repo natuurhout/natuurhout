@@ -51,12 +51,6 @@ export function productLead(product: Product) {
   return `${clipped.slice(0, clipped.lastIndexOf(" ")).trimEnd()}…`;
 }
 
-export function productBodyHtml(product: Product) {
-  return product.bodyHtml
-    .replace(/<h1\b/gi, "<h2")
-    .replace(/<\/h1>/gi, "</h2>");
-}
-
 export function productMetadataTitle(product: Product) {
   if (product.handle === "robinia-palen") return "Robinia palen kopen | Natuurhout";
   return `${product.title} | Natuurhout`;
