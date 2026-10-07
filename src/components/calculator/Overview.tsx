@@ -78,6 +78,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
   // sent = delivered to our inbox; mailto = handed to the customer's mail program
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "mailto" | "error">("idle");
   const [honeypot, setHoneypot] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const [agreed, setAgreed] = useState(false);
@@ -110,6 +111,14 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
         body: JSON.stringify({
           name: c.name,
           email: c.email,
+          phone: c.phone,
+          delivery: c.delivery,
+          street: c.street,
+          postcode: c.postcode,
+          city: c.city,
+          remarks: c.remarks,
+          lines: lines.map(({ group, label, detail, qty, unit }) => ({ group, label, detail: detail ?? "", qty, unit })),
+          total: total(lines),
           text,
           website: honeypot,
           // Time since the page opened, not since this step appeared: browser
@@ -117,7 +126,11 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           elapsedMs: Math.round(performance.now()),
         }),
       });
-      if (response.ok) setStatus("sent");
+      if (response.ok) {
+        const result = (await response.json().catch(() => ({}))) as { confirmed?: boolean };
+        setConfirmed(Boolean(result.confirmed));
+        setStatus("sent");
+      }
       // Sending not set up on this deployment yet: hand over to the mail program.
       else if (response.status === 503) openMailProgram();
       else setStatus("error");
@@ -232,6 +245,9 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
               Bedankt, {c.name.trim().split(" ")[0]}. We bekijken uw aanvraag en antwoorden zo snel mogelijk op{" "}
               <strong>{c.email.trim()}</strong>.
             </p>
+            {confirmed && (
+              <p className="mt-1">U ontvangt zo dadelijk een bevestiging met een overzicht van uw aanvraag in uw mailbox.</p>
+            )}
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-3">

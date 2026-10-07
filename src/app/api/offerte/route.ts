@@ -1,7 +1,9 @@
 /*
  * Quote requests from the afsluitingscalculator, delivered to Natuurhout's
  * inbox through Resend (https://resend.com). The customer's address is the
- * Reply-To, so answering the mail in the inbox answers the customer.
+ * Reply-To, so answering the mail in the inbox answers the customer. Once that
+ * is sent, the customer gets a confirmation with an overview of the request,
+ * whose Reply-To is Natuurhout's inbox.
  *
  * Env (Vercel → Settings → Environment Variables):
  *   RESEND_API_KEY  required; without it this route answers 503 and the page
@@ -13,14 +15,16 @@
  * (Domains → DNS records). Until then Resend refuses that sender, and the
  * request is retried from Resend's own onboarding address, so quotes keep
  * arriving and the switch happens by itself the moment the domain verifies.
+ * Resend only lets that onboarding address mail the account owner, so no
+ * customer confirmation goes out until the domain is verified.
  */
+
+import { confirmationMail, internalMail, parseQuote, type Mail } from "@/lib/quote-email";
 
 // Overridable only so the route can be exercised against a local stand-in.
 const RESEND_URL = process.env.RESEND_API_URL || "https://api.resend.com/emails";
 const DEFAULT_FROM = "Natuurhout offerte <offerte@natuurhout.be>";
 const FALLBACK_FROM = "Natuurhout offerte <onboarding@resend.dev>";
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_TEXT = 20_000;
 const MIN_FILL_MS = 3_000;
 
 // Best effort per serverless instance: enough to blunt a script hammering the form.
@@ -37,10 +41,6 @@ function str(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
   try {
@@ -55,11 +55,9 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   }
 
-  const name = str(body.name, 200);
-  const email = str(body.email, 200);
-  const text = str(body.text, MAX_TEXT);
-  if (!name || !EMAIL.test(email) || !text) {
-    return Response.json({ error: "Naam, een geldig e-mailadres en de aanvraag zijn verplicht." }, { status: 400 });
+  const quote = parseQuote(body);
+  if ("error" in quote) {
+    return Response.json({ error: quote.error }, { status: 400 });
   }
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -72,30 +70,29 @@ export async function POST(request: Request) {
     return Response.json({ error: "not-configured" }, { status: 503 });
   }
 
-  const to = (process.env.QUOTE_TO || "info@natuurhout.be").split(",").map((s) => s.trim()).filter(Boolean);
+  const inbox = (process.env.QUOTE_TO || "info@natuurhout.be").split(",").map((s) => s.trim()).filter(Boolean);
   const from = process.env.QUOTE_FROM || DEFAULT_FROM;
-  const subject = `Offerteaanvraag afsluiting – ${name}`;
-  const html = `<div style="font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.55;color:#303130">
-<p style="margin:0 0 12px">Beantwoord deze mail om <strong>${escapeHtml(name)}</strong> (${escapeHtml(email)}) rechtstreeks te antwoorden.</p>
-<pre style="white-space:pre-wrap;font-family:inherit;margin:0">${escapeHtml(text)}</pre>
-</div>`;
 
-  const send = (sender: string) =>
+  const send = (sender: string, to: string[], replyTo: string, mail: Mail) =>
     fetch(RESEND_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: sender, to, reply_to: email, subject, text, html }),
+      body: JSON.stringify({ from: sender, to, reply_to: replyTo, subject: mail.subject, text: mail.text, html: mail.html }),
       signal: AbortSignal.timeout(15_000),
     });
 
+  // 1. The request itself, to Natuurhout. This one must not be lost.
+  let sender = from;
   try {
-    let response = await send(from);
+    const mail = internalMail(quote);
+    let response = await send(sender, inbox, quote.email, mail);
     if (!response.ok) {
       const detail = await response.text();
       // An unverified sender domain is a setup gap, not a lost quote.
       if (response.status === 403 && /domain/i.test(detail) && from !== FALLBACK_FROM) {
         console.warn("Sender domain not verified in Resend, sending from the onboarding address:", detail);
-        response = await send(FALLBACK_FROM);
+        sender = FALLBACK_FROM;
+        response = await send(sender, inbox, quote.email, mail);
         if (!response.ok) {
           console.error("Resend rejected the quote request", response.status, await response.text());
           return Response.json({ error: "send-failed" }, { status: 502 });
@@ -110,5 +107,18 @@ export async function POST(request: Request) {
     return Response.json({ error: "send-failed" }, { status: 502 });
   }
 
-  return Response.json({ ok: true });
+  // 2. Confirmation to the customer. Best effort: the request already arrived,
+  // so a failure here is logged, never shown as a failed request.
+  let confirmed = false;
+  if (sender !== FALLBACK_FROM) {
+    try {
+      const response = await send(sender, [quote.email], inbox[0], confirmationMail(quote));
+      confirmed = response.ok;
+      if (!response.ok) console.error("Resend rejected the confirmation", response.status, await response.text());
+    } catch (error) {
+      console.error("Confirmation not sent", error);
+    }
+  }
+
+  return Response.json({ ok: true, confirmed });
 }
