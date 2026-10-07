@@ -2,18 +2,34 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Calculator, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import { ProductHero } from "@/components/ProductDetail";
-import { BoughtTogether, PriceTableHtml, ProductInfo, productInfoTabs } from "@/components/ProductInfo";
+import { BoughtTogether, PriceTableHtml, ProductInfo, productInfoTabs, ShopPriceMatrix } from "@/components/ProductInfo";
 import { getProduct, type Product } from "@/lib/catalog";
 import type { LegacyPage } from "@/lib/legacy";
-import type { LegacyProduct } from "@/lib/legacy-product";
+import { SHOP_PRICES_MARKER, type LegacyProduct } from "@/lib/legacy-product";
 import { boughtTogether, productFacts } from "@/lib/product-info";
 
 /*
  * A WordPress product page (/project/…) in the shop's product layout. The
  * route keeps its frozen title, description, canonical, structured data, h1
  * and all of its copy, photos and links (checked by audit-built-parity.mjs);
- * the price list comes from the webshop, so it can be ordered right here.
+ * the price list comes from the webshop, so it can be ordered right here, and
+ * the price overview shows the shop's prices where the old tables stood.
  */
+
+function PriceOverview({ info }: { info: LegacyProduct }) {
+  if (!info.pricesFromShop) return <PriceTableHtml html={info.sections.prijzen} />;
+  const [before, ...after] = info.sections.prijzen.split(SHOP_PRICES_MARKER);
+  const rest = after.join("");
+  return (
+    <div className="space-y-6">
+      {before.trim() && <PriceTableHtml html={before} />}
+      {info.overview.map((product) => (
+        <ShopPriceMatrix key={product.handle} product={product} />
+      ))}
+      {rest.trim() && <PriceTableHtml html={rest} />}
+    </div>
+  );
+}
 
 // Pages without a webshop product borrow the closest one for "Vaak samen gekocht".
 const NEIGHBOUR: Record<string, string> = {
@@ -30,7 +46,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
   )
     .filter((p: Product) => !onPage.has(p.handle))
     .slice(0, 4);
-  const sold = info.products.length > 0;
+  const listed = info.products.length > 0;
   const fencing = !/moestuinbak|vlechtscherm|lariks/.test(page.pathname);
 
   return (
@@ -48,12 +64,12 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
 
       <div className="mt-6">
         <ProductHero heading={info.heading} lead={info.lead} images={info.photos} products={info.products}>
-          {sold && info.sections.prijzen && (
+          {listed && info.sections.prijzen && (
             <a href="#tab-prijstabel" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-deep">
-              Bekijk ook onze volledige prijstabel <ArrowRight className="h-4 w-4" />
+              Bekijk alle prijzen in één overzicht <ArrowRight className="h-4 w-4" />
             </a>
           )}
-          {!sold && (
+          {!listed && (
             <div className="rounded-card border border-line bg-white">
               <div className="flex items-center justify-between gap-3 rounded-t-card bg-brand-dark px-4 py-3 text-white sm:px-5">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">Prijslijst</h2>
@@ -89,8 +105,8 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
       <ProductInfo
         tabs={productInfoTabs({
           omschrijving: info.sections.omschrijving,
-          prijzen: sold ? info.sections.prijzen : undefined,
-          facts: primary ? productFacts(primary) : [],
+          prijzen: listed && info.sections.prijzen ? <PriceOverview info={info} /> : undefined,
+          facts: info.pricesFromShop ? productFacts(primary) : [],
           kenmerken: info.sections.kenmerken,
           pluspunten: info.sections.pluspunten,
           tips: info.sections.tips,

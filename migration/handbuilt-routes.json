@@ -1,5 +1,5 @@
 {
-  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page, unless a retargetedLinks entry records an approved replacement that is on the page instead. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate. A route with preserveContent: true is a layout change only: the audit additionally requires every heading, paragraph, list and table text and every image of the snapshot to still be on the page.",
+  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page, unless a retargetedLinks entry records an approved replacement that is on the page instead. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate. A route with preserveContent: true is a layout change only: the audit additionally requires every heading, paragraph, list and table text and every image of the snapshot to still be on the page. With pricesFromShop: true (also owner-approved), the snapshot's price tables and their '*' footnotes may be replaced by the webshop's current prices; every other block must stay.",
   "routes": [
     {
       "pathname": "/",
@@ -16,25 +16,37 @@
       "pathname": "/project/rasterwerk-kastanjehout/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/robinia-rasterwerk/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/hazelaarrasterwerk/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/franse-poorten/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/maatwerk-poorten/",
@@ -46,79 +58,118 @@
       "pathname": "/project/hazelaar-poorten/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/cleft-field-veldpoorten/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/hazelaarvlechtschermen/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/hazelaar-vlechtscherm-hasseltre/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/moestuinbak/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/eiken-palen/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/kastanjepalen/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/postsaver-voor-palen/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/post-rail-2/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/lariks-schaal-delen-2/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/raamwerkpoort/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/kastanje-poorten-geschroefd/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/robinia-palen/",
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
-      "preserveContent": true
+      "preserveContent": true,
+      "pricesFromShop": true,
+      "pricesApprovedBy": "Xander",
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
     },
     {
       "pathname": "/project/boerenlandhekken/",

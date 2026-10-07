@@ -8,6 +8,7 @@ import {
   productDiscountPercent,
   type Product,
 } from "@/lib/catalog";
+import { orderTerm } from "@/lib/made-to-order";
 
 // Commerce tile: framed white card on the grey ground, square media matching
 // the catalogue's dominant 1:1 shop photography, a two-line title box so
@@ -57,7 +58,7 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
           {!product.available && (
             <span className="rounded-full bg-ink/85 px-2.5 py-1 text-xs font-medium text-white">
-              Uitverkocht
+              {orderTerm(product.handle).badge}
             </span>
           )}
         </div>

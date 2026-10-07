@@ -153,3 +153,14 @@ export function shopCartPermalink(product: Product, lines: { variant: ProductVar
   const items = lines.map(({ variant, quantity }) => `${variant.id}:${Math.max(1, Math.floor(quantity))}`);
   return `${origin}/cart/${items.join(",")}`;
 }
+
+const ROLL = /\s*\((\d+(?:[.,]\d+)?)\s*m\s*rol\)\s*/i;
+
+/** "4.5/5cm (5m rol)" → { text: "4.5/5cm", roll: 5 }: the roll length of a fence variant. */
+export function splitRoll(value: string): { text: string; roll: number | null } {
+  const match = ROLL.exec(value);
+  return {
+    text: value.replace(ROLL, " ").trim(),
+    roll: match ? parseFloat(match[1].replace(",", ".")) : null,
+  };
+}

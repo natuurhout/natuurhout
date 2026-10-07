@@ -92,8 +92,15 @@ function auditHandBuilt(page, route, built$) {
     } else {
       const squash = (value) => value.replace(/\s+/g, "");
       const builtText = squash(rootNode.text());
+      // Approved: price tables (and their "*PROMOTIE" / "*uitverkocht"
+      // footnotes) replaced by the webshop's prices.
+      const replacedPrice = (block) =>
+        route.pricesFromShop &&
+        route.pricesApprovedBy &&
+        (block.type === "table" ||
+          (block.type === "paragraph" && cheerio.load(block.html, null, false).root().text().trim().startsWith("*")));
       const missingText = page.blocks
-        .filter((block) => block.type !== "image")
+        .filter((block) => block.type !== "image" && !replacedPrice(block))
         .map((block) => (block.type === "heading" ? block.text : cheerio.load(block.html, null, false).root().text()))
         .filter((text) => squash(text) && !builtText.includes(squash(text)));
       if (missingText.length) {

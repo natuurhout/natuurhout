@@ -1,6 +1,8 @@
 /*
- * The two mails a calculator quote request produces: the request itself for
- * Natuurhout's inbox, and a confirmation for the customer with an overview.
+ * The two mails a request produces — a calculator quote, or an order for
+ * products that are not in stock ("op bestelling", from a product page's
+ * price list): the request itself for Natuurhout's inbox, and a confirmation
+ * for the customer with an overview.
  * Everything that arrives from the browser is untrusted: it is validated and
  * clipped here and HTML-escaped wherever it is rendered.
  */
@@ -8,6 +10,10 @@
 export type QuoteLine = { group: string; label: string; detail: string; qty: number; unit: number | null };
 
 export type Quote = {
+  /** "calculator": quote for a fence; "bestelling": order for products not in stock. */
+  kind: "calculator" | "bestelling";
+  /** Page the order was placed from (bestelling only). */
+  page: string;
   name: string;
   email: string;
   phone: string;
@@ -77,7 +83,10 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
     lines.push({ group: str(l.group, 60) || "Overige", label, detail: str(l.detail, 300), qty, unit: num(l.unit, 100_000) });
   }
 
+  const page = str(body.page, 200);
   return {
+    kind: body.kind === "bestelling" ? "bestelling" : "calculator",
+    page: page.startsWith("/") ? page : "",
     name,
     email,
     phone: str(body.phone, 40),
@@ -125,7 +134,7 @@ function linesTable(q: Quote): string {
   const totalRow =
     q.total === null
       ? ""
-      : `<tr><td style="padding:12px 12px 12px 0;border-top:2px solid ${C.ink};${FONT};font-size:14px;font-weight:700;color:${C.ink}">Richtprijs materiaal, incl. btw${
+      : `<tr><td style="padding:12px 12px 12px 0;border-top:2px solid ${C.ink};${FONT};font-size:14px;font-weight:700;color:${C.ink}">${q.kind === "bestelling" ? "Totaal" : "Richtprijs materiaal"}, incl. btw${
           onRequest ? " (+ posten op aanvraag)" : ""
         }</td><td style="padding:12px 0;border-top:2px solid ${C.ink};${FONT};font-size:16px;font-weight:700;color:${C.ink};text-align:right;white-space:nowrap">${euro(q.total)}</td></tr>`;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${rows}${totalRow}</table>`;
@@ -180,25 +189,44 @@ Ma–vr 09:00–18:00 · za 09:00–12:00</td></tr>
 /* ------------------------------------------------------------------ */
 
 export function internalMail(q: Quote): Mail {
-  const inner = `<p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">Nieuwe offerteaanvraag</p>
-<p style="margin:0 0 18px;${FONT};font-size:14px;color:${C.soft}">Beantwoord deze mail om ${escapeHtml(q.name)} rechtstreeks te antwoorden.</p>
+  const order = q.kind === "bestelling";
+  const inner = `<p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">${
+    order ? "Nieuwe aanvraag op bestelling" : "Nieuwe offerteaanvraag"
+  }</p>
+<p style="margin:0 0 18px;${FONT};font-size:14px;color:${C.soft}">${
+    order
+      ? `Deze artikelen zijn niet (allemaal) op voorraad. Laat ${escapeHtml(q.name)} de levertermijn weten door deze mail te beantwoorden.${
+          q.page ? ` Besteld via ${escapeHtml(q.page)}.` : ""
+        }`
+      : `Beantwoord deze mail om ${escapeHtml(q.name)} rechtstreeks te antwoorden.`
+  }</p>
 ${detailsTable(q, true)}
 <div style="margin-top:22px">${q.lines.length ? linesTable(q) : plainOverview(q)}</div>
 ${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : ""}
 ${remarksBlock(q)}`;
-  return { subject: `Offerteaanvraag afsluiting – ${q.name}`, html: frame(inner), text: q.text, attachments: inlineAttachments() };
+  const subject = order ? `Aanvraag op bestelling – ${q.name}` : `Offerteaanvraag afsluiting – ${q.name}`;
+  return { subject, html: frame(inner), text: q.text, attachments: inlineAttachments() };
 }
 
 export function confirmationMail(q: Quote): Mail {
   const first = q.name.split(/\s+/)[0] || q.name;
+  const order = q.kind === "bestelling";
+  const thanks = order
+    ? "Bedankt voor uw aanvraag. We hebben ze goed ontvangen en bekijken ze zo snel mogelijk. U krijgt per mail de levertermijn en het verdere verloop van uw bestelling."
+    : "Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.";
+  const footnote = order
+    ? `Prijzen incl. btw volgens onze webshop. De levertermijn${
+        q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
+      } bevestigen we per mail.`
+    : `Dit zijn richtprijzen incl. btw op basis van onze actuele webshopprijzen. Voorraad, maatwerk${
+        q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
+      } bevestigen we in uw offerte.`;
   const inner = `<p style="margin:0 0 14px;${FONT};font-size:16px;color:${C.ink}">Beste ${escapeHtml(first)},</p>
-<p style="margin:0 0 12px;${FONT};font-size:15px;line-height:1.6;color:${C.ink}">Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.</p>
+<p style="margin:0 0 12px;${FONT};font-size:15px;line-height:1.6;color:${C.ink}">${thanks}</p>
 <p style="margin:0 0 22px;${FONT};font-size:15px;line-height:1.6;color:${C.ink}">Iets vergeten of wilt u iets aanpassen? Antwoord gewoon op deze mail.</p>
 <p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">Overzicht van uw aanvraag</p>
 ${q.lines.length ? linesTable(q) : plainOverview(q)}
-<p style="margin:12px 0 0;${FONT};font-size:12px;line-height:1.55;color:${C.soft}">Dit zijn richtprijzen incl. btw op basis van onze actuele webshopprijzen. Voorraad, maatwerk${
-    q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
-  } bevestigen we in uw offerte.</p>
+<p style="margin:12px 0 0;${FONT};font-size:12px;line-height:1.55;color:${C.soft}">${footnote}</p>
 <p style="margin:22px 0 8px;${FONT};font-size:13px;font-weight:700;color:${C.ink}">Uw gegevens</p>
 ${detailsTable(q, false)}
 ${remarksBlock(q)}
@@ -206,7 +234,7 @@ ${remarksBlock(q)}
   const text = [
     `Beste ${first},`,
     "",
-    "Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.",
+    thanks,
     "Iets vergeten of wilt u iets aanpassen? Antwoord gewoon op deze mail.",
     "",
     "Overzicht van uw aanvraag",
@@ -217,5 +245,6 @@ ${remarksBlock(q)}
     "Het team van Natuurhout",
     "Adolf Van Der Moerenstraat 39, 9240 Zele · +32 5 255 88 58 · info@natuurhout.be",
   ].join("\n");
-  return { subject: "Bedankt voor uw offerteaanvraag – Natuurhout", html: frame(inner), text, attachments: inlineAttachments() };
+  const subject = order ? "Bedankt voor uw aanvraag – Natuurhout" : "Bedankt voor uw offerteaanvraag – Natuurhout";
+  return { subject, html: frame(inner), text, attachments: inlineAttachments() };
 }

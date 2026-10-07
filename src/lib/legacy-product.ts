@@ -1,4 +1,5 @@
 import { load } from "cheerio/slim";
+import { CUSTOM_GATE_HEIGHTS, CUSTOM_GATE_TABLE } from "@/lib/calculator-pricing";
 import { getProduct, type Product } from "@/lib/catalog";
 import { getLegacyPageByPath, type LegacyPage } from "@/lib/legacy";
 import { classify, escapeHtml, splitSections, type TabId } from "@/lib/product-info";
@@ -9,8 +10,10 @@ import { classify, escapeHtml, splitSections, type TabId } from "@/lib/product-i
  * price list straight away, the page's own text in tabs below.
  *
  * Every word, heading, photo and link of the frozen snapshot stays on the
- * page — only its order and grouping change. audit-built-parity.mjs checks
- * that for each route listed in migration/handbuilt-routes.json.
+ * page — only its order and grouping change — with one approved exception:
+ * where the webshop sells the product, its price tables (and their "*"
+ * footnotes) are replaced by the shop's current prices. audit-built-parity.mjs
+ * checks this for each route listed in migration/handbuilt-routes.json.
  */
 
 /** Page → the webshop products whose price list it shows (empty: not sold online). */
@@ -21,7 +24,7 @@ const SHOP_PRODUCTS: Record<string, string[]> = {
   "/project/franse-poorten/": ["kastanje-poorten"],
   "/project/maatwerk-poorten/": [],
   "/project/hazelaar-poorten/": ["hazelaar-poort"],
-  "/project/cleft-field-veldpoorten/": ["cleft-field-poorten"],
+  "/project/cleft-field-veldpoorten/": ["cleft-field-poorten", "beslag-hang-sluitwerk"],
   "/project/hazelaarvlechtschermen/": ["hazelaar-scherm-trepanel"],
   "/project/hazelaar-vlechtscherm-hasseltre/": ["hazelaar-vlechtscherm-hasseltre"],
   "/project/moestuinbak/": ["tuinbakken-hazelaar"],
@@ -35,6 +38,46 @@ const SHOP_PRODUCTS: Record<string, string[]> = {
   "/project/robinia-palen/": ["robinia-palen"],
   "/project/boerenlandhekken/": [],
 };
+
+/** Products only listed in a page's price overview (not in its price list). */
+const OVERVIEW_EXTRAS: Record<string, string[]> = {
+  "/project/cleft-field-veldpoorten/": ["eiken-palen"],
+};
+
+/*
+ * Franse maatwerkpoorten are not in the webshop: they are made after the
+ * order. Their price table (the same one the calculator uses) becomes a
+ * price list of its own, where every size is "op bestelling".
+ */
+const MAATWERK_POORT: Product = {
+  handle: "maatwerk-poort",
+  title: "Franse maatwerkpoort",
+  bodyHtml: "",
+  options: ["Breedte", "Hoogte"],
+  images: [],
+  variants: CUSTOM_GATE_TABLE.flatMap((row, r) =>
+    CUSTOM_GATE_HEIGHTS.map((height, h) => ({
+      id: -(r * CUSTOM_GATE_HEIGHTS.length + h + 1),
+      title: `${row.width}cm / ${height}cm`,
+      price: row.prices[h].toFixed(2),
+      compare_at: null,
+      available: false,
+    })),
+  ),
+  priceFrom: null,
+  priceTo: null,
+  available: false,
+  tags: [],
+  shopUrl: "https://natuurhout.shop/",
+  publishedAt: null,
+};
+
+const REQUEST_ONLY: Record<string, Product[]> = {
+  "/project/maatwerk-poorten/": [MAATWERK_POORT],
+};
+
+/** Marks where a replaced WordPress price table stood. */
+export const SHOP_PRICES_MARKER = "<!--shop-prices-->";
 
 export const legacyProductPaths = Object.keys(SHOP_PRODUCTS);
 
@@ -54,7 +97,12 @@ export type LegacyProduct = {
   nav: LegacyNavLink[];
   lead: string;
   photos: LegacyPhoto[];
+  /** The price list: webshop products, or request-only ones (maatwerk). */
   products: Product[];
+  /** The page's price tables were replaced by the shop's prices. */
+  pricesFromShop: boolean;
+  /** Products in the price overview tab (when pricesFromShop). */
+  overview: Product[];
   sections: Record<LegacyTab, string>;
 };
 
@@ -63,7 +111,7 @@ export type LegacyProduct = {
 // WordPress pages use for their specification blocks.
 function legacyClassify(title: string, html: string): LegacyTab {
   if (/prijs|prijzen|hang\s*(en|&|&amp;)\s*sluitwerk/i.test(title)) return "prijzen";
-  if (/<table/i.test(html)) return "prijzen";
+  if (/<table/i.test(html) || html.includes(SHOP_PRICES_MARKER)) return "prijzen";
   if (/bijzonderhed|materia|afwerking|formaten/i.test(title)) return "kenmerken";
   return classify(title);
 }
@@ -116,6 +164,20 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     .find("h1, .gdlr-shortcode-wrapper, .gallery-caption, a:has(img), img, .clear, .gdlr-space, form, .forminator-ui")
     .remove();
 
+  const shopProducts = SHOP_PRODUCTS[page.pathname]
+    .map((handle) => getProduct(handle))
+    .filter((p): p is Product => Boolean(p));
+  const pricesFromShop = shopProducts.length > 0;
+  if (pricesFromShop) {
+    // The old price tables give way to the shop's prices; their "*PROMOTIE"
+    // and "*uitverkocht" footnotes go with them.
+    body.find("table").replaceWith(SHOP_PRICES_MARKER);
+    body
+      .find("p")
+      .filter((_, p) => $(p).text().trim().startsWith("*"))
+      .remove();
+  }
+
   const sections: Record<LegacyTab, string> = { omschrijving: "", prijzen: "", kenmerken: "", pluspunten: "", tips: "" };
   let started = false;
   for (const section of splitSections(body.html() ?? "", { keepColon: true })) {
@@ -132,9 +194,11 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     .find((text) => text.length > 60);
   const lead = opening ? clip(opening) : "";
 
-  const products = SHOP_PRODUCTS[page.pathname]
-    .map((handle) => getProduct(handle))
-    .filter((p): p is Product => Boolean(p));
+  const products = pricesFromShop ? shopProducts : (REQUEST_ONLY[page.pathname] ?? []);
+  const overview = [
+    ...products,
+    ...(OVERVIEW_EXTRAS[page.pathname] ?? []).map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p)),
+  ];
 
-  return { heading, nav, lead, photos, products, sections };
+  return { heading, nav, lead, photos, products, pricesFromShop, overview, sections };
 }

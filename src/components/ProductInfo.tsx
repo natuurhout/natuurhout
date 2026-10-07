@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import ProductCard from "@/components/ProductCard";
 import ProductTabs, { type ProductTab } from "@/components/ProductTabs";
-import type { Product } from "@/lib/catalog";
+import { compareAtPrice, formatPrice, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
+import { orderTerm } from "@/lib/made-to-order";
 import type { LegacyPhoto } from "@/lib/legacy-product";
 
 /*
@@ -30,6 +32,97 @@ export function PriceTableHtml({ html }: { html: string }) {
 
 const linkClass = "font-medium text-accent hover:text-accent-deep";
 
+const th = "border-b border-line bg-ground/70 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-ink/60";
+const td = "border-b border-line px-3 py-2";
+
+function PriceCell({ variant, roll }: { variant: ProductVariant; roll: number | null }) {
+  const was = compareAtPrice(variant);
+  return (
+    <>
+      {was !== null && <del className="mr-1.5 text-ink/45">{formatPrice(was)}</del>}
+      <span className={was !== null ? "font-semibold text-accent-deep" : ""}>{formatPrice(variant.price)}</span>
+      {!variant.available && <sup className="ml-0.5 font-semibold text-accent-deep">*</sup>}
+      {roll !== null && <span className="block text-xs text-ink/50">rol {roll} m</span>}
+    </>
+  );
+}
+
+/**
+ * All prices of a webshop product at a glance, laid out like the WordPress
+ * price tables (first option down, second option across), so the overview
+ * always carries the shop's current prices.
+ */
+export function ShopPriceMatrix({ product }: { product: Product }) {
+  const split = product.variants.map((v) => v.title.split(" / ").map((part) => splitRoll(part.trim())));
+  const grid = product.options.length === 2 && split.every((parts) => parts.length === 2);
+  const single = product.variants.length === 1 && product.variants[0].title === "Default Title";
+  const term = orderTerm(product.handle);
+  const anySoldOut = product.variants.some((v) => !v.available);
+
+  let table: ReactNode;
+  if (grid) {
+    const rows = [...new Set(split.map((parts) => parts[0].text))];
+    const cols = [...new Set(split.map((parts) => parts[1].text))];
+    const cell = (r: string, c: string) => {
+      const i = split.findIndex((parts) => parts[0].text === r && parts[1].text === c);
+      return i < 0 ? null : { variant: product.variants[i], roll: split[i][1].roll ?? split[i][0].roll };
+    };
+    table = (
+      <table className="w-full min-w-[28rem] text-sm">
+        <thead>
+          <tr>
+            <th scope="col" className={th}>{product.options[0]}</th>
+            {cols.map((c) => (
+              <th key={c} scope="col" className={th}>{product.options[1]} {c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r}>
+              <th scope="row" className={`${td} text-left font-medium`}>{r}</th>
+              {cols.map((c) => {
+                const hit = cell(r, c);
+                return <td key={c} className={td}>{hit ? <PriceCell {...hit} /> : <span className="text-ink/30">—</span>}</td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  } else {
+    table = (
+      <table className="w-full text-sm">
+        <thead>
+          <tr>
+            <th scope="col" className={th}>{single ? "Artikel" : product.options[0] || "Uitvoering"}</th>
+            <th scope="col" className={`${th} text-right`}>Prijs</th>
+          </tr>
+        </thead>
+        <tbody>
+          {product.variants.map((variant, i) => (
+            <tr key={variant.id}>
+              <td className={td}>{single ? product.title : split[i].map((part) => part.text).join(" / ")}</td>
+              <td className={`${td} text-right`}><PriceCell variant={variant} roll={split[i].find((part) => part.roll !== null)?.roll ?? null} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
+
+  return (
+    <figure className="max-w-3xl">
+      <figcaption className="mb-2 font-display text-base font-semibold text-ink">{product.title}</figcaption>
+      <div className="overflow-x-auto rounded-card bg-white ring-1 ring-line">{table}</div>
+      <p className="mt-2 text-xs leading-5 text-ink/55">
+        Prijzen incl. btw, zoals in onze webshop.
+        {anySoldOut && <> <span className="font-semibold text-accent-deep">*</span> {term.badge}: {term.note}</>}
+      </p>
+    </figure>
+  );
+}
+
 export function productInfoTabs({
   omschrijving,
   prijzen,
@@ -41,8 +134,8 @@ export function productInfoTabs({
   fencing,
 }: {
   omschrijving: string;
-  /** Price tables of a WordPress page; omitted when they already show above. */
-  prijzen?: string;
+  /** Price overview of a WordPress page; omitted when it already shows above. */
+  prijzen?: ReactNode;
   facts: { label: string; value: string }[];
   kenmerken: string;
   pluspunten: string;
@@ -57,7 +150,7 @@ export function productInfoTabs({
       content: omschrijving ? <Html html={omschrijving} /> : <p className="text-ink/60">Meer informatie volgt.</p>,
     },
     prijzen
-      ? { id: "prijstabel", label: "Prijstabel", content: <PriceTableHtml html={prijzen} /> }
+      ? { id: "prijstabel", label: "Prijstabel", content: prijzen }
       : null,
     facts.length || kenmerken
       ? {

@@ -1,15 +1,18 @@
 "use client";
 
-import { ArrowUpRight, Minus, Plus, ShoppingCart } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowUpRight, Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
 import {
   compareAtPrice,
   formatPrice,
   shopCartAddUrl,
   shopCartPermalink,
+  splitRoll,
   type Product,
   type ProductVariant,
 } from "@/lib/catalog";
+import { orderTerm } from "@/lib/made-to-order";
 
 /*
  * Price list buy box: one row per shop variant with its price and a quantity,
@@ -20,9 +23,11 @@ import {
  * There is no cart on this site: one chosen line is added to the
  * natuurhout.shop cart (keeping what is already there); several lines open
  * the shop's checkout with exactly those lines (Shopify cart permalink).
+ *
+ * Sold-out variants stay orderable "op bestelling": as soon as one is in the
+ * selection, the box sends an order request (OrderRequestForm) instead, with
+ * every chosen line, and Natuurhout mails the delivery term.
  */
-
-const ROLL = /\s*\((\d+(?:[.,]\d+)?)\s*m\s*rol\)\s*/i;
 
 type Row = {
   variant: ProductVariant;
@@ -43,13 +48,18 @@ function priceList(product: Product): { columns: string[]; rows: Row[] } {
   let previous = "";
   const rows = product.variants.map((variant, i) => {
     const raw = single ? [product.title] : byAxis ? split[i] : [variant.title];
-    const match = raw.map((cell) => ROLL.exec(cell)).find(Boolean);
-    const cells = raw.map((cell) => cell.replace(ROLL, " ").trim());
+    const parts = raw.map(splitRoll);
+    const cells = parts.map((part) => part.text);
     const continued = byAxis && cells[0] === previous;
     previous = cells[0];
-    return { variant, cells, roll: match ? parseFloat(match[1].replace(",", ".")) : null, continued };
+    return { variant, cells, roll: parts.find((part) => part.roll !== null)?.roll ?? null, continued };
   });
   return { columns, rows };
+}
+
+function rowLabel(row: Row) {
+  const label = row.cells.join(" · ");
+  return row.roll !== null ? `${label} (rol ${row.roll} m)` : label;
 }
 
 function Stepper({
@@ -102,15 +112,19 @@ function Stepper({
 
 function PriceTable({
   product,
+  list: { columns, rows },
   qty,
   setQty,
 }: {
   product: Product;
+  list: { columns: string[]; rows: Row[] };
   qty: Record<number, number>;
   setQty: (id: number, n: number) => void;
 }) {
-  const { columns, rows } = useMemo(() => priceList(product), [product]);
   const multi = columns.length > 1;
+  const term = orderTerm(product.handle);
+  // When nothing is in stock the banner above the table says it once.
+  const allOnOrder = product.variants.every((v) => !v.available);
 
   return (
     <table className="w-full text-sm">
@@ -141,8 +155,8 @@ function PriceTable({
             <tr
               key={variant.id}
               className={`${groupStart ? "border-t-2 border-line" : i > 0 ? "border-t border-line/70" : ""} ${
-                n > 0 && variant.available ? "bg-accent/[0.06]" : ""
-              } ${variant.available ? "" : "text-ink/45"}`}
+                n > 0 ? "bg-accent/[0.06]" : ""
+              }`}
             >
               {cells.map((cell, c) => (
                 <td
@@ -169,11 +183,10 @@ function PriceTable({
                 {roll !== null && <span className="block text-xs text-ink/50">{formatPrice(price / roll)} / m</span>}
               </td>
               <td className="px-4 py-2 text-right align-middle sm:px-5">
-                {variant.available ? (
-                  <Stepper value={n} label={label} onChange={(value) => setQty(variant.id, value)} />
-                ) : (
-                  <span className="inline-block rounded-full bg-ink/[0.06] px-2.5 py-1 text-xs font-medium text-ink/55">
-                    Uitverkocht
+                <Stepper value={n} label={label} onChange={(value) => setQty(variant.id, value)} />
+                {!variant.available && !allOnOrder && (
+                  <span className="mt-1 block text-[11px] font-semibold uppercase tracking-wide text-accent-deep">
+                    {term.badge}
                   </span>
                 )}
               </td>
@@ -186,31 +199,52 @@ function PriceTable({
 }
 
 export default function PriceList({ products }: { products: Product[] }) {
+  const lists = useMemo(() => products.map((product) => priceList(product)), [products]);
   // A lone single-variant product starts at 1, ready to order; a price list
   // starts empty so nothing is ordered that the customer did not pick.
   const [qty, setQtyState] = useState<Record<number, number>>(() => {
     const only = products.length === 1 && products[0].variants.length === 1 ? products[0].variants[0] : null;
-    return only?.available ? { [only.id]: 1 } : {};
+    return only ? { [only.id]: 1 } : {};
   });
   const setQty = (id: number, n: number) => setQtyState((q) => ({ ...q, [id]: n }));
+  const [requesting, setRequesting] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
 
-  const lines = products.flatMap((product) =>
-    product.variants
-      .filter((variant) => variant.available && (qty[variant.id] ?? 0) > 0)
-      .map((variant) => ({ product, variant, quantity: qty[variant.id] })),
+  const lines = products.flatMap((product, p) =>
+    lists[p].rows
+      .filter((row) => (qty[row.variant.id] ?? 0) > 0)
+      .map((row) => ({ product, row, variant: row.variant, quantity: qty[row.variant.id] })),
   );
+  const inStock = lines.filter((l) => l.variant.available);
+  const onOrder = lines.filter((l) => !l.variant.available);
   const pieces = lines.reduce((n, l) => n + l.quantity, 0);
   const total = lines.reduce((sum, l) => sum + parseFloat(l.variant.price) * l.quantity, 0);
   const saved = lines.reduce((sum, l) => {
     const was = compareAtPrice(l.variant);
     return was === null ? sum : sum + (was - parseFloat(l.variant.price)) * l.quantity;
   }, 0);
-  const href =
-    lines.length === 1
-      ? shopCartAddUrl(lines[0].product, lines[0].variant, lines[0].quantity)
-      : lines.length > 1
-        ? shopCartPermalink(lines[0].product, lines)
+  const shopHref =
+    inStock.length === 1
+      ? shopCartAddUrl(inStock[0].product, inStock[0].variant, inStock[0].quantity)
+      : inStock.length > 1
+        ? shopCartPermalink(inStock[0].product, inStock)
         : null;
+  const requestLines: RequestLine[] = lines.map((l) => ({
+    group: l.product.title,
+    label: rowLabel(l.row),
+    detail: l.variant.available ? "Op voorraad" : orderTerm(l.product.handle).badge,
+    qty: l.quantity,
+    unit: parseFloat(l.variant.price),
+  }));
+  const showForm = requesting && onOrder.length > 0;
+
+  function openForm() {
+    setRequesting(true);
+    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
+  const button =
+    "inline-flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-colors sm:flex-none";
 
   return (
     <div>
@@ -219,16 +253,27 @@ export default function PriceList({ products }: { products: Product[] }) {
           <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">Prijslijst</h2>
           <span className="text-xs text-white/70">Alle prijzen incl. btw</span>
         </div>
-        {products.map((product, i) => (
-          <div key={product.handle} className={i > 0 ? "border-t-4 border-ground" : ""}>
-            {products.length > 1 && (
-              <h3 className="border-b border-line px-4 pb-2 pt-4 font-display text-base font-semibold sm:px-5">
-                {product.title}
-              </h3>
-            )}
-            <PriceTable product={product} qty={qty} setQty={setQty} />
-          </div>
-        ))}
+        {products.map((product, i) => {
+          const soldOut = product.variants.some((v) => !v.available);
+          return (
+            <div key={product.handle} className={i > 0 ? "border-t-4 border-ground" : ""}>
+              {products.length > 1 && (
+                <h3 className="border-b border-line px-4 pb-2 pt-4 font-display text-base font-semibold sm:px-5">
+                  {product.title}
+                </h3>
+              )}
+              {soldOut && (
+                <p className="flex items-start gap-2 border-b border-line bg-accent/[0.07] px-4 py-2.5 text-xs leading-5 text-ink/75 sm:px-5">
+                  <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-deep" />
+                  <span>
+                    <strong className="text-ink">{orderTerm(product.handle).badge}:</strong> {orderTerm(product.handle).note}
+                  </span>
+                </p>
+              )}
+              <PriceTable product={product} list={lists[i]} qty={qty} setQty={setQty} />
+            </div>
+          );
+        })}
       </div>
 
       {/* Totals: sticks to the bottom of the screen while a long list scrolls */}
@@ -248,19 +293,19 @@ export default function PriceList({ products }: { products: Product[] }) {
             <span className="block text-xs text-ink/60">Totaal incl. btw</span>
             <span className="text-2xl font-semibold tabular-nums">{formatPrice(total)}</span>
           </p>
-          {href ? (
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener"
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep sm:flex-none"
-            >
+          {onOrder.length > 0 ? (
+            <button type="button" onClick={openForm} className={`${button} bg-accent text-white hover:bg-accent-deep`}>
+              <Send className="h-4 w-4" />
+              Aanvragen
+            </button>
+          ) : shopHref ? (
+            <a href={shopHref} target="_blank" rel="noopener" className={`${button} bg-accent text-white hover:bg-accent-deep`}>
               <ShoppingCart className="h-4 w-4" />
-              {lines.length > 1 ? "Bestellen" : "In winkelmand"}
+              {inStock.length > 1 ? "Bestellen" : "In winkelmand"}
               <ArrowUpRight className="h-4 w-4" />
             </a>
           ) : (
-            <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-ink/10 px-6 py-3.5 text-sm font-semibold text-ink/50 sm:flex-none">
+            <span className={`${button} bg-ink/10 text-ink/50`}>
               <ShoppingCart className="h-4 w-4" />
               Kies een aantal
             </span>
@@ -268,13 +313,34 @@ export default function PriceList({ products }: { products: Product[] }) {
         </div>
       </div>
       <p className="mt-2.5 text-xs leading-5 text-ink/55">
-        {lines.length > 1
-          ? "Opent de kassa van natuurhout.shop met deze artikelen — daar kiest u levering of afhalen en rekent u af."
-          : lines.length === 1
-            ? "Opent natuurhout.shop met dit artikel in uw winkelmand — daar rekent u af."
-            : "Kies hierboven per uitvoering hoeveel u wilt — u kunt meerdere uitvoeringen tegelijk bestellen."}{" "}
+        {onOrder.length > 0 ? (
+          <>
+            Uw keuze bevat artikelen op bestelling: u vraagt ze aan en wij mailen u de levertermijn.
+            {shopHref && (
+              <>
+                {" "}Liever enkel wat op voorraad is meteen bestellen?{" "}
+                <a href={shopHref} target="_blank" rel="noopener" className="font-medium text-accent underline hover:text-accent-deep">
+                  Naar de webshop
+                </a>
+                .
+              </>
+            )}
+          </>
+        ) : inStock.length > 1 ? (
+          "Opent de kassa van natuurhout.shop met deze artikelen — daar kiest u levering of afhalen en rekent u af."
+        ) : inStock.length === 1 ? (
+          "Opent natuurhout.shop met dit artikel in uw winkelmand — daar rekent u af."
+        ) : (
+          "Kies hierboven per uitvoering hoeveel u wilt — u kunt meerdere uitvoeringen tegelijk bestellen, ook wat op bestelling is."
+        )}{" "}
         Levering mogelijk: de kosten hangen af van de locatie. Afhalen kan in Zele.
       </p>
+
+      {showForm && (
+        <div ref={formRef} className="mt-4 scroll-mt-6">
+          <OrderRequestForm lines={requestLines} />
+        </div>
+      )}
     </div>
   );
 }
