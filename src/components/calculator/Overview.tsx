@@ -78,7 +78,6 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
   // sent = delivered to our inbox; mailto = handed to the customer's mail program
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "mailto" | "error">("idle");
   const [honeypot, setHoneypot] = useState("");
-  const openedAt = useRef(Date.now());
   const [copied, setCopied] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const [agreed, setAgreed] = useState(false);
@@ -113,7 +112,9 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           email: c.email,
           text,
           website: honeypot,
-          elapsedMs: Date.now() - openedAt.current,
+          // Time since the page opened, not since this step appeared: browser
+          // autofill lets a real customer finish this last step in seconds.
+          elapsedMs: Math.round(performance.now()),
         }),
       });
       if (response.ok) setStatus("sent");
