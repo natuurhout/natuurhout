@@ -1,0 +1,61 @@
+name: Live smoke test
+
+# Manual check of the deployed site, run from GitHub's network: the main
+# pages answer 200, and (optionally) one real test quote goes through
+# /api/offerte → Resend → the Natuurhout inbox. Start it from the Actions tab
+# ("Run workflow"). The test quote is clearly marked as a test.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to test"
+        default: "https://natuurhout-ten.vercel.app"
+        required: true
+      send_quote:
+        description: "Send one test quote to the inbox"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE: ${{ inputs.base_url }}
+    steps:
+      - name: Pages answer 200
+        run: |
+          fail=0
+          for path in / /calculator/ /shop/ /shop/kastanje-rasterwerk/ /producten/ /offerte-aanvragen/ /sitemap.xml /robots.txt; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 30 "$BASE$path")
+            echo "$code  $path"
+            [ "$code" = "200" ] || fail=1
+          done
+          exit $fail
+
+      - name: Calculator page carries the new flow
+        run: |
+          curl -sS --max-time 30 "$BASE/calculator/" | grep -q "Wat wilt u berekenen?" && echo "calculator: new flow present"
+
+      - name: Send one test quote
+        if: inputs.send_quote
+        run: |
+          body=$(jq -n --arg t "$(date -u '+%Y-%m-%d %H:%M UTC')" '{
+            name: "TEST – automatische controle",
+            email: "info@natuurhout.be",
+            text: ("Dit is een testaanvraag van de workflow Live smoke test (" + $t + ").\nAls deze mail in de inbox staat, werkt de offerte-aanvraag van de calculator.\nU hoeft hier niets mee te doen."),
+            elapsedMs: 60000
+          }')
+          code=$(curl -sS -o response.json -w "%{http_code}" --max-time 30 -X POST "$BASE/api/offerte/" \
+            -H "Content-Type: application/json" -d "$body")
+          echo "HTTP $code"; cat response.json; echo
+          case "$code" in
+            200) echo "Quote accepted and handed to Resend — check the inbox." ;;
+            503) echo "::error::RESEND_API_KEY is not active on this deployment (set it in Vercel and redeploy)."; exit 1 ;;
+            502) echo "::error::Resend refused the mail — see the function log in Vercel for Resend's reason."; exit 1 ;;
+            *)   echo "::error::Unexpected answer from /api/offerte/"; exit 1 ;;
+          esac
