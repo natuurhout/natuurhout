@@ -77,7 +77,15 @@ export async function POST(request: Request) {
     fetch(RESEND_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: sender, to, reply_to: replyTo, subject: mail.subject, text: mail.text, html: mail.html }),
+      body: JSON.stringify({
+        from: sender,
+        to,
+        reply_to: replyTo,
+        subject: mail.subject,
+        text: mail.text,
+        html: mail.html,
+        attachments: mail.attachments,
+      }),
       signal: AbortSignal.timeout(15_000),
     });
 

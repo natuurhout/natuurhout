@@ -22,7 +22,19 @@ export type Quote = {
   text: string;
 };
 
-export type Mail = { subject: string; html: string; text: string };
+import { logoImage, mascotImage, type EmailImage } from "@/lib/email-assets";
+
+/** Inline images travel as attachments referenced by cid: in the HTML (Resend's attachment shape). */
+export type MailAttachment = { filename: string; content: string; content_id: string };
+export type Mail = { subject: string; html: string; text: string; attachments: MailAttachment[] };
+
+const INLINE_IMAGES: EmailImage[] = [logoImage, mascotImage];
+const inlineAttachments = (): MailAttachment[] =>
+  INLINE_IMAGES.map((i) => ({ filename: i.filename, content: i.base64, content_id: i.cid }));
+
+function img(i: EmailImage, alt: string): string {
+  return `<img src="cid:${i.cid}" width="${i.width}" height="${i.height}" alt="${alt}" style="display:block;border:0;outline:none;text-decoration:none;width:${i.width}px;height:${i.height}px">`;
+}
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -150,9 +162,11 @@ function frame(inner: string): string {
   return `<!doctype html><html lang="nl"><body style="margin:0;padding:0;background:${C.ground}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.ground}"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid ${C.line};border-radius:6px">
-<tr><td style="padding:22px 28px;background:${C.dark};border-radius:6px 6px 0 0">
-<span style="${FONT};font-size:20px;font-weight:800;letter-spacing:.04em;color:#ffffff">NATUURHOUT</span><br>
-<span style="${FONT};font-size:12px;color:#c9c9c4">scherpe prijzen kastanjehout</span></td></tr>
+<tr><td style="padding:16px 28px;background:#ffffff;border-bottom:3px solid ${C.accent};border-radius:6px 6px 0 0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+<td style="vertical-align:middle">${img(logoImage, "Natuurhout — scherpe prijzen kastanjehout")}</td>
+<td align="right" style="vertical-align:middle">${img(mascotImage, "")}</td>
+</tr></table></td></tr>
 <tr><td style="padding:28px">${inner}</td></tr>
 <tr><td style="padding:18px 28px;border-top:1px solid ${C.line};${FONT};font-size:12px;line-height:1.6;color:${C.soft}">
 Natuurhout · Adolf Van Der Moerenstraat 39, 9240 Zele<br>
@@ -172,7 +186,7 @@ ${detailsTable(q, true)}
 <div style="margin-top:22px">${q.lines.length ? linesTable(q) : plainOverview(q)}</div>
 ${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : ""}
 ${remarksBlock(q)}`;
-  return { subject: `Offerteaanvraag afsluiting – ${q.name}`, html: frame(inner), text: q.text };
+  return { subject: `Offerteaanvraag afsluiting – ${q.name}`, html: frame(inner), text: q.text, attachments: inlineAttachments() };
 }
 
 export function confirmationMail(q: Quote): Mail {
@@ -203,5 +217,5 @@ ${remarksBlock(q)}
     "Het team van Natuurhout",
     "Adolf Van Der Moerenstraat 39, 9240 Zele · +32 5 255 88 58 · info@natuurhout.be",
   ].join("\n");
-  return { subject: "Bedankt voor uw offerteaanvraag – Natuurhout", html: frame(inner), text };
+  return { subject: "Bedankt voor uw offerteaanvraag – Natuurhout", html: frame(inner), text, attachments: inlineAttachments() };
 }
