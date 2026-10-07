@@ -82,6 +82,37 @@ function auditHandBuilt(page, route, built$) {
     failures.push(`${where}: internal links dropped -> ${dropped.join(", ")}`);
   }
 
+  // A rebuilt layout that promises to keep the snapshot's content: every
+  // heading, paragraph, list and table text, and every image, must still be
+  // on the page — only order and grouping may change.
+  if (route.preserveContent) {
+    const rootNode = built$(`[data-legacy-product="${page.pathname}"]`).first();
+    if (!rootNode.length) {
+      failures.push(`${where}: missing rebuilt product root`);
+    } else {
+      const squash = (value) => value.replace(/\s+/g, "");
+      const builtText = squash(rootNode.text());
+      const missingText = page.blocks
+        .filter((block) => block.type !== "image")
+        .map((block) => (block.type === "heading" ? block.text : cheerio.load(block.html, null, false).root().text()))
+        .filter((text) => squash(text) && !builtText.includes(squash(text)));
+      if (missingText.length) {
+        failures.push(`${where}: snapshot text missing -> ${missingText.map((t) => normalizeText(t).slice(0, 60)).join(" | ")}`);
+      }
+      const builtImages = new Set(
+        rootNode.find("img[src]").map((_, img) => {
+          const src = built$(img).attr("src");
+          const optimized = /^\/_next\/image\/?\?url=([^&]+)/.exec(src);
+          return optimized ? decodeURIComponent(optimized[1]) : src;
+        }).get(),
+      );
+      const missingImages = page.blocks
+        .filter((block) => block.type === "image" && !builtImages.has(block.src))
+        .map((block) => block.src);
+      if (missingImages.length) failures.push(`${where}: snapshot images missing -> ${missingImages.join(", ")}`);
+    }
+  }
+
   hotlinkedImages += built$("img[src]")
     .map((_, img) => built$(img).attr("src"))
     .get()

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import LegacyContent from "@/components/LegacyContent";
+import LegacyProductPage from "@/components/LegacyProductPage";
 import {
   getLegacyPage,
   isPermanentlyNoindexLegacyPath,
   legacyMetadataTitle,
   legacyPages,
 } from "@/lib/legacy";
+import { legacyProduct } from "@/lib/legacy-product";
 import { siteIndexingEnabled } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string[] }> };
@@ -45,5 +47,8 @@ export default async function LegacyRoute({ params }: Props) {
   const { slug } = await params;
   const page = getLegacyPage(slug);
   if (!page) notFound();
+  // The "Producten & Prijzen" pages use the shop's product layout.
+  const product = legacyProduct(page);
+  if (product) return <LegacyProductPage page={page} info={product} />;
   return <LegacyContent page={page} />;
 }

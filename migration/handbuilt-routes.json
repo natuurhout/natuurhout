@@ -1,5 +1,5 @@
 {
-  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page, unless a retargetedLinks entry records an approved replacement that is on the page instead. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate.",
+  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page, unless a retargetedLinks entry records an approved replacement that is on the page instead. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate. A route with preserveContent: true is a layout change only: the audit additionally requires every heading, paragraph, list and table text and every image of the snapshot to still be on the page.",
   "routes": [
     {
       "pathname": "/",
@@ -11,6 +11,120 @@
           "reason": "The 'Hazelaar Rasterwerk' tile pointed at a URL that 301s to the robinia page. Approved by Xander to link the hazelaar page instead."
         }
       }
+    },
+    {
+      "pathname": "/project/rasterwerk-kastanjehout/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/robinia-rasterwerk/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/hazelaarrasterwerk/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/franse-poorten/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/maatwerk-poorten/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/hazelaar-poorten/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/cleft-field-veldpoorten/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/hazelaarvlechtschermen/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/hazelaar-vlechtscherm-hasseltre/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/moestuinbak/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/eiken-palen/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/kastanjepalen/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/postsaver-voor-palen/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/post-rail-2/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/lariks-schaal-delen-2/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/raamwerkpoort/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/kastanje-poorten-geschroefd/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/robinia-palen/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/boerenlandhekken/",
+      "approvedBy": "Xander",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "preserveContent": true
     }
   ]
 }

@@ -14,7 +14,7 @@ export type TabId = "omschrijving" | "kenmerken" | "pluspunten" | "tips";
 
 export type ProductSections = Record<TabId, string>;
 
-type Section = { title: string; level: number; html: string };
+export type Section = { title: string; level: number; html: string };
 
 const HEADING = /^h([1-6])$/;
 
@@ -23,10 +23,10 @@ const HEADING = /^h([1-6])$/;
 const CLASSIFIERS: [TabId, RegExp][] = [
   ["pluspunten", /waarom|voorde(e)?l|pluspunt|troef|onderhoudsvrij|onderhoudsarm/i],
   ["kenmerken", /kenmerk|specificatie|technisch|eigenschap|details|staat van het product|constructie|afmeting/i],
-  ["tips", /toepassing|tip|montage|plaats|onderhoud|combineer|combinatie|gebruiksgemak|gebruik/i],
+  ["tips", /toepassing|tip|montage|plaatsing|plaatsen|onderhoud|combineer|combinatie|gebruiksgemak|gebruik/i],
 ];
 
-function classify(title: string): TabId {
+export function classify(title: string): TabId {
   for (const [tab, pattern] of CLASSIFIERS) if (pattern.test(title)) return tab;
   return "omschrijving";
 }
@@ -35,7 +35,8 @@ function classify(title: string): TabId {
 function isBoldHeading($: CheerioAPI, el: Element): boolean {
   if (el.tagName !== "p" || $(el).find("br").length) return false;
   const text = $(el).text().replace(/\s+/g, " ").trim();
-  if (!text || text.length > 110) return false;
+  // "*PROMOTIE" and other footnotes are bold too, but belong to what they annotate.
+  if (!text || text.length > 110 || text.startsWith("*")) return false;
   const bold = $(el).find("strong, b").text().replace(/\s+/g, " ").trim();
   return bold === text;
 }
@@ -54,8 +55,12 @@ function containsHeading($: CheerioAPI, el: Element): boolean {
     .some((child) => headingLevel($, child) !== null);
 }
 
-/** Splits shop HTML into top-level sections at its headings. */
-function splitSections(bodyHtml: string): Section[] {
+/**
+ * Splits HTML into top-level sections at its headings (and bold one-line
+ * paragraphs that act as headings). `keepColon` keeps a trailing ":" in the
+ * heading text, for copy that must stay verbatim.
+ */
+export function splitSections(bodyHtml: string, { keepColon = false } = {}): Section[] {
   const $ = load(bodyHtml, null, false);
   $("meta, hr, script, style, img").remove();
   $("*").removeAttr("data-start").removeAttr("data-end").removeAttr("class").removeAttr("style");
@@ -76,7 +81,8 @@ function splitSections(bodyHtml: string): Section[] {
   for (const node of root.contents().toArray()) {
     const level = headingLevel($, node);
     if (level !== null) {
-      const title = $(node).text().replace(/\s+/g, " ").trim().replace(/:$/, "");
+      const text = $(node).text().replace(/\s+/g, " ").trim();
+      const title = keepColon ? text : text.replace(/:$/, "");
       if (title) sections.push({ title, level, html: "" });
       continue;
     }
@@ -88,7 +94,7 @@ function splitSections(bodyHtml: string): Section[] {
   return sections.filter((s) => s.title || s.html);
 }
 
-function escapeHtml(text: string) {
+export function escapeHtml(text: string) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
