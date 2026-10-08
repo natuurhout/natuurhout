@@ -22,6 +22,7 @@ const REMOVED = ["/project/boerenlandhekken/"];
 const PHOTOS: Record<string, string> = {
   "/project/hazelaar-vlechtscherm-hasseltre/": "/fotos/hazelaar-vlechtscherm-halve-latten.jpg",
   "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
+  "/project/robinia-rasterwerk/": "/fotos/robinia-hekwerk-hoofdfoto.jpg",
 };
 
 function edit(html: string) {

@@ -28,6 +28,7 @@ const VLECHTSCHERM_HALVE_LATTEN: ExtraPhoto[] = [
 ];
 
 const ROBINIA_HEKWERK: ExtraPhoto[] = [
+  { src: "/fotos/robinia-hekwerk-hoofdfoto.jpg", alt: "Robinia hekwerk in de avondzon, met gepunte latten en verzinkt draad", caption: "Robinia hekwerk" },
   { src: "/fotos/robinia-hekwerk-1.jpg", alt: "Robinia hekwerk geplaatst langs de straat", caption: "Robinia hekwerk langs de straat" },
   { src: "/fotos/robinia-hekwerk-2.jpg", alt: "Robinia hekwerk van dichtbij, met gepunte latten", caption: "Robinia hekwerk van dichtbij" },
   { src: "/fotos/robinia-hekwerk-3.jpg", alt: "Robinia hekwerk met palen, met zicht op een weide", caption: "Robinia hekwerk met palen" },
@@ -46,6 +47,11 @@ export const PAGE_EXTRA_PHOTOS: Record<string, ExtraPhoto[]> = {
   "/project/rasterwerk-kastanjehout/": KASTANJE_HEKWERK,
   "/project/hazelaar-vlechtscherm-hasseltre/": VLECHTSCHERM_HALVE_LATTEN,
   "/project/robinia-rasterwerk/": ROBINIA_HEKWERK,
+};
+
+/** Thumbnail on product cards (shop, sliders), instead of the first webshop photo. */
+export const CARD_PHOTOS: Record<string, string> = {
+  "robinia-hekwerk": ROBINIA_HEKWERK[0].src,
 };
 
 /** Calculator tiles for "Hekwerk" and "Vlechtschermen". */

@@ -9,13 +9,15 @@ import {
   type Product,
 } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
+import { CARD_PHOTOS } from "@/lib/extra-photos";
 
 // Commerce tile: framed white card on the grey ground, square media matching
 // the catalogue's dominant 1:1 shop photography, a two-line title box so
 // prices line up across a row, and price plus action pinned to the bottom.
 // Titles and prices stay verbatim shop data — never reworded or rounded.
 export default function ProductCard({ product }: { product: Product }) {
-  const img = product.images[0];
+  const card = CARD_PHOTOS[product.handle];
+  const img = card ? { src: card, alt: product.title } : product.images[0];
   const hasRange =
     product.priceFrom && product.priceTo && product.priceFrom !== product.priceTo;
   // The card shows priceFrom, so its "was" price and percentage must come from

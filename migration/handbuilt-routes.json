@@ -197,7 +197,7 @@
     {
       "pathname": "/producten/",
       "approvedBy": "Xander",
-      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner). The Services/FAQ block is rebuilt as tabs (Veelgestelde vragen (FAQ), Service) with updated delivery, pick-up and payment answers, and the Engels/Frans rasterwerk question replaced by the hazelaar/kastanje/robinia comparison. Thuislevering: \"fax\" replaced by WhatsApp. Montage/plaatsing answer extended (request by mail with photos, or via WhatsApp).",
+      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner). The Services/FAQ block is rebuilt as tabs (Veelgestelde vragen (FAQ), Service) with updated delivery, pick-up and payment answers, and the Engels/Frans rasterwerk question replaced by the hazelaar/kastanje/robinia comparison. Thuislevering: \"fax\" replaced by WhatsApp. Montage/plaatsing answer extended (request by mail with photos, or via WhatsApp). The Robinia Hekwerk tile shows Natuurhout's new main robinia photo.",
       "preserveContent": true,
       "removedContent": [
         "Boerenlandhekken",
@@ -213,7 +213,8 @@
         "Verschil tussen Engels en frans rasterwerk:",
         "Het grote verschil tussen engels en frans rasterwerk is voornamelijk de punt(franse uitvoering scherper) en het binden van de latten. Bij de franse uitvoering is dit strakker en de latten zijn rechter uitgevoerd, de duurzaamheid tussen de 2 soorten is niet verschillend.",
         "Het is altijd mogelijk van thuis uit bestellingen te doen via telefoon, fax of e-mail. Alles wordt door ons netjes klaargemaakt en indien gewenst aan huis geleverd*.",
-        "Wij kunnen een afspraak maken om langs te komen, en dit ter plaatse te overleggen. Indien u hiervan gebruik wilt maken, kunnen wij uw op verzoek een offerte opmaken Voor meer vragen kunt u ons altijd bellen/mailen."
+        "Wij kunnen een afspraak maken om langs te komen, en dit ter plaatse te overleggen. Indien u hiervan gebruik wilt maken, kunnen wij uw op verzoek een offerte opmaken Voor meer vragen kunt u ons altijd bellen/mailen.",
+        "/wp-content/uploads/2022/05/2-1.png"
       ],
       "droppedLinks": {
         "/project/boerenlandhekken/": "Product sold out; removed from the overview and the menu on Xander's request."

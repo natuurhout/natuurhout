@@ -47,7 +47,7 @@ const usps = [
 // order as the product rails: fencing, gates, posts, then the rest.
 const categories = [
   { label: "Kastanje Rasterwerk", href: "/project/rasterwerk-kastanjehout/", src: "/wp-content/uploads/2023/01/Kastanjeafsluiting3-scaled.jpg" },
-  { label: "Robinia Rasterwerk", href: "/project/robinia-rasterwerk/", src: "/wp-content/uploads/2022/05/2-1.png" },
+  { label: "Robinia Rasterwerk", href: "/project/robinia-rasterwerk/", src: "/fotos/robinia-hekwerk-hoofdfoto.jpg" },
   { label: "Hazelaar Rasterwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
   { label: "Franse Poorten", href: "/project/franse-poorten/", src: "/wp-content/uploads/2024/10/Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Religieuze-Labels-1.png" },
   { label: "Franse Maatwerk poorten", href: "/project/maatwerk-poorten/", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
