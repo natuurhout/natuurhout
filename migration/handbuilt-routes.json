@@ -181,6 +181,12 @@
       "pathname": "/offerte-aanvragen/",
       "approvedBy": "Xander",
       "reason": "Quote page rebuilt on Xander's request: the snapshot was one large Forminator form that only worked inside WordPress. The page now offers the afsluitingscalculator and a free request form (with photos), both sending through /api/offerte. Title, description, canonical, structured data and h1 unchanged; the snapshot had no internal links."
+    },
+    {
+      "pathname": "/over-ons/",
+      "approvedBy": "Xander",
+      "reason": "Over ons rebuilt on Xander's request: the text opens the page and the photos sit between the sections instead of a block of thumbnails above it. Every heading, paragraph, photo and photo link of the snapshot stays on the page.",
+      "preserveContent": true
     }
   ]
 }
