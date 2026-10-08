@@ -254,7 +254,7 @@ export default function HomePage() {
             <Image
               src="/mascotte-zwaai.webp"
               alt="De Natuurhout-eekhoorn zwaait"
-              width={499}
+              width={496}
               height={640}
               className="absolute bottom-full right-5 h-[112px] w-auto"
             />
@@ -463,16 +463,15 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Mascot sits on white, matching its own background */}
             <aside className="lg:pt-2">
               <div className="rounded-card border border-line bg-white p-6">
                 <div className="flex items-center gap-4">
                   <Image
-                    src="/mascotte-natuurhout.webp"
-                    alt="De mascotte van Natuurhout, een eekhoorn met pet"
-                    width={96}
-                    height={96}
-                    className="h-20 w-20 shrink-0 object-contain"
+                    src="/mascotte-welkom.webp"
+                    alt="De Natuurhout-eekhoorn heet u welkom"
+                    width={551}
+                    height={640}
+                    className="h-24 w-auto shrink-0"
                   />
                   <div>
                     <p className="font-display text-lg font-semibold leading-tight">
