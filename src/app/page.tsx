@@ -431,7 +431,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
                   <a href="tel:+3252558858" className="block font-semibold text-accent hover:text-accent-deep">
-                    +32 5 255 88 58
+                    052 55 88 58
                   </a>
                   <a href="mailto:info@natuurhout.be" className="block text-ink/70 hover:text-accent">
                     info@natuurhout.be

@@ -53,7 +53,7 @@ export function ProductHero({
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:items-start lg:gap-10">
-      <div className="md:sticky md:top-6">
+      <div className="md:sticky md:top-24">
         <ProductGallery images={images} badge={bestSaving > 0 ? `Tot −${bestSaving}%` : undefined} />
         <Assurances className="mt-5 hidden gap-2.5 rounded-card border border-line bg-white p-4 text-sm text-ink/75 md:grid" />
       </div>

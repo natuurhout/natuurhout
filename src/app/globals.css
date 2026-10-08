@@ -20,9 +20,47 @@
     outline: 3px solid #d77d1f;
     outline-offset: 3px;
   }
+
+  /* The sticky navigation bar (64px) must not cover anchor targets. */
+  html {
+    scroll-padding-top: 5rem;
+  }
 }
 
 @layer components {
+  /* Header USPs: one at a time, rotating, below 992px; all three side by side above. */
+  .usp-rotate {
+    position: relative;
+    height: 1.25rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .usp-rotate > li {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    opacity: 0;
+    animation: usp-cycle 12s infinite;
+  }
+  .usp-rotate > li:nth-child(2) { animation-delay: 4s; }
+  .usp-rotate > li:nth-child(3) { animation-delay: 8s; }
+  @keyframes usp-cycle {
+    0% { opacity: 0; transform: translateY(6px); }
+    4%, 30% { opacity: 1; transform: none; }
+    34%, 100% { opacity: 0; transform: translateY(-6px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .usp-rotate > li { animation: none; }
+    .usp-rotate > li:first-child { opacity: 1; }
+  }
+  @media (min-width: 992px) {
+    .usp-rotate { position: static; height: auto; flex: none; display: flex; gap: 2.5rem; }
+    .usp-rotate > li { position: static; opacity: 1; animation: none; transform: none; }
+  }
+
   .legacy-page {
     @apply mx-auto w-full max-w-[1240px] bg-white px-4 py-9 text-ink sm:px-6 lg:px-10 lg:py-14;
   }

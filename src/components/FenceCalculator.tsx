@@ -147,7 +147,7 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
         </div>
 
         {/* Running total */}
-        <aside className="hidden rounded-card bg-white p-5 shadow-sm ring-1 ring-line lg:sticky lg:top-6 lg:block">
+        <aside className="hidden rounded-card bg-white p-5 shadow-sm ring-1 ring-line lg:sticky lg:top-24 lg:block">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/50">Uw richtprijs</p>
           <p className="mt-1 text-3xl font-semibold tracking-tight text-ink">{formatPrice(sum)}</p>
           <p className="text-xs text-ink/50">incl. btw, excl. levering</p>

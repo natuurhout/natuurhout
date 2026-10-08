@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock, Mail, MapPin, Phone, Smartphone } from "lucide-react";
+import { SOCIALS } from "@/lib/contact";
 
 // NAP, opening hours and link labels are VERBATIM from the live natuurhout.be
 // footer (Phase 0 snapshot) — do not reword; local SEO depends on the exact
-// NAP string. Legal page routes keep their live WordPress slugs (URL parity).
+// NAP string. One approved exception (Xander): the landline is written the
+// Belgian way, "052 55 88 58", instead of the malformed "+32 5 255 88 58" —
+// same number. Legal page routes keep their live WordPress slugs (URL parity).
 export default function Footer() {
   return (
     <footer className="bg-brand-dark text-white">
@@ -22,6 +25,24 @@ export default function Footer() {
               Naar de shop
               <ArrowUpRight className="h-4 w-4" />
             </Link>
+            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.22em] text-accent-bright">
+              Volg ons
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2.5">
+              {SOCIALS.map((social) => (
+                <li key={social.href}>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-white/25 px-3.5 py-2 text-sm font-semibold text-white/85 transition-colors hover:border-white hover:text-white"
+                  >
+                    {social.label}
+                    <ArrowUpRight aria-hidden className="h-3.5 w-3.5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div>
@@ -35,7 +56,7 @@ export default function Footer() {
               </li>
               <li className="flex gap-2.5">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                <a href="tel:+3252558858" className="hover:text-white">Tel: +32 5 255 88 58</a>
+                <a href="tel:+3252558858" className="hover:text-white">Tel: 052 55 88 58</a>
               </li>
               <li className="flex gap-2.5">
                 <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />

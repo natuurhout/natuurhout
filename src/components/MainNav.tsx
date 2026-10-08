@@ -3,152 +3,368 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, ChevronDown, ChevronRight, Mail, MapPin, Menu, Phone, ShoppingCart, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { ArrowRight, ChevronDown, Mail, Menu, Phone, ShoppingCart, X } from "lucide-react";
+import OpeningStatus from "@/components/OpeningStatus";
+import { EMAIL, PHONE, SHOP_URL } from "@/lib/contact";
+import { pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 
-export type NavCollection = {
-  handle: string;
-  title: string;
-  count?: number;
-  image?: { src: string; alt: string };
-};
+/*
+ * The dark navigation bar (≥ 992px) and the compact mobile bar (< 992px).
+ * The <header> around it is sticky with a negative top (see Navbar.tsx), so
+ * the trust strip and the logo row scroll away while this bar stays: no
+ * height changes, no layout jump. Once it sticks, a small logo slides in.
+ */
 
-const pageLinks = [
-  { href: "/", label: "Home" },
-  { href: "/aanbiedingen-2/", label: "Aanbiedingen" },
-  { href: "/onze-realisaties/", label: "Realisaties" },
-  { href: "/offerte-aanvragen/", label: "Offerte aanvragen" },
-  { href: "/over-ons/", label: "Over ons" },
-  { href: "/contact/", label: "Contact" },
-];
+const productPaths = productMenu.flatMap((group) => group.links.map((link) => link.href));
 
-export default function MainNav({ collections }: { collections: NavCollection[] }) {
+export default function MainNav() {
   const pathname = usePathname();
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const [mobileProducts, setMobileProducts] = useState(false);
+  const [stuck, setStuck] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
+  const mobileBarRef = useRef<HTMLDivElement>(null);
+  const productButton = useRef<HTMLButtonElement>(null);
+  const megaRef = useRef<HTMLDivElement>(null);
+  const hamburger = useRef<HTMLButtonElement>(null);
+  const hoverOpenedAt = useRef(0);
 
+  // Stuck = the bar has reached the top of the viewport.
   useEffect(() => {
-    function onPointerDown(event: MouseEvent) {
-      if (!wrapRef.current?.contains(event.target as Node)) setMegaOpen(false);
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMegaOpen(false);
-        setMobileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      const bar = barRef.current?.offsetParent ? barRef.current : mobileBarRef.current;
+      setStuck(Boolean(bar && bar.getBoundingClientRect().top <= 1 && window.scrollY > 0));
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(check);
+    };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(frame);
     };
   }, []);
 
-  function isActive(href: string) {
-    return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const closeMobile = useCallback((returnFocus = false) => {
+    setMobileOpen(false);
+    if (returnFocus) hamburger.current?.focus();
+  }, []);
+
+  // Close everything on navigation.
+  useEffect(() => {
+    setMegaOpen(false);
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    function onKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      if (megaOpen) {
+        setMegaOpen(false);
+        productButton.current?.focus();
+      }
+      if (mobileOpen) closeMobile(true);
+    }
+    function onPointerDown(event: MouseEvent) {
+      if (!barRef.current?.contains(event.target as Node)) setMegaOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, [megaOpen, mobileOpen, closeMobile]);
+
+  // The open mobile menu owns the screen: the page behind it does not scroll.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [mobileOpen]);
+
+  const megaLinks = () => [...(megaRef.current?.querySelectorAll<HTMLAnchorElement>("a[href]") ?? [])];
+
+  function onProductKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setMegaOpen(true);
+      requestAnimationFrame(() => megaLinks()[0]?.focus());
+    }
   }
 
-  const navLinkClass = (active: boolean) =>
-    `relative flex h-[72px] items-center whitespace-nowrap px-4 text-[15px] font-semibold transition-colors after:absolute after:inset-x-4 after:bottom-0 after:h-1 after:origin-left after:bg-accent after:transition-transform ${active ? "text-white after:scale-x-100" : "text-white/75 after:scale-x-0 hover:text-white hover:after:scale-x-100"}`;
+  function onMegaKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const links = megaLinks();
+    const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+    const next = event.key === "ArrowDown" ? index + 1 : index - 1;
+    if (next < 0) productButton.current?.focus();
+    else links[Math.min(next, links.length - 1)]?.focus();
+  }
+
+  const isActive = (href: string) => pathname.startsWith(href);
+  const productsActive = megaOpen || productPaths.some(isActive) || pathname === "/producten/";
+
+  const navLink = (active: boolean) =>
+    `relative flex h-16 items-center whitespace-nowrap px-2.5 text-[14px] font-semibold transition-colors after:absolute after:inset-x-2.5 after:bottom-0 after:h-1 after:origin-left after:bg-accent after:transition-transform xl:px-4 xl:text-[15px] xl:after:inset-x-4 ${
+      active ? "text-white after:scale-x-100" : "text-white/80 after:scale-x-0 hover:text-white hover:after:scale-x-100"
+    }`;
+  const primaryButton =
+    "inline-flex items-center justify-center gap-2 rounded-sm bg-accent-deep font-bold text-white shadow-sm transition-colors hover:bg-[#9a520d]";
 
   return (
-    <div ref={wrapRef} className="relative bg-brand-dark text-white">
-      <div className="mx-auto flex max-w-[1400px] items-stretch justify-between px-4 sm:px-6 lg:px-8">
-        <nav className="hidden min-w-0 items-stretch lg:flex" aria-label="Hoofdnavigatie">
-          <Link href="/" className={navLinkClass(isActive("/"))} onMouseEnter={() => setMegaOpen(false)}>Home</Link>
-
-          <button type="button" onClick={() => setMegaOpen((open) => !open)} className={navLinkClass(megaOpen || pathname.startsWith("/project/") || pathname === "/producten/")} aria-expanded={megaOpen} aria-controls="producten-menu">
-            Producten &amp; Prijzen
-            <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
-          </button>
-
-          {pageLinks.slice(1).map((link) => (
-            <Link key={link.href} href={link.href} className={navLinkClass(isActive(link.href))} onMouseEnter={() => setMegaOpen(false)}>{link.label}</Link>
-          ))}
-        </nav>
-
-        <div className="flex h-16 flex-1 items-center justify-between lg:hidden">
-          <button type="button" className="inline-flex h-11 items-center gap-2 rounded-sm px-1 text-sm font-semibold text-white" onClick={() => setMobileOpen((open) => !open)} aria-expanded={mobileOpen} aria-controls="mobile-navigation">
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            Menu
-          </button>
-          <Link href="/shop/" className="inline-flex h-11 items-center gap-2 rounded-sm bg-accent px-4 text-sm font-bold text-white transition-colors hover:bg-accent-deep">
-            <ShoppingCart className="h-4 w-4" />
-            Shop
+    <>
+      {/* Desktop (≥ 992px) */}
+      <div
+        ref={barRef}
+        className={`relative hidden bg-brand-dark text-white transition-shadow duration-300 desk:block ${stuck ? "shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)]" : ""}`}
+        onMouseLeave={() => setMegaOpen(false)}
+      >
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center px-4 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            aria-label="Natuurhout home"
+            inert={!stuck}
+            className={`shrink-0 overflow-hidden transition-all duration-300 ease-out ${stuck ? "mr-3 max-w-[120px] opacity-100 xl:mr-5 xl:max-w-[160px]" : "mr-0 max-w-0 opacity-0"}`}
+          >
+            <Image src="/logo-natuurhout-licht.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[112px] max-w-none xl:w-[150px]" />
           </Link>
+
+          <nav aria-label="Hoofdnavigatie" className="flex min-w-0 items-stretch">
+            <button
+              ref={productButton}
+              type="button"
+              onPointerEnter={(event) => {
+                if (event.pointerType !== "mouse" || megaOpen) return;
+                hoverOpenedAt.current = Date.now();
+                setMegaOpen(true);
+              }}
+              onClick={() => {
+                // A mouse that opened the menu by hovering should not close it again with the click that follows.
+                // (Checked on the ref: the click can arrive before React re-renders the hover's state.)
+                if (Date.now() - hoverOpenedAt.current < 500) return;
+                setMegaOpen((open) => !open);
+              }}
+              onKeyDown={onProductKeyDown}
+              className={navLink(productsActive)}
+              aria-expanded={megaOpen}
+              aria-controls="producten-menu"
+              aria-haspopup="true"
+            >
+              Producten &amp; Prijzen
+              <ChevronDown aria-hidden className={`ml-1.5 h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
+            </button>
+            {pageLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={navLink(isActive(link.href))}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                onPointerEnter={() => setMegaOpen(false)}
+                onFocus={() => setMegaOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex shrink-0 items-center gap-2 pl-3 xl:gap-3">
+            <Link href={QUOTE_HREF} className={`${primaryButton} h-10 px-3.5 text-[14px] xl:px-5`}>
+              Offerte aanvragen
+            </Link>
+            <a
+              href={SHOP_URL}
+              className="inline-flex h-10 items-center gap-2 rounded-sm border border-white/45 px-3.5 text-[14px] font-bold text-white transition-colors hover:border-white hover:bg-white hover:text-brand-dark xl:px-5"
+            >
+              <ShoppingCart aria-hidden className="h-4 w-4" />
+              {/* Below 1280px the compact bar also holds the logo: the label shortens to fit. */}
+              <span className={stuck ? "hidden xl:inline" : undefined}>Naar de shop</span>
+              {stuck && <span className="xl:hidden">Shop</span>}
+            </a>
+          </div>
         </div>
 
-        <Link href="/shop/" className="hidden min-h-[72px] shrink-0 items-center gap-3 bg-accent px-7 text-[15px] font-bold text-white transition-colors hover:bg-accent-deep xl:inline-flex">
-          <ShoppingCart className="h-5 w-5" />
-          Naar de shop
-        </Link>
-      </div>
-
-      {megaOpen && (
-        <div id="producten-menu" className="absolute inset-x-0 top-full z-50 hidden border-t-4 border-accent bg-white text-ink shadow-[0_24px_50px_-28px_rgba(36,39,41,0.45)] lg:block" onMouseLeave={() => setMegaOpen(false)}>
-          <div className="mx-auto grid max-w-[1400px] gap-10 px-8 py-9 lg:grid-cols-[1fr_300px]">
+        <div
+          id="producten-menu"
+          ref={megaRef}
+          hidden={!megaOpen}
+          onKeyDown={onMegaKeyDown}
+          onBlur={(event) => {
+            if (!barRef.current?.contains(event.relatedTarget as Node)) setMegaOpen(false);
+          }}
+          className="absolute inset-x-0 top-full z-50 border-t-4 border-accent bg-white text-ink shadow-[0_24px_50px_-28px_rgba(36,39,41,0.45)]"
+        >
+          <div className="mx-auto grid max-w-[1400px] gap-8 px-8 py-8 xl:grid-cols-[1fr_280px]">
             <div>
-              <h2 className="text-xl font-bold text-ink">Producten &amp; Prijzen</h2>
-              <div className="mt-4 grid grid-cols-2 gap-x-8 xl:grid-cols-3">
-                {collections.map((collection) => (
-                  <Link key={collection.handle} href={collection.handle} onClick={() => setMegaOpen(false)} className="group flex min-h-12 items-center gap-3 border-b border-line py-2.5">
-                    {collection.image && (
-                      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-sm">
-                        <Image src={collection.image.src} alt={collection.image.alt} fill sizes="2.5rem" className="object-cover" />
-                      </span>
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-ink group-hover:text-accent">{collection.title}</span>
-                      {collection.count !== undefined && <span className="text-xs text-ink/50">{collection.count} {collection.count === 1 ? "product" : "producten"}</span>}
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-ink/30 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
-                  </Link>
+              <div className="grid grid-cols-5 gap-x-6 gap-y-6 xl:gap-x-8">
+                {productMenu.map((group) => (
+                  <div key={group.title}>
+                    <h2 className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.14em] text-ink">{group.title}</h2>
+                    <ul className="mt-2">
+                      {group.links.map((link) => (
+                        <li key={link.href}>
+                          <Link
+                            href={link.href}
+                            onClick={() => setMegaOpen(false)}
+                            aria-current={isActive(link.href) ? "page" : undefined}
+                            className={`flex min-h-10 items-center border-b border-line py-2 text-sm font-semibold transition-colors hover:text-accent-deep ${
+                              isActive(link.href) ? "text-accent-deep" : "text-ink"
+                            }`}
+                          >
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
               </div>
-              <Link href="/producten/" onClick={() => setMegaOpen(false)} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-accent hover:text-accent-deep">
-                Bekijk alle producten
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2">
+                <Link href="/producten/" onClick={() => setMegaOpen(false)} className="inline-flex items-center gap-2 text-sm font-bold text-accent-deep hover:text-ink">
+                  Bekijk alle producten <ArrowRight aria-hidden className="h-4 w-4" />
+                </Link>
+                <Link href="/shop/" onClick={() => setMegaOpen(false)} className="inline-flex items-center gap-2 text-sm font-bold text-accent-deep hover:text-ink">
+                  Alle prijzen in de catalogus <ArrowRight aria-hidden className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex flex-col justify-between rounded-sm bg-brand-soft p-7">
+            <div className="hidden flex-col justify-between rounded-sm bg-brand-soft p-7 xl:flex">
               <div>
                 <h2 className="text-xl font-bold text-ink">Afsluitingscalculator</h2>
-                <p className="mt-3 text-sm leading-6 text-ink/70">Kies houtsoort, hoogte en lengte. Ontvang meteen een richtprijs met aanbevolen materiaallijst.</p>
+                <p className="mt-3 text-sm leading-6 text-ink/75">Kies houtsoort, hoogte en lengte. Ontvang meteen een richtprijs met aanbevolen materiaallijst.</p>
               </div>
-              <Link href="/calculator/" onClick={() => setMegaOpen(false)} className="mt-7 inline-flex w-fit items-center gap-2 rounded-sm bg-accent px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-accent-deep">
-                Start de calculator
-                <ArrowRight className="h-4 w-4" />
+              <Link href="/calculator/" onClick={() => setMegaOpen(false)} className={`${primaryButton} mt-7 w-fit px-5 py-3 text-sm`}>
+                Start de calculator <ArrowRight aria-hidden className="h-4 w-4" />
               </Link>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {mobileOpen && (
-        <nav id="mobile-navigation" className="border-t border-white/15 bg-brand-dark lg:hidden" aria-label="Mobiele navigatie">
-          <div className="mx-auto max-w-[1400px] px-4 py-4 sm:px-6">
-            <div className="grid gap-1">
-              {[{ href: "/", label: "Home" }, { href: "/producten/", label: "Producten & Prijzen" }, ...pageLinks.slice(1)].map((link) => (
-                <Link key={link.href} href={link.href} className={`rounded-sm px-3 py-3 text-sm font-semibold transition-colors ${isActive(link.href) ? "bg-white/10 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`} onClick={() => setMobileOpen(false)}>{link.label}</Link>
+      {/* Mobile and tablet (< 992px) */}
+      <div
+        ref={mobileBarRef}
+        className={`relative border-b border-line bg-white transition-shadow duration-300 desk:hidden ${stuck || mobileOpen ? "shadow-[0_8px_20px_-14px_rgba(0,0,0,0.45)]" : ""}`}
+      >
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-2 px-4 sm:px-6">
+          <Link href="/" aria-label="Natuurhout home" className="mr-auto shrink-0">
+            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[150px] sm:w-[190px]" priority />
+          </Link>
+          <a
+            href={PHONE.href}
+            aria-label={`Bel ons: ${PHONE.label}`}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-line text-accent-deep transition-colors hover:border-accent hover:bg-accent-deep hover:text-white"
+          >
+            <Phone aria-hidden className="h-[18px] w-[18px]" />
+          </a>
+          <Link href={QUOTE_HREF} className={`${primaryButton} h-10 shrink-0 px-3 text-sm`}>
+            Offerte
+          </Link>
+          <button
+            ref={hamburger}
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobiel-menu"
+            aria-label={mobileOpen ? "Menu sluiten" : "Menu openen"}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-brand-dark text-white transition-colors hover:bg-brand"
+          >
+            {mobileOpen ? <X aria-hidden className="h-5 w-5" /> : <Menu aria-hidden className="h-5 w-5" />}
+          </button>
+        </div>
+
+        <nav
+          id="mobiel-menu"
+          aria-label="Mobiele navigatie"
+          hidden={!mobileOpen}
+          className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line bg-white shadow-xl"
+        >
+          <div className="mx-auto max-w-[1400px] px-4 pb-8 pt-2 sm:px-6">
+            <ul className="divide-y divide-line">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setMobileProducts((open) => !open)}
+                  aria-expanded={mobileProducts}
+                  aria-controls="mobiel-producten"
+                  className="flex w-full items-center justify-between py-3.5 text-left text-[15px] font-bold text-ink"
+                >
+                  Producten &amp; Prijzen
+                  <ChevronDown aria-hidden className={`h-5 w-5 text-ink/60 transition-transform ${mobileProducts ? "rotate-180" : ""}`} />
+                </button>
+                <div id="mobiel-producten" hidden={!mobileProducts} className="pb-3">
+                  {productMenu.map((group) => (
+                    <div key={group.title} className="mt-2">
+                      <p className="px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-accent-deep">{group.title}</p>
+                      <ul className="mt-1">
+                        {group.links.map((link) => (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              onClick={() => closeMobile()}
+                              aria-current={isActive(link.href) ? "page" : undefined}
+                              className="block rounded-sm px-3 py-2 text-sm font-medium text-ink/85 hover:bg-ground hover:text-ink"
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  <Link href="/producten/" onClick={() => closeMobile()} className="mt-2 inline-flex items-center gap-2 px-3 py-2 text-sm font-bold text-accent-deep">
+                    Bekijk alle producten <ArrowRight aria-hidden className="h-4 w-4" />
+                  </Link>
+                </div>
+              </li>
+              {pageLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={() => closeMobile()}
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                    className={`block py-3.5 text-[15px] font-bold ${isActive(link.href) ? "text-accent-deep" : "text-ink"}`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
               ))}
+            </ul>
+
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+              <Link href={QUOTE_HREF} onClick={() => closeMobile()} className={`${primaryButton} h-12 px-5 text-[15px]`}>
+                Offerte aanvragen
+              </Link>
+              <a href={SHOP_URL} className="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-brand-dark px-5 text-[15px] font-bold text-brand-dark hover:bg-brand-dark hover:text-white">
+                <ShoppingCart aria-hidden className="h-4 w-4" />
+                Naar de shop
+              </a>
             </div>
 
-            <div className="mt-4 grid gap-3 border-t border-white/15 px-3 pt-4 text-sm text-white/70 sm:grid-cols-2">
-              <a href="https://maps.google.com/?q=A.+Van+Der+Moerenstraat+39,+9240+Zele" className="flex items-start gap-2 hover:text-white">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                A. Van Der Moerenstraat 39, 9240 Zele
+            <div className="mt-6 space-y-3 rounded-sm bg-ground p-4 text-sm">
+              <OpeningStatus />
+              <a href={PHONE.href} className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
+                <Phone aria-hidden className="h-4 w-4 text-accent" /> {PHONE.label}
               </a>
-              <div className="space-y-2">
-                <a href="tel:+3252558858" className="flex items-center gap-2 hover:text-white"><Phone className="h-4 w-4 text-accent-bright" />+32 5 255 88 58</a>
-                <a href="mailto:info@natuurhout.be" className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 text-accent-bright" />info@natuurhout.be</a>
-              </div>
+              <a href={EMAIL.href} className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
+                <Mail aria-hidden className="h-4 w-4 text-accent" /> {EMAIL.label}
+              </a>
             </div>
           </div>
         </nav>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

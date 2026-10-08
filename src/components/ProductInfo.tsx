@@ -204,7 +204,7 @@ export function productInfoTabs({
             )}
             <li className="rounded-card border border-line bg-white p-4 text-sm leading-6 text-ink/75">
               <strong className="block text-ink">Twijfelt u over maat of uitvoering?</strong>
-              Bel ons op <a href="tel:+3252558858" className={linkClass}>+32 5 255 88 58</a> of
+              Bel ons op <a href="tel:+3252558858" className={linkClass}>052 55 88 58</a> of
               mail naar <a href="mailto:info@natuurhout.be" className={linkClass}>info@natuurhout.be</a>.
             </li>
           </ul>
@@ -274,7 +274,7 @@ export function ProductInfo({ tabs }: { tabs: ProductTab[] }) {
             Bel of mail ons voor advies op maat, een prijs voor een grotere hoeveelheid of een afspraak in Zele.
           </p>
           <div className="mt-4 space-y-1.5 text-sm">
-            <a href="tel:+3252558858" className="block font-medium text-accent hover:text-accent-deep">+32 5 255 88 58</a>
+            <a href="tel:+3252558858" className="block font-medium text-accent hover:text-accent-deep">052 55 88 58</a>
             <a href="mailto:info@natuurhout.be" className="block text-ink/70 hover:text-accent">info@natuurhout.be</a>
           </div>
           <Link href="/offerte-aanvragen/" className="mt-4 inline-flex text-sm font-medium text-accent hover:text-accent-deep">

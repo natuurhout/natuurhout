@@ -5,6 +5,17 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
+    // Tailwind's default breakpoints plus `desk` (992px), where the header
+    // switches between the mobile bar and the full desktop navigation.
+    // Listed in order so desk: sits between md: and lg: in the cascade.
+    screens: {
+      sm: "640px",
+      md: "768px",
+      desk: "992px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     extend: {
       colors: {
         ground: "#F5F5F3",
@@ -16,7 +27,7 @@ const config: Config = {
         },
         accent: {
           DEFAULT: "#D77D1F",
-          deep: "#B96512",
+          deep: "#B05E10", // white text on it: 4.7:1 (WCAG AA)
           tan: "#CDA27A",
           bright: "#F2A03D",
         },

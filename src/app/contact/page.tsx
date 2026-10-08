@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ContactDetails from "@/components/ContactDetails";
 import LegacyContent from "@/components/LegacyContent";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
@@ -12,5 +13,10 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   if (!page) throw new Error("The WordPress /contact/ snapshot is missing.");
-  return <LegacyContent page={page} />;
+  return (
+    <>
+      <LegacyContent page={page} />
+      <ContactDetails />
+    </>
+  );
 }

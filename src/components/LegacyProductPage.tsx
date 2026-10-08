@@ -88,7 +88,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
                     href="tel:+3252558858"
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-brand/25 bg-white px-6 py-3.5 text-sm font-semibold transition-colors hover:border-accent hover:text-accent"
                   >
-                    <Phone className="h-4 w-4" /> +32 5 255 88 58
+                    <Phone className="h-4 w-4" /> 052 55 88 58
                   </a>
                 </div>
                 {fencing && (
