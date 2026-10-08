@@ -4,11 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowRight, ChevronDown, Mail, Menu, Phone, ShoppingCart, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Mail, Menu, Phone, Search, ShoppingCart, X } from "lucide-react";
 import OpeningStatus from "@/components/OpeningStatus";
+import SearchBox from "@/components/SearchBox";
 import { EMAIL, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import { pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import type { SearchItem } from "@/lib/search";
 
 /*
  * The dark navigation bar (≥ 992px) and the compact mobile bar (< 992px).
@@ -19,11 +21,12 @@ import { pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 
 const productPaths = productMenu.flatMap((group) => group.links.map((link) => link.href));
 
-export default function MainNav() {
+export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) {
   const pathname = usePathname();
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileProducts, setMobileProducts] = useState(false);
+  const [mobileSearch, setMobileSearch] = useState(false);
   const [stuck, setStuck] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
   const mobileBarRef = useRef<HTMLDivElement>(null);
@@ -62,6 +65,7 @@ export default function MainNav() {
   useEffect(() => {
     setMegaOpen(false);
     setMobileOpen(false);
+    setMobileSearch(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -261,8 +265,21 @@ export default function MainNav() {
       >
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-2 px-4 sm:px-6">
           <Link href="/" aria-label="Natuurhout home" className="mr-auto shrink-0">
-            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[150px] sm:w-[190px]" priority />
+            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[128px] min-[400px]:w-[150px] sm:w-[190px]" priority />
           </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setMobileSearch((open) => !open);
+              setMobileOpen(false);
+            }}
+            aria-expanded={mobileSearch}
+            aria-controls="mobiel-zoeken"
+            aria-label={mobileSearch ? "Zoeken sluiten" : "Zoeken"}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-line text-ink/70 transition-colors hover:border-accent hover:text-accent-deep"
+          >
+            {mobileSearch ? <X aria-hidden className="h-[18px] w-[18px]" /> : <Search aria-hidden className="h-[18px] w-[18px]" />}
+          </button>
           <a
             href={PHONE.href}
             aria-label={`Bel ons: ${PHONE.label}`}
@@ -276,7 +293,10 @@ export default function MainNav() {
           <button
             ref={hamburger}
             type="button"
-            onClick={() => setMobileOpen((open) => !open)}
+            onClick={() => {
+              setMobileOpen((open) => !open);
+              setMobileSearch(false);
+            }}
             aria-expanded={mobileOpen}
             aria-controls="mobiel-menu"
             aria-label={mobileOpen ? "Menu sluiten" : "Menu openen"}
@@ -285,6 +305,12 @@ export default function MainNav() {
             {mobileOpen ? <X aria-hidden className="h-5 w-5" /> : <Menu aria-hidden className="h-5 w-5" />}
           </button>
         </div>
+
+        {mobileSearch && (
+          <div id="mobiel-zoeken" className="border-t border-line px-4 py-3 sm:px-6">
+            <SearchBox items={searchItems} autoFocus onNavigate={() => setMobileSearch(false)} />
+          </div>
+        )}
 
         <nav
           id="mobiel-menu"

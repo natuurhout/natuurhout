@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import type { CategoryTile } from "@/lib/categories";
 
-export type CategoryTile = { label: string; href: string; src: string };
 
 const INTERVAL_MS = 2800;
 

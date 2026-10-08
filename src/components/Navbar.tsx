@@ -3,8 +3,10 @@ import Link from "next/link";
 import { Check, Mail, Phone } from "lucide-react";
 import MainNav from "@/components/MainNav";
 import OpeningStatus from "@/components/OpeningStatus";
+import SearchBox from "@/components/SearchBox";
 import { EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
+import { searchIndex } from "@/lib/search";
 
 const usps = ["15 jaar ervaring", "Levering in heel België", "Service op maat"];
 
@@ -58,11 +60,12 @@ export default function Navbar() {
               priority
             />
           </Link>
-          <OpeningStatus className="text-[15px]" />
+          <SearchBox items={searchIndex} className="w-full max-w-md" />
+          <OpeningStatus className="shrink-0 text-[15px]" />
         </div>
       </div>
 
-      <MainNav />
+      <MainNav searchItems={searchIndex} />
     </header>
   );
 }
