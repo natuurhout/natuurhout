@@ -52,6 +52,7 @@ export const PAGE_EXTRA_PHOTOS: Record<string, ExtraPhoto[]> = {
 /** Thumbnail on product cards (shop, sliders), instead of the first webshop photo. */
 export const CARD_PHOTOS: Record<string, string> = {
   "robinia-hekwerk": ROBINIA_HEKWERK[0].src,
+  "robinia-poort": "/fotos/robinia-poort.jpg",
 };
 
 /** Calculator tiles for "Hekwerk" and "Vlechtschermen". */

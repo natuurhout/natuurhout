@@ -1,4 +1,5 @@
 import { getProduct, type Product, type ProductVariant } from "@/lib/catalog";
+import { CARD_PHOTOS } from "@/lib/extra-photos";
 import type {
   CalculatorData,
   FenceOption,
@@ -129,7 +130,7 @@ function gateOptions(): GateOption[] {
       handle,
       title: product.title,
       shopUrl: product.shopUrl,
-      image: product.images[0]?.src,
+      image: CARD_PHOTOS[handle] ?? product.images[0]?.src,
       postsIncluded,
       fieldGate,
       sizes,

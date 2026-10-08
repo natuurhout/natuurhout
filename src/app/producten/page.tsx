@@ -32,7 +32,7 @@ const ADDED = [
     after: "/project/hazelaar-poorten/",
     href: "/shop/robinia-poort/",
     title: "Robinia Poort",
-    src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/robinia-poort-7152071.webp?v=1769756294&width=800",
+    src: "/fotos/robinia-poort.jpg",
   },
 ];
 
