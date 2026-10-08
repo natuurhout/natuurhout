@@ -76,6 +76,7 @@ function auditHandBuilt(page, route, built$) {
   const dropped = sourceHrefs.filter((href) => {
     if (builtPaths.has(linkPath(href))) return false;
     const replacement = retargeted[href];
+    if (route.droppedLinks?.[href]) return false; // approved removal, reason recorded
     return !(replacement?.to && replacement.reason && builtPaths.has(linkPath(replacement.to)));
   });
   if (dropped.length) {
@@ -86,7 +87,8 @@ function auditHandBuilt(page, route, built$) {
   // heading, paragraph, list and table text, and every image, must still be
   // on the page — only order and grouping may change.
   if (route.preserveContent) {
-    const rootNode = built$(`[data-legacy-product="${page.pathname}"]`).first();
+    const rootNode = built$(`[data-legacy-product="${page.pathname}"], .legacy-page[data-source-path="${page.pathname}"]`).first();
+    const removed = new Set(route.removedContent ?? []);
     if (!rootNode.length) {
       failures.push(`${where}: missing rebuilt product root`);
     } else {
@@ -102,6 +104,7 @@ function auditHandBuilt(page, route, built$) {
       const missingText = page.blocks
         .filter((block) => block.type !== "image" && !replacedPrice(block))
         .map((block) => (block.type === "heading" ? block.text : cheerio.load(block.html, null, false).root().text()))
+        .filter((text) => !removed.has(normalizeText(text)))
         .filter((text) => squash(text) && !builtText.includes(squash(text)));
       if (missingText.length) {
         failures.push(`${where}: snapshot text missing -> ${missingText.map((t) => normalizeText(t).slice(0, 60)).join(" | ")}`);
@@ -114,7 +117,7 @@ function auditHandBuilt(page, route, built$) {
         }).get(),
       );
       const missingImages = page.blocks
-        .filter((block) => block.type === "image" && !builtImages.has(block.src))
+        .filter((block) => block.type === "image" && !builtImages.has(block.src) && !removed.has(block.src))
         .map((block) => block.src);
       if (missingImages.length) failures.push(`${where}: snapshot images missing -> ${missingImages.join(", ")}`);
     }

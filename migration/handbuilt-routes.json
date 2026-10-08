@@ -1,5 +1,5 @@
 {
-  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page, unless a retargetedLinks entry records an approved replacement that is on the page instead. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate. A route with preserveContent: true is a layout change only: the audit additionally requires every heading, paragraph, list and table text and every image of the snapshot to still be on the page. With pricesFromShop: true (also owner-approved), the snapshot's price tables and their '*' footnotes may be replaced by the webshop's current prices; every other block must stay.",
+  "comment": "Routes deliberately rebuilt as purpose-built pages instead of rendering their frozen WordPress snapshot. audit-built-parity.mjs waives verbatim text/heading/image parity for these, and asserts the SEO invariants below instead: same title, description and canonical as the inventory, the snapshot's h1 still present, and every internal link the snapshot pointed at still on the page, unless a retargetedLinks entry records an approved replacement that is on the page instead. Adding a route here is an explicit, owner-approved decision - never a way to quiet a failing gate. A route with preserveContent: true is a layout change only: the audit additionally requires every heading, paragraph, list and table text and every image of the snapshot to still be on the page. With pricesFromShop: true (also owner-approved), the snapshot's price tables and their '*' footnotes may be replaced by the webshop's current prices; every other block must stay. removedContent lists snapshot texts or image paths an approved edit took out (renamed or deleted), and droppedLinks the internal links it removed; both need the route's approvedBy.",
   "routes": [
     {
       "pathname": "/",
@@ -187,6 +187,21 @@
       "approvedBy": "Xander",
       "reason": "Over ons rebuilt on Xander's request: the text opens the page and the photos sit between the sections instead of a block of thumbnails above it. Every heading, paragraph, photo and photo link of the snapshot stays on the page.",
       "preserveContent": true
+    },
+    {
+      "pathname": "/producten/",
+      "approvedBy": "Xander",
+      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot.",
+      "preserveContent": true,
+      "removedContent": [
+        "Boerenlandhekken",
+        "/wp-content/uploads/2016/01/1-1-1.jpg",
+        "Hazelaar vlechtscherm",
+        "De charme van een gevlochten tuinscherm uit hazelaar"
+      ],
+      "droppedLinks": {
+        "/project/boerenlandhekken/": "Product sold out; removed from the overview and the menu on Xander's request."
+      }
     }
   ]
 }

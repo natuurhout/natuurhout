@@ -140,8 +140,9 @@
 
   .legacy-page .gdlr-portfolio-item,
   .legacy-page .gallery-item { @apply mb-6 overflow-hidden rounded-card border border-line bg-white; }
+  /* One format for every tile: the WordPress thumbnails came in mixed sizes. */
   .legacy-page .portfolio-thumbnail img,
-  .legacy-page .gallery-item img { @apply w-full object-cover; }
+  .legacy-page .gallery-item img { @apply aspect-[4/3] w-full object-cover; }
   .legacy-page .portfolio-title { @apply m-0 p-4 text-lg; }
   .legacy-page .gdlr-single-portfolio-thumbnail { @apply mb-8 overflow-hidden rounded-card; }
   .legacy-page .gdlr-portfolio-description > .head {
