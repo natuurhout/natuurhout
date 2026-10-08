@@ -7,10 +7,11 @@ import { getLegacyPageByPath } from "@/lib/legacy";
 /*
  * Product overview, the WordPress page with approved edits (Xander, recorded
  * in handbuilt-routes.json): the sold-out Boerenlandhekken tile is gone, the
- * two hazelaar screens carry their webshop names, and their tiles show a
- * current photo instead of the old "Promotie" banner, and the Services/FAQ
- * block below the tiles is rebuilt as tabs (ProductenFaq) with updated
- * answers. Everything else renders verbatim; the audit checks that.
+ * shop's Robinia Poort has a tile of its own, the two hazelaar screens carry
+ * their webshop names, and their tiles show a current photo instead of the
+ * old "Promotie" banner, and the Services/FAQ block below the tiles is
+ * rebuilt as tabs (ProductenFaq) with updated answers. Everything else
+ * renders verbatim; the audit checks that.
  */
 const page = getLegacyPageByPath("/producten/");
 
@@ -25,10 +26,31 @@ const PHOTOS: Record<string, string> = {
   "/project/robinia-rasterwerk/": "/fotos/robinia-hekwerk-hoofdfoto.jpg",
 };
 
+// Shop products without a WordPress page, added as a tile after another.
+const ADDED = [
+  {
+    after: "/project/hazelaar-poorten/",
+    href: "/shop/robinia-poort/",
+    title: "Robinia Poort",
+    src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/robinia-poort-7152071.webp?v=1769756294&width=800",
+  },
+];
+
 function edit(html: string) {
   const $ = load(html, null, false);
   $("#content-section-2").remove(); // rebuilt as <ProductenFaq />
   for (const href of REMOVED) $(`.portfolio-title a[href="${href}"]`).closest(".columns").remove();
+  for (const tile of ADDED) {
+    const after = $(`.portfolio-title a[href="${tile.after}"]`).closest(".columns");
+    const added = after.clone();
+    added.find("a").attr("href", tile.href);
+    added.find(".portfolio-title a").text(tile.title);
+    added.find(".portfolio-thumbnail img").attr({ src: tile.src, alt: tile.title });
+    after.after(added);
+  }
+  // The WordPress row breaks assumed four fixed tiles per row; the grid wraps
+  // by itself, so they would only leave gaps after a tile is added or removed.
+  $(".gdlr-isotope > .clear").remove();
   for (const [href, title] of Object.entries(RENAMES)) $(`.portfolio-title a[href="${href}"]`).text(title);
   for (const [href, src] of Object.entries(PHOTOS)) {
     $(`.portfolio-title a[href="${href}"]`).closest(".gdlr-portfolio-item").find(".portfolio-thumbnail img").attr("src", src).removeAttr("width").removeAttr("height");

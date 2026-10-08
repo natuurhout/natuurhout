@@ -40,6 +40,7 @@ export const productMenu: MenuGroup[] = [
       { href: "/project/kastanje-poorten-geschroefd/", label: "Kastanje poorten geschroefd" },
       { href: "/project/raamwerkpoort/", label: "Kaderpoort" },
       { href: "/project/hazelaar-poorten/", label: "Hazelaar poorten" },
+      { href: "/shop/robinia-poort/", label: "Robinia poort" },
       { href: "/project/cleft-field-veldpoorten/", label: "Cleft & Field veldpoorten" },
     ],
   },
