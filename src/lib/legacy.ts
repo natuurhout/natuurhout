@@ -1,4 +1,5 @@
 import legacyPagesJson from "@/data/legacy-pages.json";
+import { renameDeep } from "@/lib/renames.mjs";
 
 export type LegacyBlock =
   | { type: "heading"; level: number; text: string }
@@ -20,7 +21,8 @@ export type LegacyPage = {
   blocks: LegacyBlock[];
 };
 
-export const legacyPages = legacyPagesJson as LegacyPage[];
+// Approved product renames (src/lib/renames.mjs) are applied on load.
+export const legacyPages = renameDeep(legacyPagesJson as LegacyPage[]);
 
 const permanentNoindexPaths = new Set([
   "/change-password/",

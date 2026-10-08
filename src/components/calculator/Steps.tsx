@@ -526,7 +526,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
       image: g.image,
       note: g.postsIncluded ? "incl. 2 poortpalen en beslag" : g.fieldGate ? "palen en beslag apart" : "incl. beslag, palen apart",
     })),
-    { handle: CUSTOM_GATE, title: "Maatwerkpoort (kastanje)", image: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg", note: "uw eigen maten · incl. palen en beslag" },
+    { handle: CUSTOM_GATE, title: "Kastanje premium maatwerkpoort", image: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg", note: "uw eigen maten · incl. palen en beslag" },
   ];
 
   return (

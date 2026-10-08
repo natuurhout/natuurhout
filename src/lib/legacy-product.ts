@@ -52,7 +52,7 @@ const OVERVIEW_EXTRAS: Record<string, string[]> = {
  */
 const MAATWERK_POORT: Product = {
   handle: "maatwerk-poort",
-  title: "Franse maatwerkpoort",
+  title: "Kastanje premium maatwerkpoort",
   bodyHtml: "",
   options: ["Breedte", "Hoogte"],
   images: [],

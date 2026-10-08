@@ -10,8 +10,8 @@ export const productMenu: MenuGroup[] = [
   {
     title: "Afsluitingen & omheiningen",
     links: [
-      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje rasterwerk" },
-      { href: "/project/robinia-rasterwerk/", label: "Robinia rasterwerk" },
+      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+      { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
       { href: "/project/hazelaarrasterwerk/", label: "Hazelaar hekwerk" },
       { href: "/project/post-rail-2/", label: "Post & Rail" },
     ],
@@ -35,8 +35,8 @@ export const productMenu: MenuGroup[] = [
   {
     title: "Poorten",
     links: [
-      { href: "/project/franse-poorten/", label: "Franse poorten standaard" },
-      { href: "/project/maatwerk-poorten/", label: "Franse poorten maatwerk" },
+      { href: "/project/franse-poorten/", label: "Kastanje premium poorten" },
+      { href: "/project/maatwerk-poorten/", label: "Kastanje premium maatwerk poorten" },
       { href: "/project/kastanje-poorten-geschroefd/", label: "Kastanje poorten geschroefd" },
       { href: "/project/raamwerkpoort/", label: "Kaderpoort" },
       { href: "/project/hazelaar-poorten/", label: "Hazelaar poorten" },

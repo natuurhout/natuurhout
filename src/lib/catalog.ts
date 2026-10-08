@@ -1,5 +1,6 @@
 import productsData from "@/data/products.json";
 import collectionsData from "@/data/collections.json";
+import { renameDeep } from "@/lib/renames.mjs";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
 // from natuurhout.shop (Shopify products.json, fetched 2026-08-17) per
@@ -42,7 +43,7 @@ export type Collection = {
   products: string[];
 };
 
-export const products = productsData as Product[];
+export const products = renameDeep(productsData as Product[]);
 export const collections = collectionsData as Collection[];
 
 export function getProduct(handle: string): Product | undefined {

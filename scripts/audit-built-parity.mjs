@@ -1,9 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as cheerio from "cheerio";
+import { RENAMES_APPROVAL, renameDeep } from "../src/lib/renames.mjs";
 
 const root = process.cwd();
-const pages = JSON.parse(fs.readFileSync(path.join(root, "src", "data", "legacy-pages.json"), "utf8"));
+// The site renders the snapshot with the approved product renames applied
+// (src/lib/renames.mjs), so compare against the same renamed text.
+if (!RENAMES_APPROVAL.approvedBy || !RENAMES_APPROVAL.reason) {
+  throw new Error("src/lib/renames.mjs: RENAMES_APPROVAL needs both approvedBy and reason");
+}
+const pages = renameDeep(JSON.parse(fs.readFileSync(path.join(root, "src", "data", "legacy-pages.json"), "utf8")));
 const handBuilt = JSON.parse(fs.readFileSync(path.join(root, "migration", "handbuilt-routes.json"), "utf8"));
 const handBuiltByPath = new Map(handBuilt.routes.map((route) => [route.pathname, route]));
 

@@ -279,7 +279,7 @@ export function postsIncluded(data: CalculatorData, gate: Gate): boolean {
 }
 
 export function gateTitle(data: CalculatorData, gate: Gate): string {
-  if (gate.handle === CUSTOM_GATE) return "Franse maatwerkpoort (kastanje)";
+  if (gate.handle === CUSTOM_GATE) return "Kastanje premium maatwerkpoort";
   return gateOption(data, gate)?.title ?? "Poort";
 }
 
