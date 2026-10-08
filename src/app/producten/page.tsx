@@ -7,7 +7,7 @@ import { getLegacyPageByPath } from "@/lib/legacy";
 /*
  * Product overview, the WordPress page with approved edits (Xander, recorded
  * in handbuilt-routes.json): the sold-out Boerenlandhekken tile is gone, the
- * shop's Robinia Poort and vierkant gezaagde robinia palen have a tile of
+ * shop's Robinia Poort and Gezaagde robinia palen have a tile of
  * their own, the two hazelaar screens carry their webshop names, and their
  * tiles show a current photo instead of the old "Promotie" banner, and the
  * Services/FAQ block below the tiles is rebuilt as tabs (ProductenFaq) with
@@ -37,7 +37,7 @@ const ADDED = [
   {
     after: "/project/robinia-palen/",
     href: "/shop/vierkant-gezaagde-robinia-palen/",
-    title: "Vierkant gezaagde robinia palen",
+    title: "Gezaagde robinia palen",
     src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/gezaagde-robinia-palen-2689446.jpg?v=1760629025&width=800",
   },
 ];
