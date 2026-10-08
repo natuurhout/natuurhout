@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Mail, Phone } from "lucide-react";
+import { Check, Mail, Phone, Star } from "lucide-react";
 import MainNav from "@/components/MainNav";
 import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
-import { EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
+import { EMAIL, GOOGLE_REVIEWS, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import { searchIndex } from "@/lib/search";
 
@@ -18,12 +18,31 @@ const usps = ["15 jaar ervaring", "Levering in heel België", "Service op maat"]
  * Keep the heights below and the -top values in step.
  */
 export default function Navbar() {
+  const rating = GOOGLE_REVIEWS.rating.toLocaleString("nl-BE");
   return (
     <header className="sticky -top-9 z-40 desk:-top-[124px]">
       <div className="bg-brand text-white">
         <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-between gap-6 px-4 sm:px-6 desk:h-10 lg:px-8">
-          {/* One USP at a time on small screens (rotating), all three from 992px. */}
+          {/* Google score and USPs: one at a time on small screens (rotating), all from 992px. */}
           <ul className="usp-rotate text-[13px] font-semibold desk:text-sm">
+            <li>
+              <a
+                href={GOOGLE_REVIEWS.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${rating} op 5 sterren, ${GOOGLE_REVIEWS.count} Google-reviews`}
+                className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright"
+              >
+                <span aria-hidden className="flex">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star key={i} className={`h-3.5 w-3.5 ${i < Math.round(GOOGLE_REVIEWS.rating) ? "fill-[#fbbc04] text-[#fbbc04]" : "text-white/40"}`} />
+                  ))}
+                </span>
+                <span>
+                  {rating} · {GOOGLE_REVIEWS.count} Google-reviews
+                </span>
+              </a>
+            </li>
             {usps.map((usp) => (
               <li key={usp}>
                 <Check aria-hidden className="h-4 w-4 shrink-0 stroke-[3] text-accent-bright" />
@@ -31,16 +50,17 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          <div className="hidden shrink-0 items-center gap-6 text-sm font-semibold desk:flex">
+          <div className="hidden shrink-0 items-center gap-5 text-sm font-semibold desk:flex xl:gap-6">
             <a href={PHONE.href} className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright">
               <Phone aria-hidden className="h-4 w-4 text-accent-bright" />
               {PHONE.label}
             </a>
             <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright">
               <WhatsAppIcon className="h-4 w-4 text-accent-bright" />
-              WhatsApp
+              <span className="sr-only xl:not-sr-only">WhatsApp</span>
             </a>
-            <a href={EMAIL.href} className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright">
+            {/* From 1280px; narrower, the top bar has no room (also in the footer). */}
+            <a href={EMAIL.href} className="hidden items-center gap-2 text-white transition-colors hover:text-accent-bright xl:inline-flex">
               <Mail aria-hidden className="h-4 w-4 text-accent-bright" />
               {EMAIL.label}
             </a>

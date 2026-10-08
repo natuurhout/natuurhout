@@ -28,3 +28,13 @@ export const WHATSAPP = {
   label: "052 55 88 58",
   href: `https://wa.me/3252558858?text=${encodeURIComponent("Hallo Natuurhout, ")}`,
 };
+
+/*
+ * Google Business profile score, copied by hand from Google (no API key):
+ * update rating and count when they change. Checked 8 Oct 2026.
+ */
+export const GOOGLE_REVIEWS = {
+  rating: 4.9,
+  count: 30,
+  href: "https://share.google/2mnpfOfIeGvXz2ezU",
+};

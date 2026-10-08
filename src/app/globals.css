@@ -48,22 +48,31 @@
     gap: 0.5rem;
     white-space: nowrap;
     opacity: 0;
-    animation: usp-cycle 12s infinite;
+    visibility: hidden;
+    animation: usp-cycle 16s infinite;
   }
+  /* Four items, 4s each: the Google score, then the three USPs. */
   .usp-rotate > li:nth-child(2) { animation-delay: 4s; }
   .usp-rotate > li:nth-child(3) { animation-delay: 8s; }
+  .usp-rotate > li:nth-child(4) { animation-delay: 12s; }
+  /* Visibility as well as opacity: the stacked, faded-out items must not
+     cover the visible one (the Google link has to stay clickable). */
   @keyframes usp-cycle {
-    0% { opacity: 0; transform: translateY(6px); }
-    4%, 30% { opacity: 1; transform: none; }
-    34%, 100% { opacity: 0; transform: translateY(-6px); }
+    0% { opacity: 0; transform: translateY(6px); visibility: visible; }
+    3%, 22% { opacity: 1; transform: none; visibility: visible; }
+    25% { opacity: 0; transform: translateY(-6px); visibility: visible; }
+    25.01%, 100% { opacity: 0; visibility: hidden; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .usp-rotate > li { animation: none; }
-    .usp-rotate > li:first-child { opacity: 1; }
+    .usp-rotate > li { animation: none; visibility: hidden; }
+    .usp-rotate > li:first-child { opacity: 1; visibility: visible; }
   }
   @media (min-width: 992px) {
-    .usp-rotate { position: static; height: auto; flex: none; display: flex; gap: 2.5rem; }
-    .usp-rotate > li { position: static; opacity: 1; animation: none; transform: none; }
+    .usp-rotate { position: static; height: auto; flex: none; display: flex; gap: 1.5rem; }
+    .usp-rotate > li { position: static; opacity: 1; visibility: visible; animation: none; transform: none; }
+  }
+  @media (min-width: 1280px) {
+    .usp-rotate { gap: 2.5rem; }
   }
 
   .legacy-page {
