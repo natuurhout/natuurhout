@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Mail } from "lucide-react";
 import type { ReactNode } from "react";
 import JsonLd from "@/components/JsonLd";
 import ProductTabs from "@/components/ProductTabs";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 import { ADDRESS, EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
 import { QUOTE_HREF } from "@/lib/navigation";
 
@@ -16,6 +17,14 @@ import { QUOTE_HREF } from "@/lib/navigation";
  */
 
 const link = "font-semibold text-accent-deep underline underline-offset-2 hover:text-ink";
+
+// Placement quotes: photos of the situation help, by mail or WhatsApp.
+const PLACEMENT_WHATSAPP = `https://wa.me/3252558858?text=${encodeURIComponent(
+  "Hallo Natuurhout, ik had graag een offerte voor plaatsing. Hierbij foto's van de situatie: ",
+)}`;
+const PLACEMENT_MAIL = `${EMAIL.href}?subject=${encodeURIComponent("Offerte plaatsing")}&body=${encodeURIComponent(
+  "Hallo Natuurhout,\n\nIk had graag een offerte voor plaatsing. In bijlage foto's van de situatie.\n\n",
+)}`;
 
 type Faq = { q: string; a: ReactNode; plain: string };
 
@@ -73,24 +82,47 @@ const FAQS: Faq[] = [
   {
     q: "Kan ik ook afrekenen bij het ophalen van de artikelen:",
     plain:
-      "Ja. Bij afhaling kunt u contant, met Payconiq of met Bancontact betalen. Voor artikelen die besteld of speciaal op maat gemaakt moeten worden, wordt vaak alles (of na overleg een gedeelte) vooraf betaald.",
+      "Ja. Bij afhaling kunt u contant, met Payconiq of met Bancontact betalen. Voor artikelen die besteld of speciaal op maat gemaakt moeten worden, kan soms een voorschot gevraagd worden.",
     a: (
       <p>
         Ja. Bij afhaling kunt u <strong>contant</strong>, met <strong>Payconiq</strong> of met <strong>Bancontact</strong>{" "}
-        betalen. Voor artikelen die besteld of speciaal op maat gemaakt moeten worden, wordt vaak alles (of na overleg een
-        gedeelte) vooraf betaald.
+        betalen. Voor artikelen die besteld of speciaal op maat gemaakt moeten worden, kan soms een voorschot gevraagd
+        worden.
       </p>
     ),
   },
   {
     q: "Kunnen jullie ook de artikelen monteren en/of plaatsen:",
     plain:
-      "Wij kunnen een afspraak maken om langs te komen, en dit ter plaatse te overleggen. Indien u hiervan gebruik wilt maken, kunnen wij uw op verzoek een offerte opmaken Voor meer vragen kunt u ons altijd bellen/mailen.",
+      "Wij kunnen een afspraak maken om langs te komen en dit ter plaatse te overleggen. Indien u hiervan gebruik wilt maken, kunnen wij u op verzoek een offerte opmaken. Dit kan ook altijd via mail worden aangevraagd: stuur dan best foto's van de situatie mee. Is WhatsApp makkelijker? Dan kunnen de foto's ook via WhatsApp naar 052 55 88 58. Voor meer vragen kunt u ons altijd bellen, mailen of WhatsAppen.",
     a: (
-      <p>
-        Wij kunnen een afspraak maken om langs te komen, en dit ter plaatse te overleggen. Indien u hiervan gebruik wilt
-        maken, kunnen wij uw op verzoek een offerte opmaken Voor meer vragen kunt u ons altijd bellen/mailen.
-      </p>
+      <>
+        <p>
+          Wij kunnen een afspraak maken om langs te komen en dit ter plaatse te overleggen. Indien u hiervan gebruik wilt
+          maken, kunnen wij u op verzoek een offerte opmaken.
+        </p>
+        <p>
+          Dit kan ook altijd <strong>via mail</strong> worden aangevraagd: stuur dan best <strong>foto&apos;s van de
+          situatie</strong> mee. Is WhatsApp makkelijker? Dan kunnen de foto&apos;s ook via <strong>WhatsApp</strong> naar{" "}
+          {WHATSAPP.label}. Voor meer vragen kunt u ons altijd bellen, mailen of WhatsAppen.
+        </p>
+        <div className="flex flex-wrap gap-2.5 pt-1">
+          <a
+            href={PLACEMENT_WHATSAPP}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-bold text-[#0b3d1f] transition-transform hover:scale-[1.03]"
+          >
+            <WhatsAppIcon className="h-4 w-4" /> Foto&apos;s sturen via WhatsApp
+          </a>
+          <a
+            href={PLACEMENT_MAIL}
+            className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-accent hover:text-accent-deep"
+          >
+            <Mail aria-hidden className="h-4 w-4" /> Aanvragen via mail
+          </a>
+        </div>
+      </>
     ),
   },
   {
