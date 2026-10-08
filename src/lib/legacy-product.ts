@@ -77,6 +77,11 @@ const REQUEST_ONLY: Record<string, Product[]> = {
   "/project/maatwerk-poorten/": [MAATWERK_POORT],
 };
 
+/** Snapshot photos taken off a page (approved, see handbuilt-routes.json). */
+const REMOVED_PHOTOS: Record<string, string[]> = {
+  "/project/hazelaarvlechtschermen/": ["/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg"],
+};
+
 /** Marks where a replaced WordPress price table stood. */
 export const SHOP_PRICES_MARKER = "<!--shop-prices-->";
 
@@ -194,6 +199,10 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     .map((p) => $text(p).text().replace(/\s+/g, " ").trim())
     .find((text) => text.length > 60);
   const lead = opening ? clip(opening) : "";
+
+  // Approved removals (handbuilt-routes.json: removedContent), e.g. an expired promo banner.
+  const dropped = new Set(REMOVED_PHOTOS[page.pathname] ?? []);
+  for (let i = photos.length - 1; i >= 0; i--) if (dropped.has(photos[i].src)) photos.splice(i, 1);
 
   // Natuurhout's own recent photos lead the gallery; the snapshot's follow.
   const extra = (PAGE_EXTRA_PHOTOS[page.pathname] ?? []).map((p) => ({ src: p.src, alt: p.alt, href: p.src, caption: p.caption }));

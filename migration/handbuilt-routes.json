@@ -79,7 +79,13 @@
       "preserveContent": true,
       "pricesFromShop": true,
       "pricesApprovedBy": "Xander",
-      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices.",
+      "removedContent": [
+        "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg"
+      ],
+      "droppedLinks": {
+        "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg": "Expired 'Promotie' banner removed from the gallery on Xander's request."
+      }
     },
     {
       "pathname": "/project/hazelaar-vlechtscherm-hasseltre/",
@@ -191,13 +197,15 @@
     {
       "pathname": "/producten/",
       "approvedBy": "Xander",
-      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot.",
+      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner).",
       "preserveContent": true,
       "removedContent": [
         "Boerenlandhekken",
         "/wp-content/uploads/2016/01/1-1-1.jpg",
         "Hazelaar vlechtscherm",
-        "De charme van een gevlochten tuinscherm uit hazelaar"
+        "De charme van een gevlochten tuinscherm uit hazelaar",
+        "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg",
+        "/wp-content/uploads/2016/01/Copy-of-Copy-of-Copy-of-Cortenstaal-2-1.jpg"
       ],
       "droppedLinks": {
         "/project/boerenlandhekken/": "Product sold out; removed from the overview and the menu on Xander's request."

@@ -44,6 +44,17 @@ const WORKSHOP: Photo[] = [
   photo("2015/02/8613561581_dea58309f2.jpg", "Lossen van een vracht kastanjehout"),
 ];
 
+/*
+ * The team (portraits supplied by Natuurhout, public/fotos/team/). Add a name
+ * and role per person to show them under the photo.
+ */
+const TEAM: { src: string; name?: string; role?: string }[] = [
+  { src: "/fotos/team/team-1.jpg" },
+  { src: "/fotos/team/team-2.jpg" },
+  { src: "/fotos/team/team-3.jpg" },
+  { src: "/fotos/team/team-4.jpg" },
+];
+
 /** The snapshot's blocks after a heading, up to the next heading. */
 function after(blocks: LegacyBlock[], heading: string): LegacyBlock[] {
   const start = blocks.findIndex((b) => b.type === "heading" && b.text === heading);
@@ -116,6 +127,34 @@ export default function AboutPage() {
           <Figure key={p.src} photo={p} className={`aspect-[4/3] ${i === 0 ? "col-span-2 md:col-span-1" : ""}`} sizes="(max-width: 768px) 50vw, 33vw" />
         ))}
       </div>
+
+      {/* Team */}
+      <section aria-labelledby="team" className="mt-16 lg:mt-20">
+        <h2 id="team" className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+          Het team achter Natuurhout
+        </h2>
+        <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+          {TEAM.map((member, i) => (
+            <li key={member.src}>
+              <div className="relative aspect-square overflow-hidden rounded-card bg-brand-soft">
+                <Image
+                  src={member.src}
+                  alt={member.name ? `${member.name}, Natuurhout` : `Teamlid ${i + 1} van Natuurhout`}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="object-cover"
+                />
+              </div>
+              {member.name && (
+                <p className="mt-3">
+                  <span className="block font-display text-lg font-semibold text-ink">{member.name}</span>
+                  {member.role && <span className="text-sm text-ink/65">{member.role}</span>}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="mt-16 space-y-16 lg:mt-20 lg:space-y-20">
         <Section title={strong} blocks={after(blocks, strong)} photo={MAKER} />

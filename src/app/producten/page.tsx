@@ -4,10 +4,11 @@ import LegacyContent from "@/components/LegacyContent";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
- * Product overview, the WordPress page with three approved edits (Xander,
- * recorded in handbuilt-routes.json): the sold-out Boerenlandhekken tile is
- * gone and the two hazelaar screens carry their webshop names. Everything
- * else renders verbatim; the audit checks that.
+ * Product overview, the WordPress page with approved edits (Xander, recorded
+ * in handbuilt-routes.json): the sold-out Boerenlandhekken tile is gone, the
+ * two hazelaar screens carry their webshop names, and their tiles show a
+ * current photo instead of the old "Promotie" banner. Everything else renders
+ * verbatim; the audit checks that.
  */
 const page = getLegacyPageByPath("/producten/");
 
@@ -16,11 +17,18 @@ const RENAMES: Record<string, string> = {
   "/project/hazelaarvlechtschermen/": "Hazelaar Vlechtscherm - Trepanel",
 };
 const REMOVED = ["/project/boerenlandhekken/"];
+const PHOTOS: Record<string, string> = {
+  "/project/hazelaar-vlechtscherm-hasseltre/": "/fotos/hazelaar-vlechtscherm-halve-latten.jpg",
+  "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
+};
 
 function edit(html: string) {
   const $ = load(html, null, false);
   for (const href of REMOVED) $(`.portfolio-title a[href="${href}"]`).closest(".columns").remove();
   for (const [href, title] of Object.entries(RENAMES)) $(`.portfolio-title a[href="${href}"]`).text(title);
+  for (const [href, src] of Object.entries(PHOTOS)) {
+    $(`.portfolio-title a[href="${href}"]`).closest(".gdlr-portfolio-item").find(".portfolio-thumbnail img").attr("src", src).removeAttr("width").removeAttr("height");
+  }
   return $.html();
 }
 

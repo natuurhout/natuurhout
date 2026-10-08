@@ -144,6 +144,12 @@
   .legacy-page .portfolio-thumbnail img,
   .legacy-page .gallery-item img { @apply aspect-[4/3] w-full object-cover; }
   .legacy-page .portfolio-title { @apply m-0 p-4 text-lg; }
+  /* WordPress tile leftovers (an empty overlay and an icon link) made a blank
+     strip under each photo: the link now covers the photo instead. */
+  .legacy-page .portfolio-thumbnail { @apply relative; }
+  .legacy-page .portfolio-thumbnail img { @apply block; }
+  .legacy-page .portfolio-thumbnail .portfolio-overlay { @apply hidden; }
+  .legacy-page .portfolio-thumbnail > a { @apply absolute inset-0; }
   .legacy-page .gdlr-single-portfolio-thumbnail { @apply mb-8 overflow-hidden rounded-card; }
   .legacy-page .gdlr-portfolio-description > .head {
     @apply mb-5 border-b border-line pb-3 text-xs font-bold uppercase tracking-[0.18em] text-accent;
