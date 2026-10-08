@@ -1,5 +1,6 @@
 /*
- * Quote requests from the afsluitingscalculator, delivered to Natuurhout's
+ * Quote requests (afsluitingscalculator, the free form on /offerte-aanvragen/
+ * and "op bestelling" orders from the price lists), delivered to Natuurhout's
  * inbox through Resend (https://resend.com). The customer's address is the
  * Reply-To, so answering the mail in the inbox answers the customer. Once that
  * is sent, the customer gets a confirmation with an overview of the request,
@@ -19,7 +20,7 @@
  * customer confirmation goes out until the domain is verified.
  */
 
-import { confirmationMail, internalMail, parseQuote, type Mail } from "@/lib/quote-email";
+import { confirmationMail, internalMail, parsePhotos, parseQuote, type Mail } from "@/lib/quote-email";
 
 // Overridable only so the route can be exercised against a local stand-in.
 const RESEND_URL = process.env.RESEND_API_URL || "https://api.resend.com/emails";
@@ -92,7 +93,8 @@ export async function POST(request: Request) {
   // 1. The request itself, to Natuurhout. This one must not be lost.
   let sender = from;
   try {
-    const mail = internalMail(quote);
+    // Photos of the situation go to Natuurhout only, never back to the customer.
+    const mail = internalMail(quote, quote.kind === "vraag" ? parsePhotos(body) : []);
     let response = await send(sender, inbox, quote.email, mail);
     if (!response.ok) {
       const detail = await response.text();

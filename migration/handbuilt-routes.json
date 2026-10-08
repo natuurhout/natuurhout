@@ -176,6 +176,11 @@
       "approvedBy": "Xander",
       "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
       "preserveContent": true
+    },
+    {
+      "pathname": "/offerte-aanvragen/",
+      "approvedBy": "Xander",
+      "reason": "Quote page rebuilt on Xander's request: the snapshot was one large Forminator form that only worked inside WordPress. The page now offers the afsluitingscalculator and a free request form (with photos), both sending through /api/offerte. Title, description, canonical, structured data and h1 unchanged; the snapshot had no internal links."
     }
   ]
 }

@@ -65,7 +65,7 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
       "",
       `Naam: ${f.name.trim()}`,
       `E-mail: ${f.email.trim()}`,
-      f.phone.trim() ? `Telefoon: ${f.phone.trim()}` : "",
+      ...(f.phone.trim() ? [`Telefoon: ${f.phone.trim()}`] : []),
       f.delivery
         ? `Levering: ja, naar ${[f.street.trim(), `${f.postcode.trim()} ${f.city.trim()}`.trim()].filter(Boolean).join(", ")}`
         : "Levering: nee, wordt afgehaald in Zele",

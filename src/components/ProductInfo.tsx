@@ -277,7 +277,7 @@ export function ProductInfo({ tabs }: { tabs: ProductTab[] }) {
             <a href="tel:+3252558858" className="block font-medium text-accent hover:text-accent-deep">052 55 88 58</a>
             <a href="mailto:info@natuurhout.be" className="block text-ink/70 hover:text-accent">info@natuurhout.be</a>
           </div>
-          <Link href="/offerte-aanvragen/" className="mt-4 inline-flex text-sm font-medium text-accent hover:text-accent-deep">
+          <Link href="/offerte-aanvragen/#andere-vraag" className="mt-4 inline-flex text-sm font-medium text-accent hover:text-accent-deep">
             Offerte aanvragen →
           </Link>
         </div>

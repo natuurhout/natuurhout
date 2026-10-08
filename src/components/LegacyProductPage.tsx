@@ -79,7 +79,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
                 <PriceTableHtml html={info.sections.prijzen} />
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/offerte-aanvragen/"
+                    href="/offerte-aanvragen/#andere-vraag"
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
                   >
                     Offerte aanvragen <ArrowRight className="h-4 w-4" />

@@ -10,8 +10,11 @@
 export type QuoteLine = { group: string; label: string; detail: string; qty: number; unit: number | null };
 
 export type Quote = {
-  /** "calculator": quote for a fence; "bestelling": order for products not in stock. */
-  kind: "calculator" | "bestelling";
+  /**
+   * "calculator": quote for a fence from the calculator; "vraag": free quote
+   * request (offertepagina); "bestelling": order for products not in stock.
+   */
+  kind: "calculator" | "vraag" | "bestelling";
   /** Page the order was placed from (bestelling only). */
   page: string;
   name: string;
@@ -31,7 +34,7 @@ export type Quote = {
 import { logoImage, mascotImage, type EmailImage } from "@/lib/email-assets";
 
 /** Inline images travel as attachments referenced by cid: in the HTML (Resend's attachment shape). */
-export type MailAttachment = { filename: string; content: string; content_id: string };
+export type MailAttachment = { filename: string; content: string; content_id?: string };
 export type Mail = { subject: string; html: string; text: string; attachments: MailAttachment[] };
 
 const INLINE_IMAGES: EmailImage[] = [logoImage, mascotImage];
@@ -85,7 +88,7 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
 
   const page = str(body.page, 200);
   return {
-    kind: body.kind === "bestelling" ? "bestelling" : "calculator",
+    kind: body.kind === "bestelling" || body.kind === "vraag" ? body.kind : "calculator",
     page: page.startsWith("/") ? page : "",
     name,
     email,
@@ -99,6 +102,31 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
     total: num(body.total, 10_000_000),
     text,
   };
+}
+
+/**
+ * Photos sent with a free quote request: at most 4 JPEGs, which the browser
+ * has already scaled down. Anything else is dropped, never trusted.
+ */
+export const MAX_PHOTOS = 4;
+const MAX_PHOTO_BYTES = 1_200_000;
+const MAX_PHOTOS_TOTAL = 3_200_000;
+
+export function parsePhotos(body: Record<string, unknown>): MailAttachment[] {
+  const raw = Array.isArray(body.photos) ? body.photos.slice(0, MAX_PHOTOS) : [];
+  const photos: MailAttachment[] = [];
+  let total = 0;
+  for (const [i, item] of raw.entries()) {
+    if (!item || typeof item !== "object") continue;
+    const data = (item as Record<string, unknown>).data;
+    if (typeof data !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(data)) continue;
+    const bytes = Buffer.from(data, "base64");
+    const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    if (!isJpeg || bytes.length > MAX_PHOTO_BYTES || total + bytes.length > MAX_PHOTOS_TOTAL) continue;
+    total += bytes.length;
+    photos.push({ filename: `foto-${i + 1}.jpg`, content: data });
+  }
+  return photos;
 }
 
 /* ------------------------------------------------------------------ */
@@ -188,8 +216,11 @@ Ma–vr 09:00–18:00 · za 09:00–12:00</td></tr>
 /* The two mails                                                       */
 /* ------------------------------------------------------------------ */
 
-export function internalMail(q: Quote): Mail {
+export function internalMail(q: Quote, photos: MailAttachment[] = []): Mail {
   const order = q.kind === "bestelling";
+  const photoNote = photos.length
+    ? ` ${photos.length === 1 ? "De klant stuurde 1 foto mee" : `De klant stuurde ${photos.length} foto's mee`} (in bijlage).`
+    : "";
   const inner = `<p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">${
     order ? "Nieuwe aanvraag op bestelling" : "Nieuwe offerteaanvraag"
   }</p>
@@ -198,14 +229,18 @@ export function internalMail(q: Quote): Mail {
       ? `Deze artikelen zijn niet (allemaal) op voorraad. Laat ${escapeHtml(q.name)} de levertermijn weten door deze mail te beantwoorden.${
           q.page ? ` Besteld via ${escapeHtml(q.page)}.` : ""
         }`
-      : `Beantwoord deze mail om ${escapeHtml(q.name)} rechtstreeks te antwoorden.`
+      : `Beantwoord deze mail om ${escapeHtml(q.name)} rechtstreeks te antwoorden.${photoNote}`
   }</p>
 ${detailsTable(q, true)}
 <div style="margin-top:22px">${q.lines.length ? linesTable(q) : plainOverview(q)}</div>
 ${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : ""}
 ${remarksBlock(q)}`;
-  const subject = order ? `Aanvraag op bestelling – ${q.name}` : `Offerteaanvraag afsluiting – ${q.name}`;
-  return { subject, html: frame(inner), text: q.text, attachments: inlineAttachments() };
+  const subject = order
+    ? `Aanvraag op bestelling – ${q.name}`
+    : q.kind === "vraag"
+      ? `Offerteaanvraag – ${q.name}`
+      : `Offerteaanvraag afsluiting – ${q.name}`;
+  return { subject, html: frame(inner), text: q.text, attachments: [...inlineAttachments(), ...photos] };
 }
 
 export function confirmationMail(q: Quote): Mail {
@@ -213,8 +248,14 @@ export function confirmationMail(q: Quote): Mail {
   const order = q.kind === "bestelling";
   const thanks = order
     ? "Bedankt voor uw aanvraag. We hebben ze goed ontvangen en bekijken ze zo snel mogelijk. U krijgt per mail de levertermijn en het verdere verloop van uw bestelling."
-    : "Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.";
-  const footnote = order
+    : q.kind === "vraag"
+      ? "Bedankt voor uw offerteaanvraag. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres."
+      : "Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.";
+  const footnote = q.kind === "vraag"
+    ? q.delivery
+      ? "De leveringskosten (op basis van uw postcode) nemen we op in uw offerte."
+      : ""
+    : order
     ? `Prijzen incl. btw volgens onze webshop. De levertermijn${
         q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
       } bevestigen we per mail.`
@@ -226,7 +267,7 @@ export function confirmationMail(q: Quote): Mail {
 <p style="margin:0 0 22px;${FONT};font-size:15px;line-height:1.6;color:${C.ink}">Iets vergeten of wilt u iets aanpassen? Antwoord gewoon op deze mail.</p>
 <p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">Overzicht van uw aanvraag</p>
 ${q.lines.length ? linesTable(q) : plainOverview(q)}
-<p style="margin:12px 0 0;${FONT};font-size:12px;line-height:1.55;color:${C.soft}">${footnote}</p>
+${footnote ? `<p style="margin:12px 0 0;${FONT};font-size:12px;line-height:1.55;color:${C.soft}">${footnote}</p>` : ""}
 <p style="margin:22px 0 8px;${FONT};font-size:13px;font-weight:700;color:${C.ink}">Uw gegevens</p>
 ${detailsTable(q, false)}
 ${remarksBlock(q)}
