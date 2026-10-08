@@ -3,6 +3,7 @@ import { Leaf, ShieldCheck, Store, Truck } from "lucide-react";
 import PriceList from "@/components/PriceList";
 import ProductGallery, { type GalleryImage } from "@/components/ProductGallery";
 import { discountPercent, type Product } from "@/lib/catalog";
+import { SHOP_EXTRA_PHOTOS } from "@/lib/extra-photos";
 import { productLead } from "@/lib/seo";
 
 /*
@@ -81,7 +82,10 @@ export default function ProductDetail({ product }: { product: Product }) {
     <ProductHero
       heading={product.title}
       lead={productLead(product)}
-      images={product.images.map(({ src, alt }) => ({ src, alt }))}
+      images={[
+        ...(SHOP_EXTRA_PHOTOS[product.handle] ?? []).map(({ src, alt }) => ({ src, alt })),
+        ...product.images.map(({ src, alt }) => ({ src, alt })),
+      ]}
       products={[product]}
     />
   );

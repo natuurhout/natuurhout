@@ -1,6 +1,7 @@
 import { load } from "cheerio/slim";
 import { CUSTOM_GATE_HEIGHTS, CUSTOM_GATE_TABLE } from "@/lib/calculator-pricing";
 import { getProduct, type Product } from "@/lib/catalog";
+import { PAGE_EXTRA_PHOTOS } from "@/lib/extra-photos";
 import { getLegacyPageByPath, type LegacyPage } from "@/lib/legacy";
 import { classify, escapeHtml, splitSections, type TabId } from "@/lib/product-info";
 
@@ -193,6 +194,10 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     .map((p) => $text(p).text().replace(/\s+/g, " ").trim())
     .find((text) => text.length > 60);
   const lead = opening ? clip(opening) : "";
+
+  // Natuurhout's own recent photos lead the gallery; the snapshot's follow.
+  const extra = (PAGE_EXTRA_PHOTOS[page.pathname] ?? []).map((p) => ({ src: p.src, alt: p.alt, href: p.src, caption: p.caption }));
+  photos.unshift(...extra.filter((p) => !seen.has(p.src)));
 
   const products = pricesFromShop ? shopProducts : (REQUEST_ONLY[page.pathname] ?? []);
   const overview = [

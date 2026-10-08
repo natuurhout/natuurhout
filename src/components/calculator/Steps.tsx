@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { CALCULATOR_HEKWERK_PHOTO } from "@/lib/extra-photos";
 import { Plus, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import {
@@ -56,7 +57,7 @@ export type StepProps = {
 /* 1. Keuze ---------------------------------------------------------- */
 
 const TYPES: { id: ProductType; title: string; text: string; image: string }[] = [
-  { id: "hekwerk", title: "Hekwerk", text: "Kastanje, robinia of hazelaar rasterwerk op rol", image: "/wp-content/uploads/2023/01/Kastanjeafsluiting3-scaled.jpg" },
+  { id: "hekwerk", title: "Hekwerk", text: "Kastanje, robinia of hazelaar rasterwerk op rol", image: CALCULATOR_HEKWERK_PHOTO },
   { id: "poorten", title: "Poorten", text: "Tuin- en veldpoorten, ook enkel een poort", image: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
   { id: "vlechtschermen", title: "Vlechtschermen", text: "Hazelaar, gevlochten of met halve latten", image: "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg" },
   { id: "postrail", title: "Post & Rail", text: "Kastanje palen met 2 of 3 liggers", image: "/wp-content/uploads/2016/01/postrail-scaled.jpg" },
