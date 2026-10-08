@@ -19,6 +19,9 @@ export default function ProductGallery({ images, badge }: { images: GalleryImage
   return (
     <div>
       <div className="relative mx-auto aspect-[4/3] max-w-md overflow-hidden rounded-card bg-white ring-1 ring-line md:aspect-square md:max-w-none">
+        {/* Photos come in every format: the whole photo is shown, and a blurred
+            copy of it fills the rest of the frame instead of white bars. */}
+        <Image src={img.src} alt="" aria-hidden fill sizes="10vw" className="scale-110 object-cover opacity-60 blur-xl" />
         <Image src={img.src} alt={img.alt} fill sizes="(max-width: 768px) 100vw, 30vw" className="object-contain" priority />
         {badge && (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white">
