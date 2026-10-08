@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Clock, Mail, MapPin, Phone, Smartphone } from "lucide-react";
-import { SOCIALS } from "@/lib/contact";
+import { SOCIALS, WHATSAPP } from "@/lib/contact";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 
 // NAP, opening hours and link labels are VERBATIM from the live natuurhout.be
 // footer (Phase 0 snapshot) — do not reword; local SEO depends on the exact
@@ -61,6 +62,10 @@ export default function Footer() {
               <li className="flex gap-2.5">
                 <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
                 <a href="tel:+32473740926" className="hover:text-white">Gsm: +32 473 74 09 26</a>
+              </li>
+              <li className="flex gap-2.5">
+                <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
+                <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp: {WHATSAPP.label}</a>
               </li>
               <li className="flex gap-2.5">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />

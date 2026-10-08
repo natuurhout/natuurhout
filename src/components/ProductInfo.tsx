@@ -5,6 +5,8 @@ import ProductCard from "@/components/ProductCard";
 import ProductTabs, { type ProductTab } from "@/components/ProductTabs";
 import { compareAtPrice, formatPrice, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
+import { WHATSAPP } from "@/lib/contact";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 import type { LegacyPhoto } from "@/lib/legacy-product";
 
 /*
@@ -205,7 +207,8 @@ export function productInfoTabs({
             <li className="rounded-card border border-line bg-white p-4 text-sm leading-6 text-ink/75">
               <strong className="block text-ink">Twijfelt u over maat of uitvoering?</strong>
               Bel ons op <a href="tel:+3252558858" className={linkClass}>052 55 88 58</a> of
-              mail naar <a href="mailto:info@natuurhout.be" className={linkClass}>info@natuurhout.be</a>.
+              mail naar <a href="mailto:info@natuurhout.be" className={linkClass}>info@natuurhout.be</a>. Ook via{" "}
+              <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className={linkClass}>WhatsApp</a> bent u welkom.
             </li>
           </ul>
         </div>
@@ -271,10 +274,13 @@ export function ProductInfo({ tabs }: { tabs: ProductTab[] }) {
         <div className="rounded-card border border-line bg-white p-6">
           <p className="font-display text-lg font-semibold">Vragen over dit product?</p>
           <p className="mt-2 text-sm text-ink/70">
-            Bel of mail ons voor advies op maat, een prijs voor een grotere hoeveelheid of een afspraak in Zele.
+            Bel, mail of WhatsApp ons voor advies op maat, een prijs voor een grotere hoeveelheid of een afspraak in Zele.
           </p>
           <div className="mt-4 space-y-1.5 text-sm">
             <a href="tel:+3252558858" className="block font-medium text-accent hover:text-accent-deep">052 55 88 58</a>
+            <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-[#128c43] hover:text-ink">
+              <WhatsAppIcon className="h-4 w-4" /> Stuur ons een WhatsApp
+            </a>
             <a href="mailto:info@natuurhout.be" className="block text-ink/70 hover:text-accent">info@natuurhout.be</a>
           </div>
           <Link href="/offerte-aanvragen/#andere-vraag" className="mt-4 inline-flex text-sm font-medium text-accent hover:text-accent-deep">

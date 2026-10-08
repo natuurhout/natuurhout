@@ -22,3 +22,9 @@ export const SOCIALS = [
   { label: "Facebook", href: "https://www.facebook.com/natuurhout/" },
   { label: "Instagram", href: "https://www.instagram.com/natuurhout/" },
 ];
+
+/** WhatsApp runs on the landline (052 55 88 58). */
+export const WHATSAPP = {
+  label: "052 55 88 58",
+  href: `https://wa.me/3252558858?text=${encodeURIComponent("Hallo Natuurhout, ")}`,
+};

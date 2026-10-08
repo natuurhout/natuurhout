@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import JsonLd from "@/components/JsonLd";
 import ProductTabs from "@/components/ProductTabs";
-import { ADDRESS, EMAIL, PHONE } from "@/lib/contact";
+import { ADDRESS, EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
 import { QUOTE_HREF } from "@/lib/navigation";
 
 /*
@@ -60,11 +60,12 @@ const FAQS: Faq[] = [
   {
     q: "Zijn de artikelen ook zelf af te halen:",
     plain:
-      "Ja, alle materialen zijn af te halen in Zele. Mail of bel ons best even op voorhand, dan kijken we of alles voorradig is.",
+      "Ja, alle materialen zijn af te halen in Zele. Mail, bel of WhatsApp ons best even op voorhand, dan kijken we of alles voorradig is.",
     a: (
       <p>
-        Ja, alle materialen zijn af te halen in Zele ({ADDRESS.street}, {ADDRESS.city}). Mail of bel ons best even op
-        voorhand, dan kijken we of alles voorradig is: <a href={PHONE.href} className={link}>{PHONE.label}</a> of{" "}
+        Ja, alle materialen zijn af te halen in Zele ({ADDRESS.street}, {ADDRESS.city}). Mail, bel of WhatsApp ons best
+        even op voorhand, dan kijken we of alles voorradig is: <a href={PHONE.href} className={link}>{PHONE.label}</a>,{" "}
+        <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className={link}>WhatsApp</a> of{" "}
         <a href={EMAIL.href} className={link}>{EMAIL.label}</a>.
       </p>
     ),
@@ -169,7 +170,7 @@ function ServiceBlock() {
           <Image src="/wp-content/uploads/2016/04/auto.png" alt="Bestelwagen van Natuurhout" width={444} height={260} className="h-auto w-full max-w-sm" />
         </a>
         <p className="mt-4 leading-7 text-ink/80">
-          Het is altijd mogelijk van thuis uit bestellingen te doen via telefoon, fax of e-mail.
+          Het is altijd mogelijk van thuis uit bestellingen te doen via telefoon, WhatsApp of e-mail.
           <br />
           Alles wordt door ons netjes klaargemaakt en indien gewenst aan huis geleverd*.
         </p>

@@ -277,7 +277,7 @@ export default function PriceList({ products }: { products: Product[] }) {
       </div>
 
       {/* Totals: sticks to the bottom of the screen while a long list scrolls */}
-      <div className="sticky bottom-3 z-10 mt-4 rounded-card border border-line bg-white/95 p-4 shadow-lg shadow-ink/10 backdrop-blur sm:px-5">
+      <div data-sticky-cta className="sticky bottom-3 z-10 mt-4 rounded-card border border-line bg-white/95 p-4 shadow-lg shadow-ink/10 backdrop-blur sm:px-5">
         <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
           <dt className="text-ink/60">Subtotaal{pieces > 0 ? ` (${pieces} ${pieces === 1 ? "stuk" : "stuks"})` : ""}</dt>
           <dd className="text-right tabular-nums">{formatPrice(total)}</dd>

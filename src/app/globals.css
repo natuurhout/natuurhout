@@ -21,6 +21,11 @@
     outline-offset: 3px;
   }
 
+  /* The floating WhatsApp button would cover a sticky order total. */
+  body:has([data-sticky-cta]) .wa-float {
+    display: none;
+  }
+
   /* The sticky navigation bar (64px) must not cover anchor targets. */
   html {
     scroll-padding-top: 5rem;

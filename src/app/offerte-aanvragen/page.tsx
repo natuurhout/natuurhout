@@ -5,7 +5,8 @@ import JsonLd from "@/components/JsonLd";
 import FreeQuoteForm from "@/components/quote/FreeQuoteForm";
 import QuoteChooser from "@/components/quote/QuoteChooser";
 import { calculatorData } from "@/lib/calculator";
-import { EMAIL, PHONE } from "@/lib/contact";
+import { EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
@@ -59,9 +60,12 @@ export default function QuotePage() {
           </ul>
         </div>
         <div className="rounded-card border border-line bg-white p-5 text-sm">
-          <p className="font-semibold text-ink">Liever even bellen of mailen?</p>
+          <p className="font-semibold text-ink">Liever even bellen, mailen of WhatsAppen?</p>
           <a href={PHONE.href} className="mt-2 flex items-center gap-2 font-semibold text-accent-deep hover:text-ink">
             <Phone aria-hidden className="h-4 w-4" /> {PHONE.label}
+          </a>
+          <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="mt-1 flex items-center gap-2 font-semibold text-[#128c43] hover:text-ink">
+            <WhatsAppIcon className="h-4 w-4" /> WhatsApp
           </a>
           <a href={EMAIL.href} className="mt-1 block text-ink/70 hover:text-accent-deep">
             {EMAIL.label}

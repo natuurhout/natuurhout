@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Check, Mail, Phone } from "lucide-react";
 import MainNav from "@/components/MainNav";
 import OpeningStatus from "@/components/OpeningStatus";
-import { EMAIL, PHONE } from "@/lib/contact";
+import { EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 
 const usps = ["15 jaar ervaring", "Levering in heel België", "Service op maat"];
 
@@ -32,6 +33,10 @@ export default function Navbar() {
             <a href={PHONE.href} className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright">
               <Phone aria-hidden className="h-4 w-4 text-accent-bright" />
               {PHONE.label}
+            </a>
+            <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright">
+              <WhatsAppIcon className="h-4 w-4 text-accent-bright" />
+              WhatsApp
             </a>
             <a href={EMAIL.href} className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright">
               <Mail aria-hidden className="h-4 w-4 text-accent-bright" />

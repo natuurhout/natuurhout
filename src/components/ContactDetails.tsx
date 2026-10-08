@@ -1,6 +1,7 @@
 import { Clock, Mail, MapPin, Phone, Smartphone } from "lucide-react";
 import OpeningStatus from "@/components/OpeningStatus";
-import { ADDRESS, EMAIL, MOBILE, PHONE } from "@/lib/contact";
+import { ADDRESS, EMAIL, MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 import { HOURS_TEXT } from "@/lib/opening-hours";
 
 /*
@@ -40,7 +41,7 @@ export default function ContactDetails() {
 
         <div className={card}>
           <p className={title}>
-            <Phone aria-hidden className="h-5 w-5 text-accent" /> Bel of mail
+            <Phone aria-hidden className="h-5 w-5 text-accent" /> Bel, mail of WhatsApp
           </p>
           <ul className="mt-3 space-y-2 text-[15px] text-ink/80">
             <li className="flex items-center gap-2">
@@ -50,6 +51,10 @@ export default function ContactDetails() {
             <li className="flex items-center gap-2">
               <Smartphone aria-hidden className="h-4 w-4 text-ink/50" /> Gsm:{" "}
               <a href={MOBILE.href} className={link}>{MOBILE.label}</a>
+            </li>
+            <li className="flex items-center gap-2">
+              <WhatsAppIcon className="h-4 w-4 text-ink/50" /> WhatsApp:{" "}
+              <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className={link}>{WHATSAPP.label}</a>
             </li>
             <li className="flex items-center gap-2">
               <Mail aria-hidden className="h-4 w-4 text-ink/50" />

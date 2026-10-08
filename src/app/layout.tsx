@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import WhatsAppFloat from "@/components/WhatsApp";
 import { siteIndexingEnabled } from "@/lib/site";
 import "./globals.css";
 
@@ -62,6 +63,7 @@ export default function RootLayout({
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <WhatsAppFloat />
       </body>
     </html>
   );

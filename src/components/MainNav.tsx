@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowRight, ChevronDown, Mail, Menu, Phone, ShoppingCart, X } from "lucide-react";
 import OpeningStatus from "@/components/OpeningStatus";
-import { EMAIL, PHONE, SHOP_URL } from "@/lib/contact";
+import { EMAIL, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
+import { WhatsAppIcon } from "@/components/WhatsApp";
 import { pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 
 /*
@@ -357,6 +358,9 @@ export default function MainNav() {
               <OpeningStatus />
               <a href={PHONE.href} className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
                 <Phone aria-hidden className="h-4 w-4 text-accent" /> {PHONE.label}
+              </a>
+              <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
+                <WhatsAppIcon className="h-4 w-4 text-[#1da851]" /> WhatsApp ({WHATSAPP.label})
               </a>
               <a href={EMAIL.href} className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
                 <Mail aria-hidden className="h-4 w-4 text-accent" /> {EMAIL.label}
