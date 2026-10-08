@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { load } from "cheerio/slim";
 import LegacyContent from "@/components/LegacyContent";
+import ProductenFaq from "@/components/ProductenFaq";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
  * Product overview, the WordPress page with approved edits (Xander, recorded
  * in handbuilt-routes.json): the sold-out Boerenlandhekken tile is gone, the
  * two hazelaar screens carry their webshop names, and their tiles show a
- * current photo instead of the old "Promotie" banner. Everything else renders
- * verbatim; the audit checks that.
+ * current photo instead of the old "Promotie" banner, and the Services/FAQ
+ * block below the tiles is rebuilt as tabs (ProductenFaq) with updated
+ * answers. Everything else renders verbatim; the audit checks that.
  */
 const page = getLegacyPageByPath("/producten/");
 
@@ -24,6 +26,7 @@ const PHOTOS: Record<string, string> = {
 
 function edit(html: string) {
   const $ = load(html, null, false);
+  $("#content-section-2").remove(); // rebuilt as <ProductenFaq />
   for (const href of REMOVED) $(`.portfolio-title a[href="${href}"]`).closest(".columns").remove();
   for (const [href, title] of Object.entries(RENAMES)) $(`.portfolio-title a[href="${href}"]`).text(title);
   for (const [href, src] of Object.entries(PHOTOS)) {
@@ -40,5 +43,11 @@ export const metadata: Metadata = {
 
 export default function ProductenPage() {
   if (!page) throw new Error("The WordPress /producten/ snapshot is missing.");
-  return <LegacyContent page={{ ...page, html: edit(page.html) }} />;
+  return (
+    // One root for the audit: the snapshot content now spans both parts.
+    <div data-legacy-product={page.pathname}>
+      <LegacyContent page={{ ...page, html: edit(page.html) }} />
+      <ProductenFaq />
+    </div>
+  );
 }

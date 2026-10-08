@@ -197,7 +197,7 @@
     {
       "pathname": "/producten/",
       "approvedBy": "Xander",
-      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner).",
+      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner). The Services/FAQ block is rebuilt as tabs (Veelgestelde vragen (FAQ), Service) with updated delivery, pick-up and payment answers, and the Engels/Frans rasterwerk question replaced by the hazelaar/kastanje/robinia comparison.",
       "preserveContent": true,
       "removedContent": [
         "Boerenlandhekken",
@@ -205,7 +205,13 @@
         "Hazelaar vlechtscherm",
         "De charme van een gevlochten tuinscherm uit hazelaar",
         "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg",
-        "/wp-content/uploads/2016/01/Copy-of-Copy-of-Copy-of-Cortenstaal-2-1.jpg"
+        "/wp-content/uploads/2016/01/Copy-of-Copy-of-Copy-of-Cortenstaal-2-1.jpg",
+        "SERVICES",
+        "Ja wij leveren door geheel België , en kunnen normaal snel leveren, vraag naar de voorwaarden, en in de regio Oost Vlaanderen zijn deze kosten minimaal. Verdere leveringen is ook geen probleem en bij grotere bestellingen kunnen wij dit tegen een gereduceerd tarief.",
+        "Afhalen is bij ons ook altijd mogelijk, maar wel graag even een telefoontje i.v.m. leveringen en plaatsing door ons op diversen andere adressen.",
+        "Ja dat kan bij artikelen, die tot de basisvoorraad behoren. Voor artikelen die besteld moeten worden, of speciaal op maat vervaardigd moet vaak alles ( of na overleg een gedeelte) vooraf betaald zijn. Bij afhalen van de artikelen moet je dan wel contant betalen, omdat we geen beschikking hebben over een bancontact-automaat.",
+        "Verschil tussen Engels en frans rasterwerk:",
+        "Het grote verschil tussen engels en frans rasterwerk is voornamelijk de punt(franse uitvoering scherper) en het binden van de latten. Bij de franse uitvoering is dit strakker en de latten zijn rechter uitgevoerd, de duurzaamheid tussen de 2 soorten is niet verschillend."
       ],
       "droppedLinks": {
         "/project/boerenlandhekken/": "Product sold out; removed from the overview and the menu on Xander's request."
