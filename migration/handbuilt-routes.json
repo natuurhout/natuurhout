@@ -4,11 +4,15 @@
     {
       "pathname": "/",
       "approvedBy": "Xander",
-      "reason": "Homepage rebuilt as a storefront: category tiles, per-collection product rails, company/SEO copy and the Natuurhout mascot. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go.",
+      "reason": "Homepage rebuilt as a storefront: category tiles (now an auto-playing carousel of every product group), per-collection product rails, a calculator shortcut in the hero, company/SEO copy and the Natuurhout mascots. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go.",
       "retargetedLinks": {
         "/project/robiniarasterwerk/": {
           "to": "/project/hazelaarrasterwerk/",
           "reason": "The 'Hazelaar Rasterwerk' tile pointed at a URL that 301s to the robinia page. Approved by Xander to link the hazelaar page instead."
+        },
+        "/project/hazelaar-vlechtschermen-halve-latten/": {
+          "to": "/project/hazelaarvlechtschermen/",
+          "reason": "The vlechtscherm tile pointed at a URL that redirects to the Trepanel page; it now links that page directly, as part of the homepage carousel Xander asked for."
         }
       }
     },

@@ -23,7 +23,6 @@ import {
   type CalculatorData,
 } from "@/lib/calculator-pricing";
 import {
-  CLEFT_FIELD,
   CUSTOM_GATE,
   canAddLooseSaver,
   fieldGateLatch,
@@ -41,6 +40,7 @@ import {
   postsIncluded,
   recommendedPoleCount,
   screenResolved,
+  toggleType,
   type Gate,
   type ProductType,
   type SaverMode,
@@ -67,18 +67,7 @@ const TYPES: { id: ProductType; title: string; text: string; image: string }[] =
 
 export function KeuzeStep({ state, update }: StepProps) {
   function toggle(id: ProductType) {
-    update((s) => {
-      const on = !s.types.includes(id);
-      const types = on ? [...s.types, id] : s.types.filter((t) => t !== id);
-      let gates = s.gates;
-      if (id === "cleftfield") {
-        gates = on
-          ? gates.some((g) => g.handle === CLEFT_FIELD) ? gates : [...gates.filter((g) => g.handle), newGate(CLEFT_FIELD)]
-          : gates.filter((g) => g.handle !== CLEFT_FIELD);
-      }
-      if (id === "poorten" && on && gates.length === 0) gates = [newGate()];
-      return { ...s, types, gates };
-    });
+    update((s) => toggleType(s, id));
   }
   return (
     <Question title="Wat wilt u berekenen?" hint="Kies één of meer producten. U kunt ook enkel een poort of plantenbakken kiezen.">

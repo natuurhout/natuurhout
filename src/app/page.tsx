@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Calculator, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
+import CategoryCarousel, { type CategoryTile } from "@/components/CategoryCarousel";
 import JsonLd from "@/components/JsonLd";
 import ProductSlider from "@/components/ProductSlider";
 import { getProduct, products, type Product } from "@/lib/catalog";
+import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
@@ -39,23 +41,40 @@ const usps = [
   { icon: Store, title: "Groot assortiment", text: "Hekwerk, poorten, palen en plaatsingsmateriaal." },
 ];
 
-// Labels and hrefs are the snapshot's own, so the homepage keeps feeding the
-// same pages. One exception, recorded in migration/handbuilt-routes.json:
-// WordPress pointed "Hazelaar Rasterwerk" at /project/robiniarasterwerk/,
-// which 301s to the robinia page; it now goes to the hazelaar page itself.
-// Images are the lead photo of each destination page. Tiles follow the same
-// order as the product rails: fencing, gates, posts, then the rest.
-const categories = [
-  { label: "Kastanje Rasterwerk", href: "/project/rasterwerk-kastanjehout/", src: "/wp-content/uploads/2023/01/Kastanjeafsluiting3-scaled.jpg" },
-  { label: "Robinia Rasterwerk", href: "/project/robinia-rasterwerk/", src: "/fotos/robinia-hekwerk-hoofdfoto.jpg" },
-  { label: "Hazelaar Rasterwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
+// Every product group, in menu order: fencing, gates, screens, posts, the
+// rest. The snapshot's own tile links are all still here, two of them changed
+// with approval (migration/handbuilt-routes.json): "Hazelaar Rasterwerk" now
+// opens the hazelaar page (WordPress sent it to robinia) and the vlechtscherm
+// tile opens the Trepanel page instead of a URL that redirects there. Photos
+// match the /producten/ tiles and the newer photos Natuurhout supplied.
+const categories: CategoryTile[] = [
+  { label: "Kastanje Hekwerk", href: "/project/rasterwerk-kastanjehout/", src: CALCULATOR_HEKWERK_PHOTO },
+  { label: "Robinia Hekwerk", href: "/project/robinia-rasterwerk/", src: "/fotos/robinia-hekwerk-hoofdfoto.jpg" },
+  { label: "Hazelaar Hekwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
   { label: "Kastanje Premium Poorten", href: "/project/franse-poorten/", src: "/wp-content/uploads/2024/10/Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Religieuze-Labels-1.png" },
   { label: "Kastanje Premium Maatwerk Poorten", href: "/project/maatwerk-poorten/", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
+  { label: "Kastanje Poorten Geschroefd", href: "/project/kastanje-poorten-geschroefd/", src: "/wp-content/uploads/2026/04/1-1.webp" },
+  { label: "Kaderpoort", href: "/project/raamwerkpoort/", src: "/wp-content/uploads/2016/01/kaderpoort-1-scaled.jpg" },
+  { label: "Robinia Poort", href: "/shop/robinia-poort/", src: "/fotos/robinia-poort.jpg" },
+  { label: "Hazelaar Poort", href: "/project/hazelaar-poorten/", src: "/wp-content/uploads/2016/01/Hazelaar-poort.webp" },
   { label: "Cleft & Field Veldpoorten", href: "/project/cleft-field-veldpoorten/", src: "/wp-content/uploads/2016/01/Untitled-design-3.png" },
+  { label: "Hazelaar Vlechtscherm - Hasseltre", href: "/project/hazelaar-vlechtscherm-hasseltre/", src: CALCULATOR_VLECHTSCHERM_PHOTO },
+  { label: "Hazelaar Vlechtscherm - Trepanel", href: "/project/hazelaarvlechtschermen/", src: "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp" },
   { label: "Kastanje Palen", href: "/project/kastanjepalen/", src: "/wp-content/uploads/2016/01/901799_752360984796607_487253914146542605_o.jpg" },
+  { label: "Robinia Palen", href: "/project/robinia-palen/", src: "/wp-content/uploads/2026/04/Copy-of-Copy-of-Robinia-Hekwerk-1.20m-4cm.png" },
+  { label: "Gezaagde robinia palen", href: "/shop/vierkant-gezaagde-robinia-palen/", src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/gezaagde-robinia-palen-2689446.jpg?v=1760629025" },
   { label: "Eiken Palen", href: "/project/eiken-palen/", src: "/wp-content/uploads/2020/09/ffa351a0-0fc0-4adc-8cf9-392cf0a0c642.jpg" },
-  { label: "Hazelaar Vlechtscherm", href: "/project/hazelaar-vlechtschermen-halve-latten/", src: "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg" },
+  { label: "Postsaver voor Palen", href: "/project/postsaver-voor-palen/", src: "/wp-content/uploads/2016/01/IMG_0585-scaled.jpeg" },
+  { label: "Post & Rail", href: "/project/post-rail-2/", src: "/wp-content/uploads/2016/01/postrail-scaled.jpg" },
+  { label: "Plantenbakken", href: "/project/moestuinbak/", src: "/wp-content/uploads/2016/01/IMG_7994-scaled.jpg" },
   { label: "Lariks Schaal delen", href: "/project/lariks-schaal-delen-2/", src: "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-scaled.jpg" },
+];
+
+// Shortcuts into the calculator, each opening with that product chosen.
+const calculatorChoices = [
+  { label: "Hekwerk", keuze: "hekwerk", src: CALCULATOR_HEKWERK_PHOTO },
+  { label: "Poorten", keuze: "poorten", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
+  { label: "Vlechtschermen", keuze: "vlechtschermen", src: CALCULATOR_VLECHTSCHERM_PHOTO },
 ];
 
 const principles = [
@@ -200,32 +219,87 @@ export default function HomePage() {
           aria-hidden
           className="absolute inset-0 bg-gradient-to-r from-brand-dark/95 via-brand-dark/75 to-brand-dark/35"
         />
-        <div className="relative mx-auto w-full max-w-[80rem] px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent-bright">
-            Natuurhout — Zele, België
-          </p>
-          <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Specialist in Kastanjehout
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">
-            Duurzaam hekwerk, poorten, palen en tuinschermen uit onbehandeld
-            kastanje-, hazelaar-, robinia-, lariks- en eikenhout. Al meer dan
-            vijftien jaar, rechtstreeks uit eigen voorraad.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/producten/"
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
-            >
-              Bekijk ons assortiment
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/offerte-aanvragen/"
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white/70 hover:bg-white/10"
-            >
-              Offerte aanvragen
-            </Link>
+        <div className="relative mx-auto grid w-full max-w-[80rem] items-center gap-x-12 gap-y-6 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-10 lg:py-24">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent-bright">
+              Natuurhout — Zele, België
+            </p>
+            <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Specialist in Kastanjehout
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">
+              Duurzaam hekwerk, poorten, palen en tuinschermen uit onbehandeld
+              kastanje-, hazelaar-, robinia-, lariks- en eikenhout. Al meer dan
+              vijftien jaar, rechtstreeks uit eigen voorraad.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/producten/"
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
+              >
+                Bekijk ons assortiment
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/offerte-aanvragen/"
+                className="inline-flex items-center gap-2 rounded-full border border-white/30 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white/70 hover:bg-white/10"
+              >
+                Offerte aanvragen
+              </Link>
+            </div>
+          </div>
+
+          {/* Calculator shortcut; the waving mascot stands on its top edge. */}
+          <div className="relative mt-24 lg:mt-20">
+            <Image
+              src="/mascotte-zwaai.webp"
+              alt="De Natuurhout-eekhoorn zwaait"
+              width={499}
+              height={640}
+              className="absolute bottom-full right-5 h-[112px] w-auto"
+            />
+            <div className="rounded-card bg-white p-5 shadow-xl shadow-black/25 sm:p-6">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-deep">
+                <Calculator aria-hidden className="h-4 w-4" />
+                Calculator
+              </p>
+              <h2 className="mt-2 font-display text-xl font-bold leading-snug text-ink">
+                Bereken direct uw richtprijs
+              </h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-ink/70">
+                Kies wat u nodig hebt en zie meteen wat het kost, met de actuele webshopprijzen.
+              </p>
+              <ul className="mt-4 grid grid-cols-3 gap-2.5">
+                {calculatorChoices.map((choice) => (
+                  <li key={choice.keuze}>
+                    <Link
+                      href={`/calculator/?keuze=${choice.keuze}`}
+                      className="group block overflow-hidden rounded-lg border border-line transition-colors hover:border-accent"
+                    >
+                      <span className="relative block aspect-[4/3] overflow-hidden bg-brand-soft/50">
+                        <Image
+                          src={choice.src}
+                          alt=""
+                          fill
+                          sizes="120px"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                        />
+                      </span>
+                      <span className="block px-1.5 py-2 text-center text-xs font-semibold text-ink group-hover:text-accent-deep">
+                        {choice.label}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/calculator/"
+                className="mt-4 flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
+              >
+                Start de calculator
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -260,28 +334,8 @@ export default function HomePage() {
               Alle productgroepen →
             </Link>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-5">
-            {categories.map((category) => (
-              <Link
-                key={category.label}
-                href={category.href}
-                className="group flex flex-col overflow-hidden rounded-card border border-line bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-ink/10"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-brand-soft/50">
-                  <Image
-                    src={category.src}
-                    alt={category.label}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                  />
-                </div>
-                <p className="flex flex-1 items-center justify-between gap-2 p-3.5 text-sm font-medium leading-snug text-ink group-hover:text-accent">
-                  {category.label}
-                  <ArrowRight className="h-4 w-4 shrink-0 text-ink/30 transition-colors group-hover:text-accent" />
-                </p>
-              </Link>
-            ))}
+          <div className="mt-6">
+            <CategoryCarousel tiles={categories} />
           </div>
         </section>
 
@@ -454,9 +508,17 @@ export default function HomePage() {
       </div>
 
       {/* Closing CTA */}
-      <section className="mt-20 bg-brand-dark">
-        <div className="mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-          <div>
+      <section className="mt-20 border-b border-white/10 bg-brand-dark">
+        <div className="relative mx-auto flex w-full max-w-[80rem] flex-col gap-6 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+          {/* Thumbs-up mascot, standing on the bottom edge of the band. */}
+          <Image
+            src="/mascotte-duim.webp"
+            alt="De Natuurhout-eekhoorn steekt zijn duim op"
+            width={513}
+            height={640}
+            className="absolute bottom-0 right-4 h-32 w-auto sm:static sm:-mb-14 sm:h-44 sm:self-end"
+          />
+          <div className="lg:mr-auto">
             <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
               Uw afsluiting samenstellen?
             </h2>

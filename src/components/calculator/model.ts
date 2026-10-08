@@ -121,6 +121,22 @@ export function newGate(handle: string | null = null): Gate {
   };
 }
 
+export const PRODUCT_TYPES: ProductType[] = ["hekwerk", "vlechtschermen", "postrail", "poorten", "cleftfield", "plantenbakken"];
+
+/** Switches one product type on or off, with the gates that type implies. */
+export function toggleType(s: State, id: ProductType): State {
+  const on = !s.types.includes(id);
+  const types = on ? [...s.types, id] : s.types.filter((t) => t !== id);
+  let gates = s.gates;
+  if (id === "cleftfield") {
+    gates = on
+      ? gates.some((g) => g.handle === CLEFT_FIELD) ? gates : [...gates.filter((g) => g.handle), newGate(CLEFT_FIELD)]
+      : gates.filter((g) => g.handle !== CLEFT_FIELD);
+  }
+  if (id === "poorten" && on && gates.length === 0) gates = [newGate()];
+  return { ...s, types, gates };
+}
+
 export function initialState(data: CalculatorData): State {
   return {
     types: [],

@@ -4,7 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import type { CalculatorData } from "@/lib/calculator-pricing";
-import { STEP_LABEL, buildLines, initialState, steps, total, type State, type StepId } from "@/components/calculator/model";
+import {
+  PRODUCT_TYPES,
+  STEP_LABEL,
+  buildLines,
+  initialState,
+  steps,
+  toggleType,
+  total,
+  type ProductType,
+  type State,
+  type StepId,
+} from "@/components/calculator/model";
 import {
   HekwerkStep,
   KeuzeStep,
@@ -37,6 +48,13 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
   const sum = total(lines);
 
   const update = (fn: (s: State) => State) => setState(fn);
+
+  // Links such as /calculator/?keuze=hekwerk (homepage) start with that
+  // product chosen. Read after mount: the page itself is static.
+  useEffect(() => {
+    const keuze = new URLSearchParams(window.location.search).get("keuze") as ProductType | null;
+    if (keuze && PRODUCT_TYPES.includes(keuze)) setState((s) => (s.types.length ? s : toggleType(s, keuze)));
+  }, []);
 
   useEffect(() => {
     if (firstRender.current) {
