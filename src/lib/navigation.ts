@@ -28,6 +28,7 @@ export const productMenu: MenuGroup[] = [
     links: [
       { href: "/project/kastanjepalen/", label: "Kastanje palen" },
       { href: "/project/robinia-palen/", label: "Robinia palen" },
+      { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "Vierkant gezaagde robinia palen" },
       { href: "/project/eiken-palen/", label: "Eiken palen" },
       { href: "/project/postsaver-voor-palen/", label: "Postsaver voor palen" },
     ],
