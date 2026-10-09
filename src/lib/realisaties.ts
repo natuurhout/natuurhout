@@ -8,7 +8,7 @@ import { getLegacyPageByPath, legacyPages, type LegacyPage } from "@/lib/legacy"
  * by hand from each project's title and description.
  */
 
-type Kind = "hekwerk" | "robinia" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks";
+type Kind = "hekwerk" | "robinia" | "hazelaar" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks";
 
 export type ProjectPhoto = { src: string; alt: string; width: number; height: number };
 
@@ -22,8 +22,8 @@ export type NewProject = {
   /** One-line summary (cards, meta description). */
   summary: string;
   description: string[];
-  /** The product page the project shows. */
-  product: { href: string; label: string };
+  /** The product pages the project shows. */
+  products: { href: string; label: string }[];
   photos: ProjectPhoto[];
 };
 
@@ -34,7 +34,38 @@ const lievegem = (n: number, alt: string, portrait = false): ProjectPhoto => ({
   height: portrait ? 1500 : 1125,
 });
 
+const zele = (n: number, alt: string, square = false): ProjectPhoto => ({
+  src: `/fotos/realisaties/zele-hazelaar-${n}.jpg`,
+  alt,
+  width: square ? 1500 : 1600,
+  height: square ? 1500 : 1200,
+});
+
+// Newest first.
 export const NEW_PROJECTS: NewProject[] = [
+  {
+    slug: "zele-hazelaar-hekwerk",
+    title: "Project Zele – Hazelaar hekwerk & poortje",
+    summary: "Hazelaar hekwerk van 120 cm hoog rond een tuin in Zele, met een kastanje premium poortje.",
+    description: [
+      "Plaatsing van hazelaar hekwerk van 120 cm hoog met een latafstand van 3/5 cm rond een tuin in Zele. Het hekwerk loopt rond het gazon, langs de border en onder de treurwilg door.",
+      "Aan het terras kwam een kastanje premium poortje van 100 x 100 cm, zodat de tuin vlot bereikbaar blijft.",
+    ],
+    products: [
+      { href: "/project/hazelaarrasterwerk/", label: "Hazelaar hekwerk" },
+      { href: "/project/franse-poorten/", label: "Kastanje premium poorten" },
+    ],
+    photos: [
+      zele(1, "Hazelaar hekwerk van 120 cm onder een treurwilg, met het gazon erachter", true),
+      zele(2, "Kastanje premium poortje van 100 x 100 cm aan het terras, naast het hazelaar hekwerk"),
+      zele(3, "Hazelaar hekwerk achter een boom en een bloembak op het terras"),
+      zele(4, "Het poortje open, met zicht op het hazelaar hekwerk rond de tuin"),
+      zele(5, "Lange rij hazelaar hekwerk rond het gazon"),
+      zele(6, "Hazelaar hekwerk in de hoek van de tuin, langs de border"),
+      zele(7, "Close-up van de hazelaar latten met verzinkte draad"),
+      zele(8, "Recht stuk hazelaar hekwerk langs het gazon"),
+    ],
+  },
   {
     slug: "lievegem-robinia-hekwerk",
     title: "Project Lievegem – Robinia hekwerk",
@@ -43,7 +74,7 @@ export const NEW_PROJECTS: NewProject[] = [
       "Plaatsing van robinia hekwerk langs de straat en rond de tuin van een woning in Lievegem. Het hekwerk volgt de bocht van de weg en sluit in de tuin aan op de bestaande draadafsluiting.",
       "Robinia is een van de duurzaamste Europese houtsoorten: onbehandeld gaat het jarenlang mee in de grond en het kleurt na verloop van tijd mooi zilvergrijs.",
     ],
-    product: { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
+    products: [{ href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" }],
     photos: [
       lievegem(1, "Robinia hekwerk langs de straat in Lievegem, onder hoge bomen"),
       lievegem(2, "Robinia hekwerk met het Natuurhout-bordje, langs de weg in Lievegem", true),
@@ -86,7 +117,11 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-berlare-vlechtschermen-maatwerk-poort/",
     "/project/project-hamme3/",
   ],
-  "premium-poort": ["/project/project-lochristi-rasterwerk-poort-1-20m/", "/project/rasterwerk120cm-moerkerke/"],
+  "premium-poort": [
+    "/realisaties/zele-hazelaar-hekwerk/",
+    "/project/project-lochristi-rasterwerk-poort-1-20m/",
+    "/project/rasterwerk120cm-moerkerke/",
+  ],
   "cleft-field": [
     "/project/project-waasmunster-cleft-field-poorten-1-50m-2x-2-40m/",
     "/project/project-keerbergen-cleftfield-poort-3-60m/",
@@ -96,6 +131,7 @@ const PROJECTS: Record<Kind, string[]> = {
   ],
   "post-rail": ["/project/project-sintgilleswaas-postrail/", "/project/project-hamme5/"],
   robinia: ["/realisaties/lievegem-robinia-hekwerk/"],
+  hazelaar: ["/realisaties/zele-hazelaar-hekwerk/"],
   lariks: ["/project/project-overmere/", "/project/project-overmere-2/"],
 };
 
@@ -112,6 +148,7 @@ const BY_PAGE: Record<string, Kind> = {
   "/project/lariks-schaal-delen-2/": "lariks",
   "/project/robinia-rasterwerk/": "robinia",
   "/project/robinia-palen/": "robinia",
+  "/project/hazelaarrasterwerk/": "hazelaar",
 };
 
 const BY_HANDLE: Record<string, Kind> = {
@@ -131,6 +168,8 @@ const BY_HANDLE: Record<string, Kind> = {
   "robinia-palen": "robinia",
   "vierkant-gezaagde-robinia-palen": "robinia",
   "robinia-poort": "robinia",
+  "hazelaar-hekwerk": "hazelaar",
+  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": "hazelaar", // "Hazelaar hekwerk 90cm" despite its handle
 };
 
 // Card titles where the WordPress title is generic or used twice.
@@ -170,6 +209,7 @@ export function newRealisaties(): Realisatie[] {
 const KIND_PRODUCT: Record<Kind, { href: string; label: string }> = {
   hekwerk: { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
   robinia: { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
+  hazelaar: { href: "/project/hazelaarrasterwerk/", label: "Hazelaar hekwerk" },
   vlechtschermen: { href: "/project/hazelaarvlechtschermen/", label: "Vlechtschermen" },
   "maatwerk-poort": { href: "/project/maatwerk-poorten/", label: "Kastanje premium maatwerk poorten" },
   "premium-poort": { href: "/project/franse-poorten/", label: "Kastanje premium poorten" },
@@ -237,5 +277,5 @@ export function legacyProjectView(page: LegacyPage): ProjectView {
 
 /** The products a new project shows, with their tile photo. */
 export function newProjectProducts(project: NewProject): ProjectProduct[] {
-  return [{ ...project.product, image: tilePhoto.get(project.product.href) }];
+  return project.products.map((product) => ({ ...product, image: tilePhoto.get(product.href) }));
 }
