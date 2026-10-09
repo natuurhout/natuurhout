@@ -5,9 +5,10 @@ import { WhatsAppIcon } from "@/components/WhatsApp";
 
 // NAP, opening hours and link labels are VERBATIM from the live natuurhout.be
 // footer (Phase 0 snapshot) — do not reword; local SEO depends on the exact
-// NAP string. One approved exception (Xander): the landline is written the
-// Belgian way, "052 55 88 58", instead of the malformed "+32 5 255 88 58" —
-// same number. Legal page routes keep their live WordPress slugs (URL parity).
+// NAP string. Approved exception (Xander): both numbers are written the
+// same Belgian way, "052 55 88 58" (was the malformed "+32 5 255 88 58") and
+// "0473 74 09 26" (was "+32 473 74 09 26") — same numbers, same tel: links.
+// Legal page routes keep their live WordPress slugs (URL parity).
 export default function Footer() {
   return (
     <footer className="bg-brand-dark text-white">
@@ -61,7 +62,7 @@ export default function Footer() {
               </li>
               <li className="flex gap-2.5">
                 <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                <a href="tel:+32473740926" className="hover:text-white">Gsm: +32 473 74 09 26</a>
+                <a href="tel:+32473740926" className="hover:text-white">Gsm: 0473 74 09 26</a>
               </li>
               <li className="flex gap-2.5">
                 <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />

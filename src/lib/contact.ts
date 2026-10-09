@@ -6,7 +6,7 @@
  */
 
 export const PHONE = { label: "052 55 88 58", href: "tel:+3252558858" };
-export const MOBILE = { label: "+32 473 74 09 26", href: "tel:+32473740926" };
+export const MOBILE = { label: "0473 74 09 26", href: "tel:+32473740926" };
 export const EMAIL = { label: "info@natuurhout.be", href: "mailto:info@natuurhout.be" };
 
 export const ADDRESS = {

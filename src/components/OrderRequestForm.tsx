@@ -215,7 +215,7 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
       </div>
       {status === "error" && (
         <p className="text-sm font-medium text-red-700">
-          Versturen lukte niet. Probeer het opnieuw, bel 052 55 88 58 of +32 473 74 09 26, of mail naar {ADDRESS}.
+          Versturen lukte niet. Probeer het opnieuw, bel 052 55 88 58 of 0473 74 09 26, of mail naar {ADDRESS}.
         </p>
       )}
       {status === "mailto" && (
