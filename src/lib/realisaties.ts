@@ -60,20 +60,20 @@ export const NEW_PROJECTS: NewProject[] = [
   {
     slug: "denderleeuw-kastanje-hekwerk-vlechtschermen",
     title: "Project Denderleeuw – Kastanje hekwerk & hazelaar vlechtschermen",
-    summary: "Nieuw kastanje hekwerk langs de nieuwe oprit en hazelaar vlechtschermen van 1m80 achteraan de tuin in Denderleeuw.",
+    summary: "Nieuw kastanje hekwerk langs de nieuwe oprit en hazelaar vlechtschermen met halve latten van 1m80 achteraan de tuin in Denderleeuw.",
     description: [
       "In 2015 plaatsten we bij deze klant in Denderleeuw kastanje hekwerk. Bij de aanleg van een nieuwe oprit moest het bestaande hekwerk worden vervangen, en daarvoor rekenden ze opnieuw op Natuurhout.",
-      "Achteraan de tuin plaatsten we hazelaar vlechtschermen van 1m80 hoog. We hingen ze iets hoger, zodat er zeker geen inkijk is en ze ook wat bescherming bieden tegen ongewenste bezoekers.",
+      "Achteraan de tuin plaatsten we hazelaar vlechtschermen met halve latten van 1m80 hoog. We hingen ze iets hoger, zodat er zeker geen inkijk is en ze ook wat bescherming bieden tegen ongewenste bezoekers.",
     ],
     products: [
       { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
-      { href: "/project/hazelaarvlechtschermen/", label: "Hazelaar vlechtschermen" },
+      { href: "/project/hazelaar-vlechtscherm-hasseltre/", label: "Hazelaar vlechtschermen – halve latten" },
     ],
     photos: [
-      denderleeuw(2, "Hazelaar vlechtschermen van 1m80 achteraan de tuin, onder een treurwilg"),
+      denderleeuw(2, "Hazelaar vlechtschermen met halve latten van 1m80 achteraan de tuin, onder een treurwilg"),
       denderleeuw(1, "Nieuw kastanje hekwerk langs de nieuwe oprit in Denderleeuw"),
       denderleeuw(3, "Rij hazelaar vlechtschermen langs het gazon, met de weide erachter"),
-      denderleeuw(4, "Close-up van de gevlochten hazelaar latten tussen de palen", true),
+      denderleeuw(4, "Close-up van de gevlochten halve hazelaar latten tussen de palen", true),
       denderleeuw(5, "Het oude kastanje hekwerk uit 2015, vlak voor de vervanging"),
     ],
   },
