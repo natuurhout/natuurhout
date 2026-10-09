@@ -1,6 +1,6 @@
 import productsData from "@/data/products.json";
 import collectionsData from "@/data/collections.json";
-import { PROMO_COLLECTION, promotionCards, SALE, withPromotionCollections, withPromotions } from "@/lib/promotions";
+import { PROMO_COLLECTION, promotionCards, SALE, UNLISTED, withPromotionCollections, withPromotions } from "@/lib/promotions";
 import { renameDeep } from "@/lib/renames.mjs";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
@@ -78,7 +78,7 @@ export function collectionProducts(col: Collection): Product[] {
 /** Products not in any collection (rendered under "Overige producten"). */
 export function uncollectedProducts(): Product[] {
   const inCollections = new Set(collections.flatMap((c) => c.products));
-  return products.filter((p) => !inCollections.has(p.handle));
+  return products.filter((p) => !inCollections.has(p.handle) && !UNLISTED.has(p.handle));
 }
 
 /** First product image of a collection — used as its mega-menu thumbnail. */

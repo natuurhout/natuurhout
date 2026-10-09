@@ -36,7 +36,7 @@ export const productMenu: MenuGroup[] = [
     title: "Vlechtschermen",
     slug: "vlechtschermen",
     intro: "Gevlochten hazelaar schermen en schermen met halve latten, voor privacy en beschutting met een natuurlijke uitstraling.",
-    products: ["hazelaar-vlechtscherm-hasseltre", "hazelaar-scherm-trepanel", "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed"],
+    products: ["hazelaar-vlechtscherm-hasseltre", "hazelaar-scherm-trepanel"],
     links: [
       { href: "/project/hazelaarvlechtschermen/", label: "Hazelaar vlechtschermen" },
       { href: "/project/hazelaar-vlechtscherm-hasseltre/", label: "Hazelaar vlechtschermen – halve latten" },

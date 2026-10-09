@@ -3,6 +3,7 @@ import { formatPrice, getProduct, products } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
 import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import { UNLISTED } from "@/lib/promotions";
 import { NEW_PROJECTS, newProjectHref } from "@/lib/realisaties";
 
 export type SearchKind = "Productgroep" | "Webshop" | "Pagina" | "Info" | "Realisatie";
@@ -82,6 +83,7 @@ function build(): SearchItem[] {
   }
   for (const item of EXTRA_PAGES) add(item);
   for (const product of products) {
+    if (UNLISTED.has(product.handle)) continue;
     add({
       title: product.title,
       href: `/shop/${product.handle}/`,

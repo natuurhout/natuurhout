@@ -8,7 +8,7 @@ import ProductSlider from "@/components/ProductSlider";
 import { getProduct, products, type Product } from "@/lib/catalog";
 import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { categories } from "@/lib/categories";
-import { SALE } from "@/lib/promotions";
+import { SALE, UNLISTED } from "@/lib/promotions";
 import { MOBILE, PHONE } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
@@ -120,7 +120,6 @@ const homeSections: HomeSection[] = [
     handles: [
       "hazelaar-vlechtscherm-hasseltre",
       "hazelaar-scherm-trepanel",
-      "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed",
       "post-rail-omheining",
       "tuinbakken-hazelaar",
       "plantenbak-cortenstaal",
@@ -159,7 +158,7 @@ const homeSections: HomeSection[] = [
 ];
 
 const listed = new Set(homeSections.flatMap((section) => section.handles));
-const unlisted = products.filter((product) => !listed.has(product.handle));
+const unlisted = products.filter((product) => !listed.has(product.handle) && !UNLISTED.has(product.handle));
 
 const rails = homeSections
   .map((section) => ({

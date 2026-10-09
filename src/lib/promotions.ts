@@ -20,15 +20,16 @@ export const SALE_COLLECTION = "sale";
 /**
  * Promotions that are over: no strike-through price or percentage any more,
  * and the product moves from the promo collection to its own collection, or
- * to Sale.
+ * to Sale. `null`: sold out and taken off every product list (Xander); the
+ * product page itself stays.
  */
-const ENDED: Record<string, string> = {
+const ENDED: Record<string, string | null> = {
   "kastanje-hekwerk-100cm-4-5cm": SALE_COLLECTION,
   "kastanje-hekwerk-100cm-7-9cm": SALE_COLLECTION,
-  "kastanje-hekwerk-1-50m": SALE_COLLECTION,
+  "kastanje-hekwerk-1-50m": null,
   "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": SALE_COLLECTION,
   "kastanje-kaderpoort": SALE_COLLECTION,
-  "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed": "vlechtschermen",
+  "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed": null,
 };
 
 type Promotion = {
@@ -67,6 +68,9 @@ export function withPromotions(products: Product[]): Product[] {
     };
   });
 }
+
+/** Taken off the product lists (shop, homepage, overviews, search). */
+export const UNLISTED = new Set(Object.keys(ENDED).filter((handle) => ENDED[handle] === null));
 
 /** The products on sale, in order. */
 export const SALE = Object.keys(ENDED).filter((handle) => ENDED[handle] === SALE_COLLECTION);
