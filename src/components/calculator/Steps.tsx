@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
+import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_POSTRAIL_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { Plus, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import {
@@ -60,7 +60,7 @@ const TYPES: { id: ProductType; title: string; text: string; image: string }[] =
   { id: "hekwerk", title: "Hekwerk", text: "Kastanje, robinia of hazelaar rasterwerk op rol", image: CALCULATOR_HEKWERK_PHOTO },
   { id: "poorten", title: "Poorten", text: "Tuin- en veldpoorten, ook enkel een poort", image: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
   { id: "vlechtschermen", title: "Vlechtschermen", text: "Hazelaar, gevlochten of met halve latten", image: CALCULATOR_VLECHTSCHERM_PHOTO },
-  { id: "postrail", title: "Post & Rail", text: "Kastanje palen met 2 of 3 liggers", image: "/wp-content/uploads/2016/01/postrail-scaled.jpg" },
+  { id: "postrail", title: "Post & Rail", text: "Kastanje palen met 2 of 3 liggers", image: CALCULATOR_POSTRAIL_PHOTO },
   { id: "cleftfield", title: "Cleft & Field poorten", text: "Robuuste veldpoorten in kastanje", image: "/wp-content/uploads/2016/01/Untitled-design-3.png" },
   { id: "plantenbakken", title: "Plantenbakken", text: "Moestuinbakken in hazelaar of cortenstaal", image: "/wp-content/uploads/2016/01/IMG_7994-scaled.jpg" },
 ];

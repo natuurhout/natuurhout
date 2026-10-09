@@ -26,6 +26,7 @@ const PHOTOS: Record<string, string> = {
   "/project/robinia-rasterwerk/": "/fotos/robinia-hekwerk-hoofdfoto.jpg",
   "/project/franse-poorten/": "/fotos/kastanje-premium-poort.jpg",
   "/project/kastanjepalen/": "/fotos/kastanje-palen.jpg",
+  "/project/post-rail-2/": "/fotos/post-rail.jpg",
 };
 
 // Shop products without a WordPress page, added as a tile after another.

@@ -26,7 +26,7 @@ export const categories: CategoryTile[] = [
   { label: "Gezaagde robinia palen", href: "/shop/vierkant-gezaagde-robinia-palen/", src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/gezaagde-robinia-palen-2689446.jpg?v=1760629025" },
   { label: "Eiken Palen", href: "/project/eiken-palen/", src: "/wp-content/uploads/2020/09/ffa351a0-0fc0-4adc-8cf9-392cf0a0c642.jpg" },
   { label: "Postsaver voor Palen", href: "/project/postsaver-voor-palen/", src: "/wp-content/uploads/2016/01/IMG_0585-scaled.jpeg" },
-  { label: "Post & Rail", href: "/project/post-rail-2/", src: "/wp-content/uploads/2016/01/postrail-scaled.jpg" },
+  { label: "Post & Rail", href: "/project/post-rail-2/", src: "/fotos/post-rail.jpg" },
   { label: "Plantenbakken", href: "/project/moestuinbak/", src: "/wp-content/uploads/2016/01/IMG_7994-scaled.jpg" },
   { label: "Lariks Schaal delen", href: "/project/lariks-schaal-delen-2/", src: "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-scaled.jpg" },
 ];
