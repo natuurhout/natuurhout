@@ -53,6 +53,7 @@ export const PAGE_EXTRA_PHOTOS: Record<string, ExtraPhoto[]> = {
 export const CARD_PHOTOS: Record<string, string> = {
   "robinia-hekwerk": ROBINIA_HEKWERK[0].src,
   "robinia-poort": "/fotos/robinia-poort.jpg",
+  "kastanje-poorten": "/fotos/kastanje-premium-poort.jpg",
 };
 
 /** Calculator tiles for "Hekwerk" and "Vlechtschermen". */

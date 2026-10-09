@@ -9,7 +9,7 @@ import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
 import { EMAIL, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
-import { pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 import type { SearchItem } from "@/lib/search";
 
 /*
@@ -19,7 +19,7 @@ import type { SearchItem } from "@/lib/search";
  * height changes, no layout jump. Once it sticks, a small logo slides in.
  */
 
-const productPaths = productMenu.flatMap((group) => group.links.map((link) => link.href));
+const productPaths = productMenu.flatMap((group) => [groupHref(group), ...group.links.map((link) => link.href)]);
 
 export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) {
   const pathname = usePathname();
@@ -215,7 +215,17 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
               <div className="grid grid-cols-5 gap-x-6 gap-y-6 xl:gap-x-8">
                 {productMenu.map((group) => (
                   <div key={group.title}>
-                    <h2 className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.14em] text-ink">{group.title}</h2>
+                    <h2 className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.14em] text-ink">
+                      <Link
+                        href={groupHref(group)}
+                        onClick={() => setMegaOpen(false)}
+                        aria-current={pathname === groupHref(group) ? "page" : undefined}
+                        className="group/kop inline-flex items-center gap-1.5 transition-colors hover:text-accent-deep"
+                      >
+                        {group.title}
+                        <ArrowRight aria-hidden className="h-3.5 w-3.5 shrink-0 text-accent transition-transform group-hover/kop:translate-x-0.5" />
+                      </Link>
+                    </h2>
                     <ul className="mt-2">
                       {group.links.map((link) => (
                         <li key={link.href}>
@@ -334,7 +344,14 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
                 <div id="mobiel-producten" hidden={!mobileProducts} className="pb-3">
                   {productMenu.map((group) => (
                     <div key={group.title} className="mt-2">
-                      <p className="px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-accent-deep">{group.title}</p>
+                      <Link
+                        href={groupHref(group)}
+                        onClick={() => closeMobile()}
+                        className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-accent-deep hover:text-ink"
+                      >
+                        {group.title}
+                        <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+                      </Link>
                       <ul className="mt-1">
                         {group.links.map((link) => (
                           <li key={link.href}>

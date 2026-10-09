@@ -24,6 +24,7 @@ const PHOTOS: Record<string, string> = {
   "/project/hazelaar-vlechtscherm-hasseltre/": "/fotos/hazelaar-vlechtscherm-halve-latten.jpg",
   "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
   "/project/robinia-rasterwerk/": "/fotos/robinia-hekwerk-hoofdfoto.jpg",
+  "/project/franse-poorten/": "/fotos/kastanje-premium-poort.jpg",
 };
 
 // Shop products without a WordPress page, added as a tile after another.

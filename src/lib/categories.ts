@@ -12,7 +12,7 @@ export const categories: CategoryTile[] = [
   { label: "Kastanje Hekwerk", href: "/project/rasterwerk-kastanjehout/", src: CALCULATOR_HEKWERK_PHOTO },
   { label: "Robinia Hekwerk", href: "/project/robinia-rasterwerk/", src: "/fotos/robinia-hekwerk-hoofdfoto.jpg" },
   { label: "Hazelaar Hekwerk", href: "/project/hazelaarrasterwerk/", src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp" },
-  { label: "Kastanje Premium Poorten", href: "/project/franse-poorten/", src: "/wp-content/uploads/2024/10/Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Kopie-van-Religieuze-Labels-1.png" },
+  { label: "Kastanje Premium Poorten", href: "/project/franse-poorten/", src: "/fotos/kastanje-premium-poort.jpg" },
   { label: "Kastanje Premium Maatwerk Poorten", href: "/project/maatwerk-poorten/", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
   { label: "Kastanje Poorten Geschroefd", href: "/project/kastanje-poorten-geschroefd/", src: "/wp-content/uploads/2026/04/1-1.webp" },
   { label: "Kaderpoort", href: "/project/raamwerkpoort/", src: "/wp-content/uploads/2016/01/kaderpoort-1-scaled.jpg" },

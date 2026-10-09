@@ -2,7 +2,7 @@ import { categories } from "@/lib/categories";
 import { formatPrice, getProduct, products } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
-import { pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 
 export type SearchKind = "Productgroep" | "Webshop" | "Pagina" | "Info" | "Realisatie";
 
@@ -61,6 +61,9 @@ function build(): SearchItem[] {
   const firstPhoto = (pathname: string) =>
     legacyPages.find((page) => page.pathname === pathname)?.blocks.find((block) => block.type === "image")?.src;
 
+  for (const group of productMenu) {
+    add({ title: `${group.title}: alle producten`, href: groupHref(group), kind: "Productgroep", keywords: group.links.map((link) => link.label).join(" "), image: tilePhoto.get(group.links[0].href) });
+  }
   for (const group of productMenu) {
     for (const link of group.links) {
       const product = shopProduct(link.href);

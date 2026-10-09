@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
 import { products } from "@/lib/catalog";
+import { groupHref, productMenu } from "@/lib/navigation";
 import { siteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -8,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/shop/`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${siteUrl}/shop/kastanje/`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/calculator/`, changeFrequency: "monthly", priority: 0.8 },
+    ...productMenu.map((group) => ({ url: `${siteUrl}${groupHref(group)}`, changeFrequency: "weekly" as const, priority: 0.8 })),
   ];
   const legacy: MetadataRoute.Sitemap = legacyPages
     .filter((page) => !isPermanentlyNoindexLegacyPath(page.pathname))
