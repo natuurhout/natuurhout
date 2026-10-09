@@ -53,11 +53,11 @@ export const NEW_PROJECTS: NewProject[] = [
   {
     slug: "overmere-maatwerk-poorten-hekwerk",
     title: "Project Overmere – Maatwerk poorten & kastanje hekwerk",
-    summary: "Dubbele kastanje premium maatwerk poort op eiken palen en kastanje hekwerk van 120 cm hoog in Overmere.",
+    summary: "Dubbele kastanje premium maatwerk poort op eiken palen en kastanje hekwerk van 120 cm hoog langs de sloot in Overmere.",
     description: [
       "Plaatsing van een dubbele kastanje premium maatwerk poort in Overmere: twee vleugels van 120 cm hoog en 190 cm breed. De poorten hangen aan eiken palen, ook uit ons eigen assortiment.",
       "De oprit moet nog worden aangelegd. Daarom hangt de poort voorlopig wat hoger: zo past ze straks perfect boven de afgewerkte oprit.",
-      "Rond de tuin kwam kastanje hekwerk van 120 cm hoog met een latafstand van 7/8 cm, langs de beukenhaag en tot tegen de woning.",
+      "Langs de sloot kwam kastanje hekwerk van 120 cm hoog met een latafstand van 7/8 cm, tot tegen de woning. Zo houdt het hekwerk de kleine kinderen tegen en kunnen ze niet in de sloot vallen.",
     ],
     products: [
       { href: "/project/maatwerk-poorten/", label: "Kastanje premium maatwerk poorten" },
@@ -66,10 +66,10 @@ export const NEW_PROJECTS: NewProject[] = [
     ],
     photos: [
       overmere(1, "Dubbele kastanje premium maatwerk poort op eiken palen in Overmere, met het hekwerk erachter", 1500, 1125),
-      overmere(2, "Bovenkant van de maatwerk poort, met het kastanje hekwerk langs de beukenhaag", 1600, 1200),
-      overmere(3, "Kastanje hekwerk van 120 cm hoog langs de beukenhaag", 1125, 1500),
-      overmere(4, "Kastanje hekwerk langs de beukenhaag, met zicht op de weide", 1125, 1500),
-      overmere(5, "Kastanje hekwerk tussen de woning en de haag", 1125, 1500),
+      overmere(2, "Bovenkant van de maatwerk poort, met het kastanje hekwerk langs de sloot", 1600, 1200),
+      overmere(3, "Kastanje hekwerk van 120 cm hoog langs de sloot", 1125, 1500),
+      overmere(4, "Kastanje hekwerk langs de sloot, met zicht op de weide", 1125, 1500),
+      overmere(5, "Kastanje hekwerk tot tegen de woning", 1125, 1500),
     ],
   },
   {
