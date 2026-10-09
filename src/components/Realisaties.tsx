@@ -4,20 +4,38 @@ import { ArrowRight } from "lucide-react";
 import type { Realisatie } from "@/lib/realisaties";
 
 /** "Zo ziet het eruit bij onze klanten": customer projects with this product. */
-export default function Realisaties({ items }: { items: Realisatie[] }) {
+export default function Realisaties({
+  items,
+  title = "Zo ziet het eruit bij onze klanten",
+  intro = "Realisaties met dit product, geplaatst door Natuurhout.",
+  allLink = true,
+  className = "mt-16 border-t border-line pt-10",
+  heading = "h2",
+}: {
+  items: Realisatie[];
+  title?: string;
+  intro?: string;
+  allLink?: boolean;
+  className?: string;
+  /** "p" where the block comes before the page's own h1. */
+  heading?: "h2" | "p";
+}) {
   if (!items.length) return null;
+  const Heading = heading;
   return (
-    <section className="mt-16 border-t border-line pt-10" aria-labelledby="realisaties-titel">
+    <section className={className} aria-labelledby="realisaties-titel">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="realisaties-titel" className="font-display text-2xl font-semibold">
-            Zo ziet het eruit bij onze klanten
-          </h2>
-          <p className="mt-1 text-sm text-ink/60">Realisaties met dit product, geplaatst door Natuurhout.</p>
+          <Heading id="realisaties-titel" className="font-display text-2xl font-semibold">
+            {title}
+          </Heading>
+          <p className="mt-1 text-sm text-ink/60">{intro}</p>
         </div>
-        <Link href="/onze-realisaties/" className="text-sm font-medium text-accent hover:text-accent-deep">
-          Alle realisaties →
-        </Link>
+        {allLink && (
+          <Link href="/onze-realisaties/" className="text-sm font-medium text-accent hover:text-accent-deep">
+            Alle realisaties →
+          </Link>
+        )}
       </div>
       <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
         {items.map((item) => (

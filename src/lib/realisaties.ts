@@ -6,7 +6,56 @@ import { legacyPages } from "@/lib/legacy";
  * by hand from each project's title and description.
  */
 
-type Kind = "hekwerk" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks";
+type Kind = "hekwerk" | "robinia" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks";
+
+export type ProjectPhoto = { src: string; alt: string; width: number; height: number };
+
+/**
+ * Projects added after the WordPress site, with Natuurhout's own photos
+ * (public/fotos/realisaties/). Each has a page at /realisaties/<slug>/.
+ */
+export type NewProject = {
+  slug: string;
+  title: string;
+  /** One-line summary (cards, meta description). */
+  summary: string;
+  description: string[];
+  /** The product page the project shows. */
+  product: { href: string; label: string };
+  photos: ProjectPhoto[];
+};
+
+const lievegem = (n: number, alt: string, portrait = false): ProjectPhoto => ({
+  src: `/fotos/realisaties/lievegem-robinia-${n}.jpg`,
+  alt,
+  width: portrait ? 1125 : 1500,
+  height: portrait ? 1500 : 1125,
+});
+
+export const NEW_PROJECTS: NewProject[] = [
+  {
+    slug: "lievegem-robinia-hekwerk",
+    title: "Project Lievegem – Robinia hekwerk",
+    summary: "Robinia hekwerk langs de straat en rond de tuin in Lievegem.",
+    description: [
+      "Plaatsing van robinia hekwerk langs de straat en rond de tuin van een woning in Lievegem. Het hekwerk volgt de bocht van de weg en sluit in de tuin aan op de bestaande draadafsluiting.",
+      "Robinia is een van de duurzaamste Europese houtsoorten: onbehandeld gaat het jarenlang mee in de grond en het kleurt na verloop van tijd mooi zilvergrijs.",
+    ],
+    product: { href: "/project/robinia-rasterwerk/", label: "Bekijk robinia hekwerk" },
+    photos: [
+      lievegem(1, "Robinia hekwerk langs de straat in Lievegem, onder hoge bomen"),
+      lievegem(2, "Robinia hekwerk met het Natuurhout-bordje, langs de weg in Lievegem", true),
+      lievegem(3, "Lange rij robinia hekwerk langs de rijweg"),
+      lievegem(4, "Robinia hekwerk in de tuin, aangesloten op de bestaande draadafsluiting"),
+      lievegem(5, "Robinia hekwerk gezien vanuit de tuin, met zicht op de weide aan de overkant"),
+      lievegem(6, "Close-up van de gekloven robinia latten met verzinkte draad"),
+      lievegem(7, "Robinia hekwerk langs de gevel en de struiken in de tuin"),
+    ],
+  },
+];
+
+export const newProjectHref = (project: NewProject) => `/realisaties/${project.slug}/`;
+export const getNewProject = (slug: string) => NEW_PROJECTS.find((project) => project.slug === slug);
 
 // Most telling project first within each kind.
 const PROJECTS: Record<Kind, string[]> = {
@@ -44,6 +93,7 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-destelbergen/",
   ],
   "post-rail": ["/project/project-sintgilleswaas-postrail/", "/project/project-hamme5/"],
+  robinia: ["/realisaties/lievegem-robinia-hekwerk/"],
   lariks: ["/project/project-overmere/", "/project/project-overmere-2/"],
 };
 
@@ -58,6 +108,8 @@ const BY_PAGE: Record<string, Kind> = {
   "/project/cleft-field-veldpoorten/": "cleft-field",
   "/project/post-rail-2/": "post-rail",
   "/project/lariks-schaal-delen-2/": "lariks",
+  "/project/robinia-rasterwerk/": "robinia",
+  "/project/robinia-palen/": "robinia",
 };
 
 const BY_HANDLE: Record<string, Kind> = {
@@ -73,6 +125,10 @@ const BY_HANDLE: Record<string, Kind> = {
   "cleft-field-poorten": "cleft-field",
   "post-rail-omheining": "post-rail",
   "lariks-planken-delen": "lariks",
+  "robinia-hekwerk": "robinia",
+  "robinia-palen": "robinia",
+  "vierkant-gezaagde-robinia-palen": "robinia",
+  "robinia-poort": "robinia",
 };
 
 // Card titles where the WordPress title is generic or used twice.
@@ -85,6 +141,8 @@ const TITLES: Record<string, string> = {
 export type Realisatie = { href: string; title: string; image: string; alt: string };
 
 function realisatie(pathname: string): Realisatie | null {
+  const added = NEW_PROJECTS.find((project) => newProjectHref(project) === pathname);
+  if (added) return { href: pathname, title: added.title, image: added.photos[0].src, alt: added.photos[0].alt };
   const page = legacyPages.find((candidate) => candidate.pathname === pathname);
   const image = page?.blocks.find((block) => block.type === "image");
   if (!page || !image || image.type !== "image") return null;
@@ -97,4 +155,9 @@ export function realisatiesFor({ pathname, handle }: { pathname?: string; handle
   const kind = (pathname && BY_PAGE[pathname]) || (handle && BY_HANDLE[handle]);
   if (!kind) return [];
   return PROJECTS[kind].map(realisatie).filter((item): item is Realisatie => item !== null).slice(0, limit);
+}
+
+/** The projects added after the WordPress site, newest first, as cards. */
+export function newRealisaties(): Realisatie[] {
+  return NEW_PROJECTS.map((project) => realisatie(newProjectHref(project))).filter((item): item is Realisatie => item !== null);
 }

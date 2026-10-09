@@ -3,6 +3,7 @@ import { formatPrice, getProduct, products } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
 import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import { NEW_PROJECTS, newProjectHref } from "@/lib/realisaties";
 
 export type SearchKind = "Productgroep" | "Webshop" | "Pagina" | "Info" | "Realisatie";
 
@@ -89,6 +90,9 @@ function build(): SearchItem[] {
       image: CARD_PHOTOS[product.handle] ?? product.images[0]?.src,
       price: product.priceFrom ? `vanaf ${formatPrice(product.priceFrom)}` : undefined,
     });
+  }
+  for (const project of NEW_PROJECTS) {
+    add({ title: project.title, href: newProjectHref(project), kind: "Realisatie", keywords: project.summary, image: project.photos[0].src });
   }
   for (const page of legacyPages) {
     if (page.kind === "archive" || HIDDEN.has(page.pathname) || isPermanentlyNoindexLegacyPath(page.pathname)) continue;

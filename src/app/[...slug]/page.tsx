@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import LegacyContent from "@/components/LegacyContent";
 import LegacyProductPage from "@/components/LegacyProductPage";
+import Realisaties from "@/components/Realisaties";
 import {
   getLegacyPage,
   isPermanentlyNoindexLegacyPath,
@@ -9,6 +10,7 @@ import {
   legacyPages,
 } from "@/lib/legacy";
 import { legacyProduct } from "@/lib/legacy-product";
+import { newRealisaties } from "@/lib/realisaties";
 import { siteIndexingEnabled } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string[] }> };
@@ -50,5 +52,24 @@ export default async function LegacyRoute({ params }: Props) {
   // The "Producten & Prijzen" pages use the shop's product layout.
   const product = legacyProduct(page);
   if (product) return <LegacyProductPage page={page} info={product} />;
+  // The realisations overview starts with the projects added since WordPress
+  // (outside the snapshot's own content, which renders unchanged below).
+  if (page.pathname === "/onze-realisaties/") {
+    return (
+      <>
+        <div className="mx-auto w-full max-w-[1240px] bg-white px-4 pt-9 sm:px-6 lg:px-10 lg:pt-14">
+          <Realisaties
+            items={newRealisaties()}
+            title="Nieuwste realisaties"
+            intro="Recente projecten van Natuurhout, met foto's van op de werf."
+            allLink={false}
+            className=""
+            heading="p"
+          />
+        </div>
+        <LegacyContent page={page} />
+      </>
+    );
+  }
   return <LegacyContent page={page} />;
 }
