@@ -31,10 +31,10 @@ export const WHATSAPP = {
 
 /*
  * Google Business profile score, copied by hand from Google (no API key):
- * update rating and count when they change. Checked 8 Oct 2026.
+ * update the rating when it changes. Checked 8 Oct 2026 (4,9 from 30
+ * reviews; Xander prefers to show the score only).
  */
 export const GOOGLE_REVIEWS = {
   rating: 4.9,
-  count: 30,
   href: "https://share.google/2mnpfOfIeGvXz2ezU",
 };

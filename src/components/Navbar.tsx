@@ -34,7 +34,7 @@ export default function Navbar() {
                 href={GOOGLE_REVIEWS.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`${rating} op 5 sterren, ${GOOGLE_REVIEWS.count} Google-reviews`}
+                aria-label={`${rating} op 5 sterren op Google`}
                 className="inline-flex items-center gap-2 text-white transition-colors hover:text-accent-bright"
               >
                 <span aria-hidden className="flex">
@@ -42,9 +42,7 @@ export default function Navbar() {
                     <Star key={i} className={`h-3.5 w-3.5 ${i < Math.round(GOOGLE_REVIEWS.rating) ? "fill-[#fbbc04] text-[#fbbc04]" : "text-white/40"}`} />
                   ))}
                 </span>
-                <span>
-                  {rating} · {GOOGLE_REVIEWS.count} Google-reviews
-                </span>
+                <span>{rating} op Google</span>
               </a>
             </li>
             {usps.map((usp) => (
