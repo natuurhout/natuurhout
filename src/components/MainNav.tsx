@@ -9,7 +9,7 @@ import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
 import { EMAIL, MOBILE, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
-import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import { groupHref, pageLinks, productMenu, PROMO_HREF, QUOTE_HREF } from "@/lib/navigation";
 import type { SearchItem } from "@/lib/search";
 
 /*
@@ -21,7 +21,7 @@ import type { SearchItem } from "@/lib/search";
 
 const productPaths = productMenu.flatMap((group) => [groupHref(group), ...group.links.map((link) => link.href)]);
 
-export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) {
+export default function MainNav({ searchItems, promoCount }: { searchItems: SearchItem[]; promoCount: number }) {
   const pathname = usePathname();
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -119,6 +119,8 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
   }
 
   const isActive = (href: string) => pathname.startsWith(href);
+  // The Promo's item only shows while there are promotions.
+  const visibleLinks = pageLinks.filter((link) => link.href !== PROMO_HREF || promoCount > 0);
   const productsActive = megaOpen || productPaths.some(isActive) || pathname === "/producten/";
 
   const navLink = (active: boolean) =>
@@ -170,7 +172,7 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
               Producten &amp; Prijzen
               <ChevronDown aria-hidden className={`ml-1.5 h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
             </button>
-            {pageLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -180,6 +182,7 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
                 onFocus={() => setMegaOpen(false)}
               >
                 {link.label}
+                {link.href === PROMO_HREF && <PromoCount count={promoCount} />}
               </Link>
             ))}
           </nav>
@@ -375,15 +378,16 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
                   </Link>
                 </div>
               </li>
-              {pageLinks.map((link) => (
+              {visibleLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
                     onClick={() => closeMobile()}
                     aria-current={isActive(link.href) ? "page" : undefined}
-                    className={`block py-3.5 text-[15px] font-bold ${isActive(link.href) ? "text-accent-deep" : "text-ink"}`}
+                    className={`flex items-center py-3.5 text-[15px] font-bold ${isActive(link.href) ? "text-accent-deep" : "text-ink"}`}
                   >
                     {link.label}
+                    {link.href === PROMO_HREF && <PromoCount count={promoCount} />}
                   </Link>
                 </li>
               ))}
@@ -418,5 +422,15 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
         </nav>
       </div>
     </>
+  );
+}
+
+/** Number of current promotions, as a small orange badge after "Promo's". */
+function PromoCount({ count }: { count: number }) {
+  return (
+    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-none text-white">
+      {count}
+      <span className="sr-only"> lopende promo&apos;s</span>
+    </span>
   );
 }

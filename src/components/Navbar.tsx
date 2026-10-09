@@ -6,6 +6,7 @@ import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
 import { EMAIL, GOOGLE_REVIEWS, MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
+import { promotions } from "@/lib/catalog";
 import { searchIndex } from "@/lib/search";
 
 const usps = ["15 jaar ervaring", "Levering in heel België", "Service op maat"];
@@ -105,7 +106,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      <MainNav searchItems={searchIndex} />
+      <MainNav searchItems={searchIndex} promoCount={promotions().length} />
     </header>
   );
 }

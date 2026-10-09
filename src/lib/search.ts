@@ -31,6 +31,7 @@ const SYNONYMS: Record<string, string> = {
   "/project/hazelaarrasterwerk/": "rasterwerk afsluiting omheining",
   "/project/moestuinbak/": "moestuinbak plantenbak tuinbak",
   "/calculator/": "prijs berekenen richtprijs kosten",
+  "/aanbiedingen-2/": "aanbiedingen korting actie promotie solden",
 };
 
 const EXTRA_PAGES: SearchItem[] = [

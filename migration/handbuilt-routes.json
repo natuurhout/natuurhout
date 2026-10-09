@@ -226,6 +226,11 @@
       "droppedLinks": {
         "/project/boerenlandhekken/": "Product sold out; removed from the overview and the menu on Xander's request."
       }
+    },
+    {
+      "pathname": "/aanbiedingen-2/",
+      "approvedBy": "Xander",
+      "reason": "The WordPress page held only its heading. Rebuilt as the promotions page: the current promotions from src/lib/promotions.ts as product cards, with contact and quote links. Title, description, canonical, structured data and h1 are the snapshot's own; the menu labels the page \"Promo's\"."
     }
   ]
 }

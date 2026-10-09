@@ -56,8 +56,13 @@ export function getProduct(handle: string): Product | undefined {
   return products.find((p) => p.handle === handle);
 }
 
+/** The current promotions, one card each (Promo's section and /aanbiedingen-2/). */
+export function promotions(): Product[] {
+  return promotionCards(getProduct);
+}
+
 export function collectionProducts(col: Collection): Product[] {
-  if (col.handle === PROMO_COLLECTION) return promotionCards(getProduct);
+  if (col.handle === PROMO_COLLECTION) return promotions();
   return col.products
     .map((h) => getProduct(h))
     .filter((p): p is Product => Boolean(p));

@@ -103,8 +103,11 @@ export const productMenu: MenuGroup[] = [
   },
 ];
 
+/** The promotions page; keeps its WordPress URL and title ("Aanbiedingen"). */
+export const PROMO_HREF = "/aanbiedingen-2/";
+
 export const pageLinks: MenuLink[] = [
-  { href: "/aanbiedingen-2/", label: "Aanbiedingen" },
+  { href: PROMO_HREF, label: "Promo's" },
   { href: "/onze-realisaties/", label: "Realisaties" },
   { href: "/over-ons/", label: "Over ons" },
   { href: "/contact/", label: "Contact" },
