@@ -13,12 +13,15 @@ export const PROMO_COLLECTION = "promos";
 /**
  * Promotions that are over: no strike-through price or percentage any more,
  * and the product moves from the promo collection to its own collection.
+ * `null`: listed in no collection on /shop/ (Xander: only kastanje, hazelaar
+ * and robinia hekwerk in Rasterwerk, not the grey rolls); the product pages
+ * stay.
  */
-const ENDED: Record<string, string> = {
-  "kastanje-hekwerk-1-50m": "raster",
-  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": "raster",
-  "kastanje-hekwerk-100cm-4-5cm": "raster",
-  "kastanje-hekwerk-100cm-7-9cm": "raster",
+const ENDED: Record<string, string | null> = {
+  "kastanje-hekwerk-1-50m": null,
+  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": null,
+  "kastanje-hekwerk-100cm-4-5cm": null,
+  "kastanje-hekwerk-100cm-7-9cm": null,
   "kastanje-kaderpoort": "poorten",
   "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed": "vlechtschermen",
 };
@@ -58,6 +61,9 @@ export function withPromotions(products: Product[]): Product[] {
     };
   });
 }
+
+/** Ended promotions kept out of the /shop/ collection lists. */
+export const UNLISTED = new Set(Object.keys(ENDED).filter((handle) => ENDED[handle] === null));
 
 /** Moves ended promotions out of the promo collection into their own. */
 export function withPromotionCollections(collections: Collection[]): Collection[] {
