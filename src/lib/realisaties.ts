@@ -48,8 +48,35 @@ const overmere = (n: number, alt: string, width: number, height: number): Projec
   height,
 });
 
+const denderleeuw = (n: number, alt: string, large = false): ProjectPhoto => ({
+  src: `/fotos/realisaties/denderleeuw-${n}.jpg`,
+  alt,
+  width: large ? 1600 : 1500,
+  height: large ? 1200 : 1125,
+});
+
 // Newest first.
 export const NEW_PROJECTS: NewProject[] = [
+  {
+    slug: "denderleeuw-kastanje-hekwerk-vlechtschermen",
+    title: "Project Denderleeuw – Kastanje hekwerk & hazelaar vlechtschermen",
+    summary: "Nieuw kastanje hekwerk langs de nieuwe oprit en hazelaar vlechtschermen van 1m80 achteraan de tuin in Denderleeuw.",
+    description: [
+      "In 2015 plaatsten we bij deze klant in Denderleeuw kastanje hekwerk. Bij de aanleg van een nieuwe oprit moest het bestaande hekwerk worden vervangen, en daarvoor rekenden ze opnieuw op Natuurhout.",
+      "Achteraan de tuin plaatsten we hazelaar vlechtschermen van 1m80 hoog. We hingen ze iets hoger, zodat er zeker geen inkijk is en ze ook wat bescherming bieden tegen ongewenste bezoekers.",
+    ],
+    products: [
+      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+      { href: "/project/hazelaarvlechtschermen/", label: "Hazelaar vlechtschermen" },
+    ],
+    photos: [
+      denderleeuw(2, "Hazelaar vlechtschermen van 1m80 achteraan de tuin, onder een treurwilg"),
+      denderleeuw(1, "Nieuw kastanje hekwerk langs de nieuwe oprit in Denderleeuw"),
+      denderleeuw(3, "Rij hazelaar vlechtschermen langs het gazon, met de weide erachter"),
+      denderleeuw(4, "Close-up van de gevlochten hazelaar latten tussen de palen", true),
+      denderleeuw(5, "Het oude kastanje hekwerk uit 2015, vlak voor de vervanging"),
+    ],
+  },
   {
     slug: "overmere-maatwerk-poorten-hekwerk",
     title: "Project Overmere – Maatwerk poorten & kastanje hekwerk",
@@ -124,6 +151,7 @@ const PROJECTS: Record<Kind, string[]> = {
   hekwerk: [
     "/project/project-zele/",
     "/realisaties/overmere-maatwerk-poorten-hekwerk/",
+    "/realisaties/denderleeuw-kastanje-hekwerk-vlechtschermen/",
     "/project/rasterwerk120cm-moerkerke/",
     "/project/project-ronse-hondenweide/",
     "/project/project-grembergen-rasterwerk-90cm/",
@@ -135,6 +163,7 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-dendermonde-padouk-poort/",
   ],
   vlechtschermen: [
+    "/realisaties/denderleeuw-kastanje-hekwerk-vlechtschermen/",
     "/project/project-merelbeke-hazelaarschermen/",
     "/project/project-berlare-vlechtschermen-maatwerk-poort/",
     "/project/project-brugge/",
