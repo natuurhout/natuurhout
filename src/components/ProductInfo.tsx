@@ -42,7 +42,8 @@ function PriceCell({ variant, roll }: { variant: ProductVariant; roll: number | 
   return (
     <>
       {was !== null && <del className="mr-1.5 text-ink/45">{formatPrice(was)}</del>}
-      <span className={was !== null ? "font-semibold text-accent-deep" : ""}>{formatPrice(variant.price)}</span>
+      <span className={was !== null || variant.promo ? "font-semibold text-accent-deep" : ""}>{formatPrice(variant.price)}</span>
+      {variant.promo && <span className="ml-1.5 rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-semibold text-white">Promo</span>}
       {!variant.available && <sup className="ml-0.5 font-semibold text-accent-deep">*</sup>}
       {roll !== null && <span className="block text-xs text-ink/50">rol {roll} m</span>}
     </>

@@ -178,7 +178,10 @@ function PriceTable({
                 </td>
               )}
               <td className="whitespace-nowrap px-2 py-2.5 text-right align-middle">
-                <span className={`font-semibold ${was !== null ? "text-accent-deep" : ""}`}>{formatPrice(price)}</span>
+                {variant.promo && (
+                  <span className="mb-0.5 inline-block rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-white">Promo</span>
+                )}
+                <span className={`block font-semibold ${was !== null || variant.promo ? "text-accent-deep" : ""}`}>{formatPrice(price)}</span>
                 {was !== null && <span className="block text-xs text-ink/45 line-through">{formatPrice(was)}</span>}
                 {roll !== null && <span className="block text-xs text-ink/50">{formatPrice(price / roll)} / m</span>}
               </td>

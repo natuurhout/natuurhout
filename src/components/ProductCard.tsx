@@ -30,7 +30,9 @@ export default function ProductCard({ product }: { product: Product }) {
   );
   const wasPrice = cheapest ? compareAtPrice(cheapest) : null;
   const discount = cheapest ? discountPercent(cheapest) : null;
-  const promoOnly = discount === null && productDiscountPercent(product) !== null;
+  const promoOnly =
+    discount === null &&
+    (productDiscountPercent(product) !== null || Boolean(product.promo) || product.variants.some((v) => v.promo));
 
   return (
     <Link
@@ -55,7 +57,7 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
           {promoOnly && (
             <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white">
-              Actie
+              Promo
             </span>
           )}
           {!product.available && (

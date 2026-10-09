@@ -1,5 +1,6 @@
 import productsData from "@/data/products.json";
 import collectionsData from "@/data/collections.json";
+import { PROMO_COLLECTION, promotionCards, withPromotionCollections, withPromotions } from "@/lib/promotions";
 import { renameDeep } from "@/lib/renames.mjs";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
@@ -13,6 +14,8 @@ export type ProductVariant = {
   price: string;
   compare_at: string | null;
   available: boolean;
+  /** On promotion on the website (src/lib/promotions.ts). */
+  promo?: boolean;
 };
 
 export type ProductImage = {
@@ -35,6 +38,8 @@ export type Product = {
   tags: string[];
   shopUrl: string;
   publishedAt: string | null;
+  /** A promo-section card (src/lib/promotions.ts). */
+  promo?: boolean;
 };
 
 export type Collection = {
@@ -43,14 +48,16 @@ export type Collection = {
   products: string[];
 };
 
-export const products = renameDeep(productsData as Product[]);
-export const collections = collectionsData as Collection[];
+// Website promotions (src/lib/promotions.ts) are applied on top of the shop data.
+export const products = withPromotions(renameDeep(productsData as Product[]));
+export const collections = withPromotionCollections(collectionsData as Collection[]);
 
 export function getProduct(handle: string): Product | undefined {
   return products.find((p) => p.handle === handle);
 }
 
 export function collectionProducts(col: Collection): Product[] {
+  if (col.handle === PROMO_COLLECTION) return promotionCards(getProduct);
   return col.products
     .map((h) => getProduct(h))
     .filter((p): p is Product => Boolean(p));
