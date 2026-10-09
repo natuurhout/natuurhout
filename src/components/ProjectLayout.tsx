@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import { QUOTE_HREF } from "@/lib/navigation";
 import type { ProjectProduct } from "@/lib/realisaties";
 
@@ -10,7 +11,7 @@ type NavLink = { href: string; rel: "prev" | "next"; title: string };
 /*
  * One layout for every customer project (realisatie), old and new: the lead
  * photo beside the title and description, links to the products used, then
- * the other photos. Each photo opens full size.
+ * the other photos. Each photo opens in a pop-up viewer (PhotoLightbox).
  */
 export default function ProjectLayout({
   title,
@@ -51,7 +52,7 @@ export default function ProjectLayout({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start">
         {hero && (
-          <a href={hero.src} className="group relative block aspect-[4/3] overflow-hidden rounded-card bg-brand-soft/50">
+          <a href={hero.src} data-lightbox-index={0} className="group relative block aspect-[4/3] cursor-zoom-in overflow-hidden rounded-card bg-brand-soft/50">
             <Image
               src={hero.src}
               alt={hero.alt}
@@ -109,9 +110,9 @@ export default function ProjectLayout({
         <section aria-labelledby="project-fotos" className="mt-12">
           <h2 id="project-fotos" className="font-display text-2xl font-semibold">Foto&apos;s van het project</h2>
           <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-            {rest.map((photo) => (
+            {rest.map((photo, i) => (
               <li key={photo.src}>
-                <a href={photo.src} className="group relative block aspect-[4/3] overflow-hidden rounded-card bg-brand-soft/50">
+                <a href={photo.src} data-lightbox-index={i + 1} className="group relative block aspect-[4/3] cursor-zoom-in overflow-hidden rounded-card bg-brand-soft/50">
                   <Image
                     src={photo.src}
                     alt={photo.alt}
@@ -150,6 +151,8 @@ export default function ProjectLayout({
           </Link>
         )}
       </nav>
+
+      <PhotoLightbox photos={photos} />
     </div>
   );
 }
