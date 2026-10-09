@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Calculator, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
+import Realisaties from "@/components/Realisaties";
 import { ProductHero } from "@/components/ProductDetail";
 import { BoughtTogether, PriceTableHtml, ProductInfo, productInfoTabs, ShopPriceMatrix } from "@/components/ProductInfo";
 import { getProduct, type Product } from "@/lib/catalog";
@@ -8,6 +9,7 @@ import { MOBILE, PHONE } from "@/lib/contact";
 import type { LegacyPage } from "@/lib/legacy";
 import { SHOP_PRICES_MARKER, type LegacyProduct } from "@/lib/legacy-product";
 import { boughtTogether, productFacts } from "@/lib/product-info";
+import { realisatiesFor } from "@/lib/realisaties";
 
 /*
  * A WordPress product page (/project/…) in the shop's product layout. The
@@ -120,6 +122,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
         })}
       />
       <BoughtTogether products={together} />
+      <Realisaties items={realisatiesFor({ pathname: page.pathname })} />
 
       {info.nav.length > 0 && (
         <nav aria-label="Andere producten" className="mt-12 flex flex-wrap justify-between gap-4 border-t border-line pt-6 text-sm">

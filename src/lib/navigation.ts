@@ -106,9 +106,10 @@ export const productMenu: MenuGroup[] = [
 /** The promotions page; keeps its WordPress URL and title ("Aanbiedingen"). */
 export const PROMO_HREF = "/aanbiedingen-2/";
 
+// Realisaties moved to the footer (and to the product pages it belongs to).
 export const pageLinks: MenuLink[] = [
   { href: PROMO_HREF, label: "Promo's" },
-  { href: "/onze-realisaties/", label: "Realisaties" },
+  { href: "/calculator/", label: "Calculator" },
   { href: "/over-ons/", label: "Over ons" },
   { href: "/contact/", label: "Contact" },
 ];

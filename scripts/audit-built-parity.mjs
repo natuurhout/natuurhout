@@ -62,7 +62,9 @@ function auditHandBuilt(page, route, built$) {
   }
 
   const source$ = cheerio.load(page.html, null, false);
-  const sourceHeading = normalizeText(source$("h1").first().text());
+  // An approved new h1 (approvedHeading, with the reason recorded) replaces
+  // the snapshot's as the expected heading.
+  const sourceHeading = normalizeText(route.approvedHeading ?? source$("h1").first().text());
   const builtHeading = normalizeText(built$("h1").first().text());
   if (sourceHeading && sourceHeading !== builtHeading) {
     failures.push(`${where}: h1 changed (${builtHeading} != ${sourceHeading})`);

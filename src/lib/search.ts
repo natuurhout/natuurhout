@@ -40,6 +40,7 @@ const EXTRA_PAGES: SearchItem[] = [
   { title: "Alle producten", href: "/producten/", kind: "Pagina", keywords: "assortiment" },
   { title: "Veelgestelde vragen (FAQ)", href: "/producten/#faq", kind: "Pagina", keywords: "levering afhalen betalen montage plaatsing" },
   { title: "Webshop", href: "/shop/", kind: "Pagina", keywords: "kopen bestellen" },
+  { title: "Onze realisaties", href: "/onze-realisaties/", kind: "Pagina", keywords: "projecten voorbeelden geplaatst" },
   ...pageLinks.map((link) => ({ title: link.label, href: link.href, kind: "Pagina" as const })),
 ];
 

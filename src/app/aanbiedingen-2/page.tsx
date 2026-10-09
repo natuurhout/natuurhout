@@ -13,9 +13,13 @@ import { QUOTE_HREF } from "@/lib/navigation";
  * Promotions page. The WordPress page was only its heading, so it is rebuilt
  * around the current promotions (src/lib/promotions.ts), approved by Xander
  * and recorded in migration/handbuilt-routes.json. Title, description,
- * canonical, structured data and h1 stay the snapshot's own.
+ * canonical and structured data stay the snapshot's own; the h1 is new.
  */
 const page = getLegacyPageByPath("/aanbiedingen-2/");
+
+// Approved new h1 (Xander), recorded as approvedHeading in handbuilt-routes.json.
+// The page title and description in Google stay the snapshot's own.
+const HEADING = "Promo's van het moment";
 
 export const metadata: Metadata = {
   title: page?.title,
@@ -33,9 +37,9 @@ export default function OffersPage() {
       <div className="mx-auto w-full max-w-[80rem] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
         <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent-deep">
           <span aria-hidden className="h-px w-8 bg-accent" />
-          Promo&apos;s
+          Aanbiedingen
         </p>
-        <h1 className="mt-3 max-w-3xl font-display text-4xl font-bold tracking-tight sm:text-5xl">{page.heading}</h1>
+        <h1 className="mt-3 max-w-3xl font-display text-4xl font-bold tracking-tight sm:text-5xl">{HEADING}</h1>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink/70">
           Onze lopende promo&apos;s op kastanjehout en tuinproducten. De prijzen zijn incl. btw; bestellen kan
           meteen online, of vraag een offerte aan voor een grotere hoeveelheid.

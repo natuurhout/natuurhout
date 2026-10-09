@@ -3,8 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductDetail from "@/components/ProductDetail";
 import { BoughtTogether, ProductInfo, productInfoTabs } from "@/components/ProductInfo";
+import Realisaties from "@/components/Realisaties";
 import JsonLd from "@/components/JsonLd";
 import { getProduct, products } from "@/lib/catalog";
+import { realisatiesFor } from "@/lib/realisaties";
 import { boughtTogether, productFacts, productSections } from "@/lib/product-info";
 import {
   productDescription,
@@ -68,6 +70,7 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
         })}
       />
       <BoughtTogether products={boughtTogether(product, 4)} />
+      <Realisaties items={realisatiesFor({ handle: product.handle })} />
     </div>
   );
 }

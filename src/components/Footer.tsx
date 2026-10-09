@@ -99,6 +99,7 @@ export default function Footer() {
             </p>
             <ul className="mt-5 space-y-2.5 text-sm">
               {[
+                ["/onze-realisaties/", "Onze realisaties"],
                 ["/veelgesteldevragen/", "Veelgestelde Vragen - FAQ"],
                 ["/tipsenideeen/", "Tips & Ideeën"],
                 ["/algemene-voorwaarden-van-beho-comm-v/", "Algemene voorwaarden"],

@@ -230,7 +230,8 @@
     {
       "pathname": "/aanbiedingen-2/",
       "approvedBy": "Xander",
-      "reason": "The WordPress page held only its heading. Rebuilt as the promotions page: the current promotions from src/lib/promotions.ts as product cards, with contact and quote links. Title, description, canonical, structured data and h1 are the snapshot's own; the menu labels the page \"Promo's\"."
+      "reason": "The WordPress page held only its heading. Rebuilt as the promotions page: the current promotions from src/lib/promotions.ts as product cards, with contact and quote links. Title, description, canonical and structured data are the snapshot's own; the menu labels the page \"Promo's\". The h1 \"Aanbiedingen Kastanjehout Hekwerk & Poorten\" is replaced by \"Promo's van het moment\" on Xander's request (approvedHeading).",
+      "approvedHeading": "Promo's van het moment"
     }
   ]
 }
