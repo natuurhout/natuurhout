@@ -8,6 +8,7 @@ import ProductSlider from "@/components/ProductSlider";
 import { getProduct, products, type Product } from "@/lib/catalog";
 import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { categories } from "@/lib/categories";
+import { SALE } from "@/lib/promotions";
 import { MOBILE, PHONE } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
@@ -82,12 +83,8 @@ const homeSections: HomeSection[] = [
     href: "/shop/#raster",
     handles: [
       "kastanje-rasterwerk",
-      "kastanje-hekwerk-100cm-4-5cm",
-      "kastanje-hekwerk-100cm-7-9cm",
-      "kastanje-hekwerk-1-50m",
       "robinia-hekwerk",
       "hazelaar-hekwerk",
-      "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte", // "Hazelaar hekwerk 90cm" despite its handle
     ],
   },
   {
@@ -96,7 +93,6 @@ const homeSections: HomeSection[] = [
     handles: [
       "kastanje-poorten",
       "kastanje-poort-geschroefd",
-      "kastanje-kaderpoort",
       "robinia-poort",
       "hazelaar-poort",
       "cleft-field-poorten",
@@ -142,6 +138,11 @@ const homeSections: HomeSection[] = [
       "grondboor-kopie",
       "tuin-voorhamer",
     ],
+  },
+  {
+    title: "Sale",
+    href: "/aanbiedingen-2/#sale",
+    handles: SALE,
   },
   {
     title: "Gaas",

@@ -4,7 +4,7 @@ import { ArrowRight, Phone, Smartphone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import ProductCard from "@/components/ProductCard";
 import { WhatsAppIcon } from "@/components/WhatsApp";
-import { promotions } from "@/lib/catalog";
+import { promotions, saleProducts } from "@/lib/catalog";
 import { MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 export default function OffersPage() {
   if (!page) throw new Error("The WordPress offers-page snapshot is missing.");
   const items = promotions();
+  const sale = saleProducts();
 
   return (
     <>
@@ -57,6 +58,21 @@ export default function OffersPage() {
             <Link href="/producten/" className="font-semibold text-accent-deep hover:text-ink">volledige assortiment</Link>{" "}
             of vraag ons naar de mogelijkheden.
           </div>
+        )}
+
+        {sale.length > 0 && (
+          <section id="sale" aria-labelledby="sale-titel" className="mt-16 scroll-mt-24 border-t border-line pt-10">
+            <h2 id="sale-titel" className="font-display text-3xl font-bold tracking-tight">Sale</h2>
+            <p className="mt-2 max-w-2xl leading-relaxed text-ink/70">
+              Oudere rollen en producten met een klein foutje, die we aan een voordelige prijs verkopen. Twijfelt u
+              of het iets voor u is? Vraag ons gerust hoe ze eruitzien.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+              {sale.map((product) => (
+                <ProductCard key={product.handle} product={product} />
+              ))}
+            </div>
+          </section>
         )}
 
         <section className="mt-14 flex flex-col gap-5 rounded-card bg-brand-soft p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">

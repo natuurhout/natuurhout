@@ -11,18 +11,23 @@ import type { Collection, Product, ProductVariant } from "@/lib/catalog";
 export const PROMO_COLLECTION = "promos";
 
 /**
- * Promotions that are over: no strike-through price or percentage any more,
- * and the product moves from the promo collection to its own collection.
- * `null`: listed in no collection on /shop/ (Xander: only kastanje, hazelaar
- * and robinia hekwerk in Rasterwerk, not the grey rolls); the product pages
- * stay.
+ * Sale: older rolls and products with a small flaw, sold cheaply (Xander,
+ * Oct 2026). A website-only collection, listed after the promotions on
+ * /shop/, on /aanbiedingen-2/ and on the homepage, and nowhere else.
  */
-const ENDED: Record<string, string | null> = {
-  "kastanje-hekwerk-1-50m": null,
-  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": null,
-  "kastanje-hekwerk-100cm-4-5cm": null,
-  "kastanje-hekwerk-100cm-7-9cm": null,
-  "kastanje-kaderpoort": "poorten",
+export const SALE_COLLECTION = "sale";
+
+/**
+ * Promotions that are over: no strike-through price or percentage any more,
+ * and the product moves from the promo collection to its own collection, or
+ * to Sale.
+ */
+const ENDED: Record<string, string> = {
+  "kastanje-hekwerk-100cm-4-5cm": SALE_COLLECTION,
+  "kastanje-hekwerk-100cm-7-9cm": SALE_COLLECTION,
+  "kastanje-hekwerk-1-50m": SALE_COLLECTION,
+  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": SALE_COLLECTION,
+  "kastanje-kaderpoort": SALE_COLLECTION,
   "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed": "vlechtschermen",
 };
 
@@ -52,6 +57,7 @@ export function withPromotions(products: Product[]): Product[] {
     if (!ended && !CURRENT.some((promo) => promo.handle === product.handle)) return product;
     return {
       ...product,
+      ...(SALE.includes(product.handle) && { sale: true }),
       variants: product.variants.map((variant) => {
         if (ended) return { ...variant, compare_at: null };
         const promo = onPromotion(product, variant);
@@ -62,11 +68,15 @@ export function withPromotions(products: Product[]): Product[] {
   });
 }
 
-/** Ended promotions kept out of the /shop/ collection lists. */
-export const UNLISTED = new Set(Object.keys(ENDED).filter((handle) => ENDED[handle] === null));
+/** The products on sale, in order. */
+export const SALE = Object.keys(ENDED).filter((handle) => ENDED[handle] === SALE_COLLECTION);
 
 /** Moves ended promotions out of the promo collection into their own. */
-export function withPromotionCollections(collections: Collection[]): Collection[] {
+export function withPromotionCollections(shopCollections: Collection[]): Collection[] {
+  // Sale goes right after the promotions.
+  const collections = shopCollections.flatMap((collection) =>
+    collection.handle === PROMO_COLLECTION ? [collection, { handle: SALE_COLLECTION, title: "Sale", products: [] }] : [collection],
+  );
   return collections.map((collection) => {
     if (collection.handle === PROMO_COLLECTION) {
       return { ...collection, products: collection.products.filter((handle) => !(handle in ENDED)) };

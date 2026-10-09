@@ -21,12 +21,8 @@ export const productMenu: MenuGroup[] = [
     intro: "Hekwerk en rasterwerk in kastanje, robinia en hazelaar, en Post & Rail: van een voortuin tot een volledige weide.",
     products: [
       "kastanje-rasterwerk",
-      "kastanje-hekwerk-100cm-4-5cm",
-      "kastanje-hekwerk-100cm-7-9cm",
-      "kastanje-hekwerk-1-50m",
       "robinia-hekwerk",
       "hazelaar-hekwerk",
-      "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte",
       "post-rail-omheining",
     ],
     links: [
@@ -75,7 +71,6 @@ export const productMenu: MenuGroup[] = [
     products: [
       "kastanje-poorten",
       "kastanje-poort-geschroefd",
-      "kastanje-kaderpoort",
       "robinia-poort",
       "hazelaar-poort",
       "cleft-field-poorten",

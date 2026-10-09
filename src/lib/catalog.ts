@@ -1,6 +1,6 @@
 import productsData from "@/data/products.json";
 import collectionsData from "@/data/collections.json";
-import { PROMO_COLLECTION, promotionCards, UNLISTED, withPromotionCollections, withPromotions } from "@/lib/promotions";
+import { PROMO_COLLECTION, promotionCards, SALE, withPromotionCollections, withPromotions } from "@/lib/promotions";
 import { renameDeep } from "@/lib/renames.mjs";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
@@ -40,6 +40,8 @@ export type Product = {
   publishedAt: string | null;
   /** A promo-section card (src/lib/promotions.ts). */
   promo?: boolean;
+  /** In the Sale section (src/lib/promotions.ts). */
+  sale?: boolean;
 };
 
 export type Collection = {
@@ -54,6 +56,11 @@ export const collections = withPromotionCollections(collectionsData as Collectio
 
 export function getProduct(handle: string): Product | undefined {
   return products.find((p) => p.handle === handle);
+}
+
+/** The products on sale: older rolls and products with a small flaw. */
+export function saleProducts(): Product[] {
+  return SALE.map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
 }
 
 /** The current promotions, one card each (Promo's section and /aanbiedingen-2/). */
@@ -71,7 +78,7 @@ export function collectionProducts(col: Collection): Product[] {
 /** Products not in any collection (rendered under "Overige producten"). */
 export function uncollectedProducts(): Product[] {
   const inCollections = new Set(collections.flatMap((c) => c.products));
-  return products.filter((p) => !inCollections.has(p.handle) && !UNLISTED.has(p.handle));
+  return products.filter((p) => !inCollections.has(p.handle));
 }
 
 /** First product image of a collection — used as its mega-menu thumbnail. */

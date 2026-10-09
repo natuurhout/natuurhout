@@ -60,6 +60,11 @@ export default function ProductCard({ product }: { product: Product }) {
               Promo
             </span>
           )}
+          {product.sale && (
+            <span className="rounded-full bg-accent-deep px-2.5 py-1 text-xs font-semibold text-white">
+              Sale
+            </span>
+          )}
           {!product.available && (
             <span className="rounded-full bg-ink/85 px-2.5 py-1 text-xs font-medium text-white">
               {orderTerm(product.handle).badge}
