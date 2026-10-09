@@ -273,9 +273,11 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
         ref={mobileBarRef}
         className={`relative border-b border-line bg-white transition-shadow duration-300 desk:hidden ${stuck || mobileOpen ? "shadow-[0_8px_20px_-14px_rgba(0,0,0,0.45)]" : ""}`}
       >
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-2 px-4 sm:px-6">
+        {/* Five items in a row: on 360px phones the logo and gaps shrink a bit;
+            below 360px the call button goes (the numbers are in the menu). */}
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-1.5 px-4 min-[380px]:gap-2 sm:px-6">
           <Link href="/" aria-label="Natuurhout home" className="mr-auto shrink-0">
-            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[128px] min-[400px]:w-[150px] sm:w-[190px]" priority />
+            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[108px] min-[380px]:w-[128px] min-[400px]:w-[150px] sm:w-[190px]" priority />
           </Link>
           <button
             type="button"
@@ -293,7 +295,7 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
           <a
             href={PHONE.href}
             aria-label={`Bel ons: ${PHONE.label}`}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-line text-accent-deep transition-colors hover:border-accent hover:bg-accent-deep hover:text-white"
+            className="hidden h-10 w-10 shrink-0 min-[360px]:inline-flex items-center justify-center rounded-sm border border-line text-accent-deep transition-colors hover:border-accent hover:bg-accent-deep hover:text-white"
           >
             <Phone aria-hidden className="h-[18px] w-[18px]" />
           </a>

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Satoshi is self-hosted through next/font in src/app/layout.tsx. */
+/* Figtree and Fraunces are self-hosted through next/font in src/app/layout.tsx. */
 
 @layer base {
   ::selection {
@@ -80,7 +80,12 @@
   }
 
   .legacy-page :where(h1, h2, h3, h4) {
-    @apply font-display font-bold tracking-tight text-ink;
+    @apply font-display font-semibold tracking-[-0.012em] text-ink;
+  }
+  /* WordPress wrapped many headings in <strong>; with the serif that
+     doubled the weight. The heading sets the weight. */
+  .legacy-page :where(h1, h2, h3, h4) :where(strong, b) {
+    font-weight: inherit;
   }
 
   .legacy-page h1 { @apply mb-6 text-4xl sm:text-5xl; }
@@ -304,4 +309,16 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/*
+ * Fraunces headings: the components were styled for a sans (bold, tight
+ * tracking). A soft serif reads better a touch lighter and less tight,
+ * above all at phone sizes. Two classes, so these win over the utilities.
+ */
+.font-display.font-bold {
+  font-weight: 600;
+}
+.font-display.tracking-tight {
+  letter-spacing: -0.012em;
 }

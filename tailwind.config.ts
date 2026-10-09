@@ -34,10 +34,14 @@ const config: Config = {
         line: "#D7D8D6",
       },
       fontFamily: {
-        // One family (Satoshi) for body and display; headings differ by
-        // weight/tracking, not typeface.
+        // Figtree for text and UI, Fraunces (a soft serif) for headings.
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
+      },
+      fontSize: {
+        // 13px instead of 12px: the smallest text (per-metre prices, stock
+        // notes, labels) must stay easy to read on a phone.
+        xs: ["0.8125rem", { lineHeight: "1.125rem" }],
       },
       borderRadius: {
         card: "0.375rem",

@@ -6,24 +6,28 @@ import WhatsAppFloat from "@/components/WhatsApp";
 import { siteIndexingEnabled } from "@/lib/site";
 import "./globals.css";
 
-// Satoshi (Fontshare, ITF Free Font License — see public/fonts/
-// SATOSHI-LICENSE-FFL.txt), self-hosted per the migration prompt.
-// Variable font covers all weights in one file; one family for headings
-// and body, differentiated by weight.
-const satoshi = localFont({
+// Figtree (body) and Fraunces (headings), both SIL Open Font License — see
+// public/fonts/*-LICENSE-OFL.txt. Self-hosted variable fonts (latin subset,
+// from Fontsource): no request to Google, one file per style. Fraunces
+// carries the optical-size axis, so headings get finer detail when large and
+// sturdier strokes when small (mobile).
+const figtree = localFont({
   src: [
-    {
-      path: "../../public/fonts/Satoshi-Variable.woff2",
-      weight: "300 900",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/Satoshi-VariableItalic.woff2",
-      weight: "300 900",
-      style: "italic",
-    },
+    { path: "../../public/fonts/Figtree-Variable.woff2", weight: "300 900", style: "normal" },
+    { path: "../../public/fonts/Figtree-VariableItalic.woff2", weight: "300 900", style: "italic" },
   ],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const fraunces = localFont({
+  src: [
+    { path: "../../public/fonts/Fraunces-Variable.woff2", weight: "100 900", style: "normal" },
+    { path: "../../public/fonts/Fraunces-VariableItalic.woff2", weight: "100 900", style: "italic" },
+  ],
+  variable: "--font-display",
+  display: "swap",
+  fallback: ["Georgia", "serif"],
 });
 
 export const metadata: Metadata = {
@@ -58,7 +62,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="nl-BE" className={satoshi.variable}>
+    <html lang="nl-BE" className={`${figtree.variable} ${fraunces.variable}`}>
       <body className="bg-ground font-sans text-ink antialiased">
         <Navbar />
         <main>{children}</main>
