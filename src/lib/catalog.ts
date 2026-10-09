@@ -58,9 +58,18 @@ export function getProduct(handle: string): Product | undefined {
   return products.find((p) => p.handle === handle);
 }
 
+/**
+ * Shown in the product lists (shop, homepage, overviews, search)? Not the
+ * ones taken off by hand, and not a sold-out Sale product: every Sale item is
+ * unique and never comes back (Xander). Product pages stay either way.
+ */
+export function isListed(product: Product): boolean {
+  return !UNLISTED.has(product.handle) && !(product.sale && !product.available);
+}
+
 /** The products on sale: older rolls and products with a small flaw. */
 export function saleProducts(): Product[] {
-  return SALE.map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
+  return SALE.map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p) && isListed(p!));
 }
 
 /** The current promotions, one card each (Promo's section and /aanbiedingen-2/). */
@@ -72,13 +81,13 @@ export function collectionProducts(col: Collection): Product[] {
   if (col.handle === PROMO_COLLECTION) return promotions();
   return col.products
     .map((h) => getProduct(h))
-    .filter((p): p is Product => Boolean(p));
+    .filter((p): p is Product => Boolean(p) && isListed(p!));
 }
 
 /** Products not in any collection (rendered under "Overige producten"). */
 export function uncollectedProducts(): Product[] {
   const inCollections = new Set(collections.flatMap((c) => c.products));
-  return products.filter((p) => !inCollections.has(p.handle) && !UNLISTED.has(p.handle));
+  return products.filter((p) => !inCollections.has(p.handle) && isListed(p));
 }
 
 /** First product image of a collection — used as its mega-menu thumbnail. */

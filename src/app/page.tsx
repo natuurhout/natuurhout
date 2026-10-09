@@ -5,10 +5,10 @@ import { ArrowRight, ArrowUpRight, Calculator, Leaf, Recycle, ShieldCheck, Store
 import CategoryCarousel from "@/components/CategoryCarousel";
 import JsonLd from "@/components/JsonLd";
 import ProductSlider from "@/components/ProductSlider";
-import { getProduct, products, type Product } from "@/lib/catalog";
+import { getProduct, isListed, products, type Product } from "@/lib/catalog";
 import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { categories } from "@/lib/categories";
-import { SALE, UNLISTED } from "@/lib/promotions";
+import { SALE } from "@/lib/promotions";
 import { MOBILE, PHONE } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
@@ -158,7 +158,7 @@ const homeSections: HomeSection[] = [
 ];
 
 const listed = new Set(homeSections.flatMap((section) => section.handles));
-const unlisted = products.filter((product) => !listed.has(product.handle) && !UNLISTED.has(product.handle));
+const unlisted = products.filter((product) => !listed.has(product.handle) && isListed(product));
 
 const rails = homeSections
   .map((section) => ({
@@ -166,7 +166,7 @@ const rails = homeSections
     items: [
       ...section.handles
         .map((handle) => getProduct(handle))
-        .filter((product): product is Product => Boolean(product)),
+        .filter((product): product is Product => Boolean(product) && isListed(product!)),
       ...(section.catchAll ? unlisted : []),
     ],
   }))
