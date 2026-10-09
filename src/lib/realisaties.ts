@@ -8,7 +8,7 @@ import { getLegacyPageByPath, legacyPages, type LegacyPage } from "@/lib/legacy"
  * by hand from each project's title and description.
  */
 
-type Kind = "hekwerk" | "robinia" | "hazelaar" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks";
+type Kind = "hekwerk" | "robinia" | "hazelaar" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks" | "eiken";
 
 export type ProjectPhoto = { src: string; alt: string; width: number; height: number };
 
@@ -41,8 +41,37 @@ const zele = (n: number, alt: string, square = false): ProjectPhoto => ({
   height: square ? 1500 : 1200,
 });
 
+const overmere = (n: number, alt: string, width: number, height: number): ProjectPhoto => ({
+  src: `/fotos/realisaties/overmere-poorten-${n}.jpg`,
+  alt,
+  width,
+  height,
+});
+
 // Newest first.
 export const NEW_PROJECTS: NewProject[] = [
+  {
+    slug: "overmere-maatwerk-poorten-hekwerk",
+    title: "Project Overmere – Maatwerk poorten & kastanje hekwerk",
+    summary: "Dubbele kastanje premium maatwerk poort op eiken palen en kastanje hekwerk van 120 cm hoog in Overmere.",
+    description: [
+      "Plaatsing van een dubbele kastanje premium maatwerk poort in Overmere: twee vleugels van 120 cm hoog en 190 cm breed. De poorten hangen aan eiken palen, ook uit ons eigen assortiment.",
+      "De oprit moet nog worden aangelegd. Daarom hangt de poort voorlopig wat hoger: zo past ze straks perfect boven de afgewerkte oprit.",
+      "Rond de tuin kwam kastanje hekwerk van 120 cm hoog met een latafstand van 7/8 cm, langs de beukenhaag en tot tegen de woning.",
+    ],
+    products: [
+      { href: "/project/maatwerk-poorten/", label: "Kastanje premium maatwerk poorten" },
+      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+      { href: "/project/eiken-palen/", label: "Eiken palen" },
+    ],
+    photos: [
+      overmere(1, "Dubbele kastanje premium maatwerk poort op eiken palen in Overmere, met het hekwerk erachter", 1500, 1125),
+      overmere(2, "Bovenkant van de maatwerk poort, met het kastanje hekwerk langs de beukenhaag", 1600, 1200),
+      overmere(3, "Kastanje hekwerk van 120 cm hoog langs de beukenhaag", 1125, 1500),
+      overmere(4, "Kastanje hekwerk langs de beukenhaag, met zicht op de weide", 1125, 1500),
+      overmere(5, "Kastanje hekwerk tussen de woning en de haag", 1125, 1500),
+    ],
+  },
   {
     slug: "zele-hazelaar-hekwerk",
     title: "Project Zele – Hazelaar hekwerk & poortje",
@@ -94,6 +123,7 @@ export const getNewProject = (slug: string) => NEW_PROJECTS.find((project) => pr
 const PROJECTS: Record<Kind, string[]> = {
   hekwerk: [
     "/project/project-zele/",
+    "/realisaties/overmere-maatwerk-poorten-hekwerk/",
     "/project/rasterwerk120cm-moerkerke/",
     "/project/project-ronse-hondenweide/",
     "/project/project-grembergen-rasterwerk-90cm/",
@@ -112,6 +142,7 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-destelbergen/",
   ],
   "maatwerk-poort": [
+    "/realisaties/overmere-maatwerk-poorten-hekwerk/",
     "/project/project-sint-niklaas-maatwerk-poort-rasterwerk-1-80m/",
     "/project/project-lebbeke/",
     "/project/project-berlare-vlechtschermen-maatwerk-poort/",
@@ -133,6 +164,7 @@ const PROJECTS: Record<Kind, string[]> = {
   robinia: ["/realisaties/lievegem-robinia-hekwerk/"],
   hazelaar: ["/realisaties/zele-hazelaar-hekwerk/"],
   lariks: ["/project/project-overmere/", "/project/project-overmere-2/"],
+  eiken: ["/realisaties/overmere-maatwerk-poorten-hekwerk/"],
 };
 
 // Product pages (WordPress /project/ pages and webshop /shop/ handles).
@@ -149,6 +181,7 @@ const BY_PAGE: Record<string, Kind> = {
   "/project/robinia-rasterwerk/": "robinia",
   "/project/robinia-palen/": "robinia",
   "/project/hazelaarrasterwerk/": "hazelaar",
+  "/project/eiken-palen/": "eiken",
 };
 
 const BY_HANDLE: Record<string, Kind> = {
@@ -168,6 +201,7 @@ const BY_HANDLE: Record<string, Kind> = {
   "robinia-palen": "robinia",
   "vierkant-gezaagde-robinia-palen": "robinia",
   "robinia-poort": "robinia",
+  "eiken-palen": "eiken",
   "hazelaar-hekwerk": "hazelaar",
   "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": "hazelaar", // "Hazelaar hekwerk 90cm" despite its handle
 };
@@ -216,6 +250,7 @@ const KIND_PRODUCT: Record<Kind, { href: string; label: string }> = {
   "cleft-field": { href: "/project/cleft-field-veldpoorten/", label: "Cleft & Field veldpoorten" },
   "post-rail": { href: "/project/post-rail-2/", label: "Post & Rail" },
   lariks: { href: "/project/lariks-schaal-delen-2/", label: "Lariks schaaldelen" },
+  eiken: { href: "/project/eiken-palen/", label: "Eiken palen" },
 };
 
 export type ProjectProduct = { href: string; label: string; image?: string };
