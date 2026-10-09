@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Clock, MessageCircle, Phone } from "lucide-react";
+import { Clock, MessageCircle, Phone, Smartphone } from "lucide-react";
 import FenceCalculator from "@/components/FenceCalculator";
 import JsonLd from "@/components/JsonLd";
 import FreeQuoteForm from "@/components/quote/FreeQuoteForm";
 import QuoteChooser from "@/components/quote/QuoteChooser";
 import { calculatorData } from "@/lib/calculator";
-import { EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
+import { EMAIL, MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
@@ -63,6 +63,9 @@ export default function QuotePage() {
           <p className="font-semibold text-ink">Liever even bellen, mailen of WhatsAppen?</p>
           <a href={PHONE.href} className="mt-2 flex items-center gap-2 font-semibold text-accent-deep hover:text-ink">
             <Phone aria-hidden className="h-4 w-4" /> {PHONE.label}
+          </a>
+          <a href={MOBILE.href} className="mt-1 flex items-center gap-2 font-semibold text-accent-deep hover:text-ink">
+            <Smartphone aria-hidden className="h-4 w-4" /> {MOBILE.label}
           </a>
           <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="mt-1 flex items-center gap-2 font-semibold text-[#128c43] hover:text-ink">
             <WhatsAppIcon className="h-4 w-4" /> WhatsApp

@@ -8,6 +8,7 @@ import ProductSlider from "@/components/ProductSlider";
 import { getProduct, products, type Product } from "@/lib/catalog";
 import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { categories } from "@/lib/categories";
+import { MOBILE, PHONE } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
@@ -455,8 +456,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
-                  <a href="tel:+3252558858" className="block font-semibold text-accent hover:text-accent-deep">
-                    052 55 88 58
+                  <a href={PHONE.href} className="block font-semibold text-accent hover:text-accent-deep">
+                    {PHONE.label}
+                  </a>
+                  <a href={MOBILE.href} className="block font-semibold text-accent hover:text-accent-deep">
+                    Gsm {MOBILE.label}
                   </a>
                   <a href="mailto:info@natuurhout.be" className="block text-ink/70 hover:text-accent">
                     info@natuurhout.be

@@ -5,7 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductTabs, { type ProductTab } from "@/components/ProductTabs";
 import { compareAtPrice, formatPrice, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
-import { WHATSAPP } from "@/lib/contact";
+import { MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import type { LegacyPhoto } from "@/lib/legacy-product";
 
@@ -206,8 +206,8 @@ export function productInfoTabs({
             )}
             <li className="rounded-card border border-line bg-white p-4 text-sm leading-6 text-ink/75">
               <strong className="block text-ink">Twijfelt u over maat of uitvoering?</strong>
-              Bel ons op <a href="tel:+3252558858" className={linkClass}>052 55 88 58</a> of
-              mail naar <a href="mailto:info@natuurhout.be" className={linkClass}>info@natuurhout.be</a>. Ook via{" "}
+              Bel ons op <a href={PHONE.href} className={linkClass}>{PHONE.label}</a> of gsm{" "}
+              <a href={MOBILE.href} className={linkClass}>{MOBILE.label}</a>, of mail naar <a href="mailto:info@natuurhout.be" className={linkClass}>info@natuurhout.be</a>. Ook via{" "}
               <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className={linkClass}>WhatsApp</a> bent u welkom.
             </li>
           </ul>
@@ -277,7 +277,8 @@ export function ProductInfo({ tabs }: { tabs: ProductTab[] }) {
             Bel, mail of WhatsApp ons voor advies op maat, een prijs voor een grotere hoeveelheid of een afspraak in Zele.
           </p>
           <div className="mt-4 space-y-1.5 text-sm">
-            <a href="tel:+3252558858" className="block font-medium text-accent hover:text-accent-deep">052 55 88 58</a>
+            <a href={PHONE.href} className="block font-medium text-accent hover:text-accent-deep">{PHONE.label}</a>
+            <a href={MOBILE.href} className="block font-medium text-accent hover:text-accent-deep">Gsm {MOBILE.label}</a>
             <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-[#128c43] hover:text-ink">
               <WhatsAppIcon className="h-4 w-4" /> Stuur ons een WhatsApp
             </a>

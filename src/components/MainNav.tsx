@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowRight, ChevronDown, Mail, Menu, Phone, Search, ShoppingCart, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Mail, Menu, Phone, Search, ShoppingCart, Smartphone, X } from "lucide-react";
 import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
-import { EMAIL, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
+import { EMAIL, MOBILE, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 import type { SearchItem } from "@/lib/search";
@@ -401,6 +401,9 @@ export default function MainNav({ searchItems }: { searchItems: SearchItem[] }) 
               <OpeningStatus />
               <a href={PHONE.href} className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
                 <Phone aria-hidden className="h-4 w-4 text-accent" /> {PHONE.label}
+              </a>
+              <a href={MOBILE.href} className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
+                <Smartphone aria-hidden className="h-4 w-4 text-accent" /> Gsm {MOBILE.label}
               </a>
               <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-semibold text-ink hover:text-accent-deep">
                 <WhatsAppIcon className="h-4 w-4 text-[#1da851]" /> WhatsApp ({WHATSAPP.label})

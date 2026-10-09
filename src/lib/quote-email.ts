@@ -207,7 +207,7 @@ function frame(inner: string): string {
 <tr><td style="padding:28px">${inner}</td></tr>
 <tr><td style="padding:18px 28px;border-top:1px solid ${C.line};${FONT};font-size:12px;line-height:1.6;color:${C.soft}">
 Natuurhout · Adolf Van Der Moerenstraat 39, 9240 Zele<br>
-052 55 88 58 · <a href="mailto:info@natuurhout.be" style="color:${C.soft}">info@natuurhout.be</a><br>
+052 55 88 58 · gsm +32 473 74 09 26 · <a href="mailto:info@natuurhout.be" style="color:${C.soft}">info@natuurhout.be</a><br>
 Ma–vr 09:00–18:00 · za 09:00–12:00</td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -284,7 +284,7 @@ ${remarksBlock(q)}
     "",
     "Met vriendelijke groeten,",
     "Het team van Natuurhout",
-    "Adolf Van Der Moerenstraat 39, 9240 Zele · 052 55 88 58 · info@natuurhout.be",
+    "Adolf Van Der Moerenstraat 39, 9240 Zele · 052 55 88 58 · gsm +32 473 74 09 26 · info@natuurhout.be",
   ].join("\n");
   const subject = order ? "Bedankt voor uw aanvraag – Natuurhout" : "Bedankt voor uw offerteaanvraag – Natuurhout";
   return { subject, html: frame(inner), text, attachments: inlineAttachments() };

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import JsonLd from "@/components/JsonLd";
 import ProductTabs from "@/components/ProductTabs";
 import { WhatsAppIcon } from "@/components/WhatsApp";
-import { ADDRESS, EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
+import { ADDRESS, EMAIL, MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { QUOTE_HREF } from "@/lib/navigation";
 
 /*
@@ -73,7 +73,8 @@ const FAQS: Faq[] = [
     a: (
       <p>
         Ja, alle materialen zijn af te halen in Zele ({ADDRESS.street}, {ADDRESS.city}). Mail, bel of WhatsApp ons best
-        even op voorhand, dan kijken we of alles voorradig is: <a href={PHONE.href} className={link}>{PHONE.label}</a>,{" "}
+        even op voorhand, dan kijken we of alles voorradig is: <a href={PHONE.href} className={link}>{PHONE.label}</a>, gsm{" "}
+        <a href={MOBILE.href} className={link}>{MOBILE.label}</a>,{" "}
         <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className={link}>WhatsApp</a> of{" "}
         <a href={EMAIL.href} className={link}>{EMAIL.label}</a>.
       </p>

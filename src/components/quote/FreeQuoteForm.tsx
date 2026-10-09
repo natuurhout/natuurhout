@@ -3,7 +3,7 @@
 import { Camera, CheckCircle2, Loader2, Send, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
-import { EMAIL, PHONE } from "@/lib/contact";
+import { EMAIL, MOBILE, PHONE } from "@/lib/contact";
 
 /*
  * Free quote request for everything the calculator does not cover: made to
@@ -350,7 +350,7 @@ export default function FreeQuoteForm() {
       )}
       {status === "error" && (
         <p className="text-sm font-medium text-red-700">
-          Versturen lukte niet. Probeer het opnieuw, bel {PHONE.label} of mail naar {EMAIL.label}.
+          Versturen lukte niet. Probeer het opnieuw, bel {PHONE.label} of {MOBILE.label}, of mail naar {EMAIL.label}.
         </p>
       )}
       {status === "mailto" && (

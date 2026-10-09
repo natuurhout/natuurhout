@@ -4,6 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import { ProductHero } from "@/components/ProductDetail";
 import { BoughtTogether, PriceTableHtml, ProductInfo, productInfoTabs, ShopPriceMatrix } from "@/components/ProductInfo";
 import { getProduct, type Product } from "@/lib/catalog";
+import { MOBILE, PHONE } from "@/lib/contact";
 import type { LegacyPage } from "@/lib/legacy";
 import { SHOP_PRICES_MARKER, type LegacyProduct } from "@/lib/legacy-product";
 import { boughtTogether, productFacts } from "@/lib/product-info";
@@ -85,12 +86,16 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
                     Offerte aanvragen <ArrowRight className="h-4 w-4" />
                   </Link>
                   <a
-                    href="tel:+3252558858"
+                    href={PHONE.href}
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-brand/25 bg-white px-6 py-3.5 text-sm font-semibold transition-colors hover:border-accent hover:text-accent"
                   >
-                    <Phone className="h-4 w-4" /> 052 55 88 58
+                    <Phone className="h-4 w-4" /> {PHONE.label}
                   </a>
                 </div>
+                <p className="mt-2.5 text-center text-sm text-ink/65 sm:text-left">
+                  Of bel de gsm:{" "}
+                  <a href={MOBILE.href} className="font-semibold text-accent-deep hover:text-ink">{MOBILE.label}</a>
+                </p>
                 {fencing && (
                   <Link href="/calculator/" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-deep">
                     <Calculator className="h-4 w-4" /> Bereken een richtprijs met de afsluitingscalculator
