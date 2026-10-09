@@ -21,7 +21,7 @@ export const categories: CategoryTile[] = [
   { label: "Cleft & Field Veldpoorten", href: "/project/cleft-field-veldpoorten/", src: "/wp-content/uploads/2016/01/Untitled-design-3.png" },
   { label: "Hazelaar Vlechtscherm - Hasseltre", href: "/project/hazelaar-vlechtscherm-hasseltre/", src: CALCULATOR_VLECHTSCHERM_PHOTO },
   { label: "Hazelaar Vlechtscherm - Trepanel", href: "/project/hazelaarvlechtschermen/", src: "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp" },
-  { label: "Kastanje Palen", href: "/project/kastanjepalen/", src: "/wp-content/uploads/2016/01/901799_752360984796607_487253914146542605_o.jpg" },
+  { label: "Kastanje Palen", href: "/project/kastanjepalen/", src: "/fotos/kastanje-palen.jpg" },
   { label: "Robinia Palen", href: "/project/robinia-palen/", src: "/wp-content/uploads/2026/04/Copy-of-Copy-of-Robinia-Hekwerk-1.20m-4cm.png" },
   { label: "Gezaagde robinia palen", href: "/shop/vierkant-gezaagde-robinia-palen/", src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/gezaagde-robinia-palen-2689446.jpg?v=1760629025" },
   { label: "Eiken Palen", href: "/project/eiken-palen/", src: "/wp-content/uploads/2020/09/ffa351a0-0fc0-4adc-8cf9-392cf0a0c642.jpg" },

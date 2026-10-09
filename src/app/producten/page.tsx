@@ -25,6 +25,7 @@ const PHOTOS: Record<string, string> = {
   "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
   "/project/robinia-rasterwerk/": "/fotos/robinia-hekwerk-hoofdfoto.jpg",
   "/project/franse-poorten/": "/fotos/kastanje-premium-poort.jpg",
+  "/project/kastanjepalen/": "/fotos/kastanje-palen.jpg",
 };
 
 // Shop products without a WordPress page, added as a tile after another.
