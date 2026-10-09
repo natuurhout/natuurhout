@@ -1,4 +1,6 @@
-import { legacyPages } from "@/lib/legacy";
+import { load } from "cheerio/slim";
+import { categories } from "@/lib/categories";
+import { getLegacyPageByPath, legacyPages, type LegacyPage } from "@/lib/legacy";
 
 /*
  * Customer projects (the WordPress /project/ realisation pages) by the
@@ -41,7 +43,7 @@ export const NEW_PROJECTS: NewProject[] = [
       "Plaatsing van robinia hekwerk langs de straat en rond de tuin van een woning in Lievegem. Het hekwerk volgt de bocht van de weg en sluit in de tuin aan op de bestaande draadafsluiting.",
       "Robinia is een van de duurzaamste Europese houtsoorten: onbehandeld gaat het jarenlang mee in de grond en het kleurt na verloop van tijd mooi zilvergrijs.",
     ],
-    product: { href: "/project/robinia-rasterwerk/", label: "Bekijk robinia hekwerk" },
+    product: { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
     photos: [
       lievegem(1, "Robinia hekwerk langs de straat in Lievegem, onder hoge bomen"),
       lievegem(2, "Robinia hekwerk met het Natuurhout-bordje, langs de weg in Lievegem", true),
@@ -160,4 +162,80 @@ export function realisatiesFor({ pathname, handle }: { pathname?: string; handle
 /** The projects added after the WordPress site, newest first, as cards. */
 export function newRealisaties(): Realisatie[] {
   return NEW_PROJECTS.map((project) => realisatie(newProjectHref(project))).filter((item): item is Realisatie => item !== null);
+}
+
+/* Project pages -------------------------------------------------------- */
+
+// The product page each kind of project links to.
+const KIND_PRODUCT: Record<Kind, { href: string; label: string }> = {
+  hekwerk: { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+  robinia: { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
+  vlechtschermen: { href: "/project/hazelaarvlechtschermen/", label: "Vlechtschermen" },
+  "maatwerk-poort": { href: "/project/maatwerk-poorten/", label: "Kastanje premium maatwerk poorten" },
+  "premium-poort": { href: "/project/franse-poorten/", label: "Kastanje premium poorten" },
+  "cleft-field": { href: "/project/cleft-field-veldpoorten/", label: "Cleft & Field veldpoorten" },
+  "post-rail": { href: "/project/post-rail-2/", label: "Post & Rail" },
+  lariks: { href: "/project/lariks-schaal-delen-2/", label: "Lariks schaaldelen" },
+};
+
+export type ProjectProduct = { href: string; label: string; image?: string };
+
+const tilePhoto = new Map(categories.map((tile) => [tile.href, tile.src]));
+
+/** The products a project shows, as links to their product pages. */
+export function projectProducts(pathname: string): ProjectProduct[] {
+  return (Object.keys(PROJECTS) as Kind[])
+    .filter((kind) => PROJECTS[kind].includes(pathname))
+    .map((kind) => ({ ...KIND_PRODUCT[kind], image: tilePhoto.get(KIND_PRODUCT[kind].href) }));
+}
+
+/** Is this WordPress page one of the customer projects? */
+export function isLegacyProject(pathname: string): boolean {
+  return Object.values(PROJECTS).some((paths) => paths.includes(pathname)) && pathname.startsWith("/project/");
+}
+
+export type ProjectView = {
+  title: string;
+  /** The description, as the snapshot's own HTML blocks. */
+  description: { type: "paragraph" | "ul" | "ol" | "blockquote" | "table"; html: string }[];
+  /** Headings in the description besides the title (WordPress: "Omschrijving"). */
+  label: string;
+  photos: { src: string; alt: string }[];
+  nav: { href: string; rel: "prev" | "next"; title: string }[];
+};
+
+/** A WordPress project page's content, for the shared project layout. */
+export function legacyProjectView(page: LegacyPage): ProjectView {
+  const headings = page.blocks.filter((block) => block.type === "heading");
+  const title = headings[0]?.type === "heading" ? headings[0].text : page.heading;
+  const label = headings[1]?.type === "heading" ? headings[1].text : "Omschrijving";
+  const description = page.blocks.flatMap((block) =>
+    block.type === "heading" || block.type === "image" ? [] : [{ type: block.type, html: block.html }],
+  );
+  const seen = new Set<string>();
+  const photos = page.blocks
+    .filter((block) => block.type === "image")
+    .flatMap((block) => {
+      if (block.type !== "image" || seen.has(block.src)) return [];
+      seen.add(block.src);
+      return [{ src: block.src, alt: block.alt || `${title}, foto ${seen.size}` }];
+    });
+  const $ = load(page.html, null, false);
+  const nav = $("a[href^='/project/']")
+    .toArray()
+    .map((a) => {
+      const href = $(a).attr("href") ?? "";
+      return {
+        href,
+        rel: $(a).attr("rel") === "next" ? ("next" as const) : ("prev" as const),
+        title: TITLES[href] ?? getLegacyPageByPath(href)?.heading ?? href,
+      };
+    })
+    .filter((link, index, all) => all.findIndex((other) => other.href === link.href) === index);
+  return { title, description, label, photos, nav };
+}
+
+/** The products a new project shows, with their tile photo. */
+export function newProjectProducts(project: NewProject): ProjectProduct[] {
+  return [{ ...project.product, image: tilePhoto.get(project.product.href) }];
 }

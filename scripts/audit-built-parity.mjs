@@ -46,9 +46,11 @@ function attr($, selector, name) {
 function auditHandBuilt(page, route, built$) {
   const where = `${page.pathname} (hand-built)`;
 
+  // An approved title (approvedTitle, reason recorded) replaces the snapshot's.
+  const expectedTitle = route.approvedTitle ?? page.title;
   const builtTitle = normalizeText(built$("title").first().text());
-  if (builtTitle !== normalizeText(page.title)) {
-    failures.push(`${where}: title changed (${builtTitle} != ${page.title})`);
+  if (builtTitle !== normalizeText(expectedTitle)) {
+    failures.push(`${where}: title changed (${builtTitle} != ${expectedTitle})`);
   }
 
   const builtDescription = attr(built$, 'meta[name="description"]', "content");

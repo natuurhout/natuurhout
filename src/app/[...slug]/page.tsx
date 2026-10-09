@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import LegacyContent from "@/components/LegacyContent";
 import LegacyProductPage from "@/components/LegacyProductPage";
+import LegacyProjectPage from "@/components/LegacyProjectPage";
 import Realisaties from "@/components/Realisaties";
 import {
   getLegacyPage,
@@ -10,7 +11,7 @@ import {
   legacyPages,
 } from "@/lib/legacy";
 import { legacyProduct } from "@/lib/legacy-product";
-import { newRealisaties } from "@/lib/realisaties";
+import { isLegacyProject, newRealisaties } from "@/lib/realisaties";
 import { siteIndexingEnabled } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string[] }> };
@@ -52,6 +53,8 @@ export default async function LegacyRoute({ params }: Props) {
   // The "Producten & Prijzen" pages use the shop's product layout.
   const product = legacyProduct(page);
   if (product) return <LegacyProductPage page={page} info={product} />;
+  // Customer projects use the shared project layout.
+  if (isLegacyProject(page.pathname)) return <LegacyProjectPage page={page} />;
   // The realisations overview starts with the projects added since WordPress
   // (outside the snapshot's own content, which renders unchanged below).
   if (page.pathname === "/onze-realisaties/") {

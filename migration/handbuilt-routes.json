@@ -232,6 +232,151 @@
       "approvedBy": "Xander",
       "reason": "The WordPress page held only its heading. Rebuilt as the promotions page: the current promotions from src/lib/promotions.ts as product cards, with contact and quote links. Title, description, canonical and structured data are the snapshot's own; the menu labels the page \"Promo's\". The h1 \"Aanbiedingen Kastanjehout Hekwerk & Poorten\" is replaced by \"Promo's van het moment\" on Xander's request (approvedHeading).",
       "approvedHeading": "Promo's van het moment"
+    },
+    {
+      "pathname": "/project/project-zele/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/rasterwerk120cm-moerkerke/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-ronse-hondenweide/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-grembergen-rasterwerk-90cm/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-zele-rasterwerk-1-00m-75-8cm/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-lochristi-rasterwerk-poort-1-20m/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-huivelde-rasterwerk-cleftfield-poort/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-zulte/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/international-airport/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-dendermonde-padouk-poort/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-merelbeke-hazelaarschermen/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-berlare-vlechtschermen-maatwerk-poort/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-brugge/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-hamme3/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-destelbergen/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-sint-niklaas-maatwerk-poort-rasterwerk-1-80m/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-lebbeke/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-waasmunster-cleft-field-poorten-1-50m-2x-2-40m/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-keerbergen-cleftfield-poort-3-60m/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-lebbeke-cleft-field-poort/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-sintgilleswaas-postrail/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-hamme5/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-overmere/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own.",
+      "preserveContent": true
+    },
+    {
+      "pathname": "/project/project-overmere-2/",
+      "approvedBy": "Xander",
+      "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own. Its title differs from /project/project-overmere/, which WordPress gave the same title (see legacyMetadataTitle in src/lib/legacy.ts).",
+      "preserveContent": true,
+      "approvedTitle": "Project Overmere – Schutting in lariks schaaldelen | Natuurhout"
     }
   ]
 }
