@@ -202,6 +202,12 @@ function PriceTable({
   );
 }
 
+// Small print under a product's price list (Xander).
+const NOTES: Record<string, string> = {
+  palen: "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
+  "kastanje-palen-copy": "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
+};
+
 export default function PriceList({ products: shown }: { products: Product[] }) {
   // Eiken palen come with a request-only list of the same posts with a postsaver.
   const products = useMemo(
@@ -280,6 +286,9 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
                 </p>
               )}
               <PriceTable product={product} list={lists[i]} qty={qty} setQty={setQty} />
+              {NOTES[product.handle] && (
+                <p className="border-t border-line px-4 py-2.5 text-xs text-ink/55 sm:px-5">{NOTES[product.handle]}</p>
+              )}
             </div>
           );
         })}

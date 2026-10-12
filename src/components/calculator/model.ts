@@ -6,6 +6,7 @@ import {
   POSTSAVER_FITTING,
   POSTS_PER_GATE,
   ROBINIA_POSTSAVER_EXTRA,
+  SAWN_ROBINIA_POSTSAVER,
   SCREEN_POST_CM,
   SQUARE_POSTSAVER_KEY,
   customGatePrice,
@@ -350,16 +351,20 @@ export function postSaverFor(data: CalculatorData, kind: PoleOption["kind"], pol
   }
   const key = kind === "robinia-gezaagd" ? SQUARE_POSTSAVER_KEY : pole.diameter;
   const loose = looseSaver(data, key);
+  // Sawn robinia (7x7, 8x8): one fixed price, whatever the length (Xander).
+  if (kind === "robinia-gezaagd") return { mounted: SAWN_ROBINIA_POSTSAVER, loose };
   if (kind === "kastanje" || kind === "robinia") {
     // Chestnut with a fitted postsaver is a webshop product of its own; round
-    // robinia costs the same plus ROBINIA_POSTSAVER_EXTRA (Xander). A length
-    // it does not list (robinia 160 cm) takes the next longer one.
+    // robinia costs the same plus ROBINIA_POSTSAVER_EXTRA (Xander). Posts of
+    // 150 and 160 cm are the same post, by supplier; any other length the
+    // chestnut list lacks takes the next longer one.
+    const sameLength = (length: number) => length === pole.length || (Math.min(length, pole.length) === 150 && Math.max(length, pole.length) === 160);
     const fitted = [...data.fencePoles, ...data.screenPoles]
       .find((o) => o.kind === "kastanje-postsaver")
-      ?.poles.filter((p) => p.diameter === pole.diameter && p.length >= pole.length)
-      .sort((a, b) => a.length - b.length)[0];
+      ?.poles.filter((p) => p.diameter === pole.diameter && (sameLength(p.length) || p.length >= pole.length))
+      .sort((a, b) => Number(sameLength(b.length)) - Number(sameLength(a.length)) || a.length - b.length)[0];
     const extra = kind === "robinia" ? ROBINIA_POSTSAVER_EXTRA : 0;
-    if (fitted && (kind === "robinia" || fitted.length === pole.length)) {
+    if (fitted && (kind === "robinia" || sameLength(fitted.length))) {
       return { mounted: Math.max(0, fitted.price + extra - pole.price), loose };
     }
   }
