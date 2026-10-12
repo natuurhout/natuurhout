@@ -69,6 +69,9 @@ export type CalculatorData = {
 
 export { OAK_WITH_POSTSAVER, POSTSAVER_FITTING } from "@/lib/price-updates";
 
+/** Robinia paal met postsaver: the chestnut price with a postsaver plus this. */
+export const ROBINIA_POSTSAVER_EXTRA = 1;
+
 /**
  * Postsaver sleeve sizes, by round-post diameter (the webshop's loose
  * postsavers). Fitted by Natuurhout it costs the sleeve plus POSTSAVER_FITTING.

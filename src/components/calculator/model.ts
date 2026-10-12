@@ -5,6 +5,7 @@ import {
   PEELED_SURCHARGE,
   POSTSAVER_FITTING,
   POSTS_PER_GATE,
+  ROBINIA_POSTSAVER_EXTRA,
   SCREEN_POST_CM,
   SQUARE_POSTSAVER_KEY,
   customGatePrice,
@@ -349,12 +350,18 @@ export function postSaverFor(data: CalculatorData, kind: PoleOption["kind"], pol
   }
   const key = kind === "robinia-gezaagd" ? SQUARE_POSTSAVER_KEY : pole.diameter;
   const loose = looseSaver(data, key);
-  if (kind === "kastanje") {
-    // The same post with a fitted postsaver is a webshop product of its own.
+  if (kind === "kastanje" || kind === "robinia") {
+    // Chestnut with a fitted postsaver is a webshop product of its own; round
+    // robinia costs the same plus ROBINIA_POSTSAVER_EXTRA (Xander). A length
+    // it does not list (robinia 160 cm) takes the next longer one.
     const fitted = [...data.fencePoles, ...data.screenPoles]
       .find((o) => o.kind === "kastanje-postsaver")
-      ?.poles.find((p) => p.length === pole.length && p.diameter === pole.diameter);
-    if (fitted) return { mounted: Math.max(0, fitted.price - pole.price), loose };
+      ?.poles.filter((p) => p.diameter === pole.diameter && p.length >= pole.length)
+      .sort((a, b) => a.length - b.length)[0];
+    const extra = kind === "robinia" ? ROBINIA_POSTSAVER_EXTRA : 0;
+    if (fitted && (kind === "robinia" || fitted.length === pole.length)) {
+      return { mounted: Math.max(0, fitted.price + extra - pole.price), loose };
+    }
   }
   return { mounted: loose ? mountedSaverPrice(data, loose.key) : null, loose };
 }

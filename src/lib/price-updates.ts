@@ -35,6 +35,11 @@ const VARIANT_PRICES: Record<string, Record<string, string>> = {
   },
 };
 
+/** Variant names Natuurhout changed, by product handle and shop title. */
+const VARIANT_TITLES: Record<string, Record<string, string>> = {
+  "kastanje-paal-met-postsaver": { "Losse rol 5m - alle maten": "Wrap & Tack rol 5 m - alle maten" },
+};
+
 /** Fitting a postsaver, per post, on top of the sleeve. */
 export const POSTSAVER_FITTING = 5;
 
@@ -54,9 +59,14 @@ export const OAK_WITH_POSTSAVER: Record<string, number> = {
 /** Applies the new prices, keeping each product's price range in step. */
 export function withPriceUpdates<V extends PricedVariant, P extends PricedProduct<V>>(products: P[]): P[] {
   return products.map((product) => {
-    const prices = VARIANT_PRICES[product.handle];
-    if (!prices) return product;
-    const variants = product.variants.map((variant) => (variant.title in prices ? { ...variant, price: prices[variant.title] } : variant));
+    const prices = VARIANT_PRICES[product.handle] ?? {};
+    const titles = VARIANT_TITLES[product.handle] ?? {};
+    if (!VARIANT_PRICES[product.handle] && !VARIANT_TITLES[product.handle]) return product;
+    const variants = product.variants.map((variant) => ({
+      ...variant,
+      ...(variant.title in prices && { price: prices[variant.title] }),
+      ...(variant.title in titles && { title: titles[variant.title] }),
+    }));
     const amounts = variants.map((variant) => parseFloat(variant.price)).filter((n) => Number.isFinite(n));
     return {
       ...product,
