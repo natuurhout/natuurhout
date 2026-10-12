@@ -179,6 +179,38 @@
   }
   .legacy-page .gdlr-single-nav { @apply mt-10 border-t border-line pt-5; }
 
+  /* Blog lists (Tips & Ideeën, categories, tags): equal cards in a grid, every
+     photo in the same 4:3 format, the read-more link on one line at the bottom. */
+  .legacy-page .gdlr-isotope[data-type="blog"] > .four.columns { @apply mb-6 flex sm:w-1/2 lg:w-1/3; }
+  .legacy-page .gdlr-blog-grid { @apply flex w-full; }
+  .legacy-page .gdlr-blog-grid-ux,
+  .legacy-page .gdlr-blog-grid article { @apply flex w-full; }
+  .legacy-page .gdlr-blog-grid .gdlr-standard-style {
+    @apply flex w-full flex-col overflow-hidden rounded-card border border-line bg-white transition-shadow hover:shadow-lg hover:shadow-ink/10;
+  }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-thumbnail { @apply overflow-hidden bg-brand-soft/50; }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-thumbnail img {
+    @apply m-0 block aspect-[4/3] h-auto w-full rounded-none object-cover transition-transform duration-500;
+  }
+  .legacy-page .gdlr-blog-grid .gdlr-standard-style:hover .gdlr-blog-thumbnail img { @apply scale-[1.03]; }
+  /* Posts without a photo keep the same shape: the mascot fills the frame. */
+  .legacy-page .gdlr-blog-grid .gdlr-blog-thumbnail:empty,
+  .legacy-page .gdlr-blog-grid .gdlr-standard-style:not(:has(.gdlr-blog-thumbnail))::before {
+    content: "";
+    @apply block aspect-[4/3] w-full bg-brand-soft bg-[url('/mascotte-duim.webp')] bg-[length:auto_62%] bg-center bg-no-repeat;
+  }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-info { @apply flex flex-wrap gap-x-3 px-5 pt-4 text-xs text-ink/55; }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-info a { @apply text-ink/55 no-underline; }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-info .clear { @apply hidden; }
+  .legacy-page .gdlr-blog-grid .post-header { @apply px-5; }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-title { @apply mb-2 mt-2 line-clamp-2 text-xl leading-snug; }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-title a { @apply no-underline hover:underline; }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-content {
+    @apply flex flex-1 flex-col px-5 pb-5 text-sm leading-6 text-ink/70;
+  }
+  .legacy-page .gdlr-blog-grid .gdlr-blog-content .clear { @apply hidden; }
+  .legacy-page .gdlr-blog-grid .excerpt-read-more { @apply mt-auto pt-3 text-sm font-semibold; }
+
   .legacy-page input:not([type="radio"]):not([type="checkbox"]),
   .legacy-page select,
   .legacy-page textarea {
