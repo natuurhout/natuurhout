@@ -1,5 +1,7 @@
 import { load } from "cheerio/slim";
+import { getProduct } from "@/lib/catalog";
 import { categories } from "@/lib/categories";
+import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { getLegacyPageByPath, legacyPages, type LegacyPage } from "@/lib/legacy";
 
 /*
@@ -8,7 +10,7 @@ import { getLegacyPageByPath, legacyPages, type LegacyPage } from "@/lib/legacy"
  * by hand from each project's title and description.
  */
 
-type Kind = "hekwerk" | "robinia" | "hazelaar" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks" | "eiken";
+type Kind = "hekwerk" | "robinia" | "hazelaar" | "vlechtschermen" | "maatwerk-poort" | "premium-poort" | "cleft-field" | "post-rail" | "lariks" | "eiken" | "halfrond";
 
 export type ProjectPhoto = { src: string; alt: string; width: number; height: number };
 
@@ -48,6 +50,13 @@ const overmere = (n: number, alt: string, width: number, height: number): Projec
   height,
 });
 
+const menen = (n: number, alt: string, portrait = false): ProjectPhoto => ({
+  src: `/fotos/realisaties/menen-${n}.jpg`,
+  alt,
+  width: portrait ? 1200 : 1600,
+  height: portrait ? 1600 : 1200,
+});
+
 const denderleeuw = (n: number, alt: string, large = false): ProjectPhoto => ({
   src: `/fotos/realisaties/denderleeuw-${n}.jpg`,
   alt,
@@ -57,6 +66,30 @@ const denderleeuw = (n: number, alt: string, large = false): ProjectPhoto => ({
 
 // Newest first.
 export const NEW_PROJECTS: NewProject[] = [
+  {
+    slug: "menen-kastanje-poort-hekwerk",
+    title: "Project Menen – Kastanje poort & hekwerk",
+    summary: "Kastanje hekwerk en een kastanje premium poortje in Menen, aan de gevel bevestigd met halfronde palen en met een robinia poortpaal.",
+    description: [
+      "Plaatsing van kastanje hekwerk met een kastanje premium poortje in Menen. Tegen de gevel bevestigden we halfronde kastanje palen, met stalen pluggen in de muur. Aan de ene kant zit daar het hekwerk aan vast, aan de andere kant hangt het poortje ertegen. Zo zit alles extra stevig.",
+      "Als poortpaal in de grond gebruikten we een gezaagde robinia paal, voor extra stevigheid. Robinia is steviger en duurzamer dan kastanje en daardoor ideaal als poortpaal. Kastanje en robinia laten zich makkelijk combineren: ze vergrijzen op dezelfde manier.",
+    ],
+    products: [
+      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+      { href: "/project/franse-poorten/", label: "Kastanje premium poorten" },
+      { href: "/shop/halfronde-palen/", label: "Halfronde palen" },
+      { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "Gezaagde robinia palen" },
+    ],
+    photos: [
+      menen(1, "Kastanje premium poortje tussen de gevel en het kastanje hekwerk in Menen"),
+      menen(2, "Het poortje met scharnieren aan een halfronde kastanje paal tegen de gevel", true),
+      menen(3, "Kastanje poortje en hekwerk naast de woning", true),
+      menen(4, "Kastanje hekwerk vastgemaakt aan de gevel"),
+      menen(5, "Halfronde kastanje palen met stalen pluggen tegen de muur", true),
+      menen(6, "Kastanje hekwerk langs de haag in de tuin"),
+      menen(7, "Kastanje hekwerk langs de hoge haag, met de robinia poortpaal vooraan"),
+    ],
+  },
   {
     slug: "denderleeuw-kastanje-hekwerk-vlechtschermen",
     title: "Project Denderleeuw – Kastanje hekwerk & hazelaar vlechtschermen",
@@ -150,6 +183,7 @@ export const getNewProject = (slug: string) => NEW_PROJECTS.find((project) => pr
 const PROJECTS: Record<Kind, string[]> = {
   hekwerk: [
     "/project/project-zele/",
+    "/realisaties/menen-kastanje-poort-hekwerk/",
     "/realisaties/overmere-maatwerk-poorten-hekwerk/",
     "/realisaties/denderleeuw-kastanje-hekwerk-vlechtschermen/",
     "/project/rasterwerk120cm-moerkerke/",
@@ -178,6 +212,7 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-hamme3/",
   ],
   "premium-poort": [
+    "/realisaties/menen-kastanje-poort-hekwerk/",
     "/realisaties/zele-hazelaar-hekwerk/",
     "/project/project-lochristi-rasterwerk-poort-1-20m/",
     "/project/rasterwerk120cm-moerkerke/",
@@ -190,10 +225,11 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-destelbergen/",
   ],
   "post-rail": ["/project/project-sintgilleswaas-postrail/", "/project/project-hamme5/"],
-  robinia: ["/realisaties/lievegem-robinia-hekwerk/"],
+  robinia: ["/realisaties/lievegem-robinia-hekwerk/", "/realisaties/menen-kastanje-poort-hekwerk/"],
   hazelaar: ["/realisaties/zele-hazelaar-hekwerk/"],
   lariks: ["/project/project-overmere/", "/project/project-overmere-2/"],
   eiken: ["/realisaties/overmere-maatwerk-poorten-hekwerk/"],
+  halfrond: ["/realisaties/menen-kastanje-poort-hekwerk/"],
 };
 
 // Product pages (WordPress /project/ pages and webshop /shop/ handles).
@@ -231,6 +267,7 @@ const BY_HANDLE: Record<string, Kind> = {
   "vierkant-gezaagde-robinia-palen": "robinia",
   "robinia-poort": "robinia",
   "eiken-palen": "eiken",
+  "halfronde-palen": "halfrond",
   "hazelaar-hekwerk": "hazelaar",
   "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": "hazelaar", // "Hazelaar hekwerk 90cm" despite its handle
 };
@@ -280,11 +317,18 @@ const KIND_PRODUCT: Record<Kind, { href: string; label: string }> = {
   "post-rail": { href: "/project/post-rail-2/", label: "Post & Rail" },
   lariks: { href: "/project/lariks-schaal-delen-2/", label: "Lariks schaaldelen" },
   eiken: { href: "/project/eiken-palen/", label: "Eiken palen" },
+  halfrond: { href: "/shop/halfronde-palen/", label: "Halfronde palen" },
 };
 
 export type ProjectProduct = { href: string; label: string; image?: string };
 
 const tilePhoto = new Map(categories.map((tile) => [tile.href, tile.src]));
+
+// A webshop product's card photo, for product links without a menu tile.
+function shopPhoto(href: string): string | undefined {
+  const product = getProduct(href.match(/^\/shop\/([^/]+)\/$/)?.[1] ?? "");
+  return product ? CARD_PHOTOS[product.handle] ?? product.images[0]?.src : undefined;
+}
 
 /** The products a project shows, as links to their product pages. */
 export function projectProducts(pathname: string): ProjectProduct[] {
@@ -341,5 +385,5 @@ export function legacyProjectView(page: LegacyPage): ProjectView {
 
 /** The products a new project shows, with their tile photo. */
 export function newProjectProducts(project: NewProject): ProjectProduct[] {
-  return project.products.map((product) => ({ ...product, image: tilePhoto.get(product.href) }));
+  return project.products.map((product) => ({ ...product, image: tilePhoto.get(product.href) ?? shopPhoto(product.href) }));
 }
