@@ -13,6 +13,7 @@ import {
   type ProductVariant,
 } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
+import { oakWithPostsaver } from "@/lib/price-updates";
 
 /*
  * Price list buy box: one row per shop variant with its price and a quantity,
@@ -201,7 +202,12 @@ function PriceTable({
   );
 }
 
-export default function PriceList({ products }: { products: Product[] }) {
+export default function PriceList({ products: shown }: { products: Product[] }) {
+  // Eiken palen come with a request-only list of the same posts with a postsaver.
+  const products = useMemo(
+    () => shown.flatMap((product) => (product.handle === "eiken-palen" ? [product, oakWithPostsaver(product)].filter((p): p is Product => p !== null) : [product])),
+    [shown],
+  );
   const lists = useMemo(() => products.map((product) => priceList(product)), [products]);
   // A lone single-variant product starts at 1, ready to order; a price list
   // starts empty so nothing is ordered that the customer did not pick.

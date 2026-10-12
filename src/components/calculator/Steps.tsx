@@ -10,23 +10,25 @@ import {
   CUSTOM_GATE_MAX_WIDTH,
   CUSTOM_GATE_MIN,
   CUSTOM_GATE_TABLE,
-  GATE_POSTSAVER_SURCHARGE,
   PEELED_SURCHARGE,
+  POSTSAVER_KEYS,
   POSTS_PER_GATE,
+  SCREEN_POST_CM,
   fencePostsFor,
   formatMeters,
+  isSquarePost,
   postRailFor,
-  postsaverKey,
   rollsFor,
-  screensFor,
   validateCustomGate,
   type CalculatorData,
 } from "@/lib/calculator-pricing";
 import {
   CUSTOM_GATE,
-  canAddLooseSaver,
   fieldGateLatch,
-  looseSaver,
+  hasSaverOptions,
+  includedPostSaver,
+  poleSize,
+  postSaverFor,
   fenceRoll,
   fenceRollCount,
   gateOption,
@@ -42,6 +44,7 @@ import {
   screenResolved,
   toggleType,
   type Gate,
+  type PostSaver,
   type ProductType,
   type SaverMode,
   type State,
@@ -231,7 +234,6 @@ export function SchermenStep({ data, state, update }: StepProps) {
   const s = screenResolved(data, state);
   if (!s) return <p className="text-ink/60">Er zijn momenteel geen vlechtschermen beschikbaar.</p>;
   const set = (patch: Partial<State["screen"]>) => update((st) => ({ ...st, screen: { ...st.screen, ...patch } }));
-  const recommended = screensFor(state.screen.meters, s.size.width);
   return (
     <div className="space-y-7">
       <Question title="Welk vlechtscherm?">
@@ -240,7 +242,7 @@ export function SchermenStep({ data, state, update }: StepProps) {
             <OptionCard
               key={o.handle}
               active={o.handle === s.option.handle}
-              onClick={() => set({ handle: o.handle, variantId: null, count: null })}
+              onClick={() => set({ handle: o.handle, variantId: null })}
               title={o.label}
               note={`vanaf ${formatPrice(Math.min(...o.sizes.map((z) => z.price)))}/scherm`}
             />
@@ -254,19 +256,24 @@ export function SchermenStep({ data, state, update }: StepProps) {
               key={z.variantId}
               active={z.variantId === s.size.variantId}
               disabled={!z.available}
-              onClick={() => set({ variantId: z.variantId, count: null })}
+              onClick={() => set({ variantId: z.variantId })}
               title={`${z.height} × ${z.width} cm`}
               note={`${formatPrice(z.price)}/scherm${z.available ? "" : " · uitverkocht"}`}
             />
           ))}
         </div>
       </Question>
-      <Question title="Hoeveel lopende meter?">
-        <MetersInput value={state.screen.meters} presets={[3, 6, 9, 12, 18]} onChange={(m) => set({ meters: m, count: null })} />
-      </Question>
-      <Question title="Aantal schermen" hint={`Aanbevolen: ${recommended} schermen van ${s.size.width} cm breed. De palen kiest u in de volgende stap.`}>
+      <Question title="Hoeveel schermen?" hint={`Tussen de schermen en aan beide uiteinden komt een paal van ±${SCREEN_POST_CM} cm. De palen kiest u in de volgende stap.`}>
         <Stepper label="Aantal schermen" value={s.count} min={1} onChange={(v) => set({ count: v })} />
       </Question>
+      <div className="rounded-xl bg-brand-soft/60 p-4 text-sm text-ink/80">
+        <p className="font-semibold text-ink">Uw vlechtschermen</p>
+        <p className="mt-1">
+          {s.count} {s.count === 1 ? "scherm" : "schermen"} van {s.size.width} cm + {s.count + 1} palen van ±{SCREEN_POST_CM} cm →{" "}
+          <strong>samen ca. {formatMeters(s.lengthCm)} lang</strong>.
+        </p>
+        <p className="mt-1 text-ink/65">U heeft altijd één paal meer dan schermen: een begin- en eindpaal en één tussen elke twee schermen.</p>
+      </div>
     </div>
   );
 }
@@ -342,6 +349,7 @@ export function PalenStep({ data, state, update }: StepProps) {
         const p = poleResolved(data, state, line, index);
         const product = p?.product ?? options[0];
         if (!product) return null;
+        const saver = p ? postSaverFor(data, product.kind, p.pole) : null;
         return (
           <section key={line.id} className={index > 0 ? "rounded-xl border border-line p-4 sm:p-5" : ""}>
             {index > 0 && (
@@ -358,19 +366,19 @@ export function PalenStep({ data, state, update }: StepProps) {
             )}
             <div className="space-y-7">
               <Question title="Welke palen?">
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {options.map((o) => (
                     <OptionCard
                       key={o.handle}
                       active={o.handle === product.handle}
-                      onClick={() => setLine(line.id, { handle: o.handle, variantId: null })}
+                      onClick={() => setLine(line.id, { handle: o.handle, variantId: null, saver: "none" })}
                       title={o.kind === "kastanje-postsaver" ? "Kastanje paal met postsaver" : o.title}
                       note={`vanaf ${formatPrice(Math.min(...o.poles.map((x) => x.price)))}/stuk`}
                     />
                   ))}
                 </div>
               </Question>
-              <Question title={product.kind === "eiken" ? "Lengte & dikte" : "Lengte & diameter"}>
+              <Question title={isSquarePost(product.kind) ? "Lengte & dikte" : "Lengte & diameter"}>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                   {product.poles.map((x) => (
                     <OptionCard
@@ -378,7 +386,7 @@ export function PalenStep({ data, state, update }: StepProps) {
                       active={x.variantId === p?.pole.variantId}
                       disabled={!x.available}
                       onClick={() => setLine(line.id, { variantId: x.variantId })}
-                      title={`${x.length} cm · ${product.kind === "eiken" ? "" : "ø"}${x.diameter}`}
+                      title={`${x.length} cm · ${poleSize(product.kind, x.diameter)}`}
                       note={`${formatPrice(x.price)}/stuk${x.available ? "" : " · uitverkocht"}`}
                     />
                   ))}
@@ -387,17 +395,9 @@ export function PalenStep({ data, state, update }: StepProps) {
               <Question title="Aantal">
                 <Stepper label="Aantal palen" value={p?.count ?? 0} onChange={(v) => setLine(line.id, { count: v })} />
               </Question>
-              {p && canAddLooseSaver(product.kind) && looseSaver(data, p.pole.diameter) && (
-                <Question
-                  title="Losse postsavers?"
-                  hint={'Een postsaver beschermt de paal tegen rot in de grond. Liever al aangebracht? Kies dan "Kastanje paal met postsaver".'}
-                >
-                  <div className="flex flex-wrap gap-2">
-                    <Chip active={!line.looseSaver} onClick={() => setLine(line.id, { looseSaver: false })}>Zonder postsaver</Chip>
-                    <Chip active={line.looseSaver} onClick={() => setLine(line.id, { looseSaver: true })}>
-                      Losse postsaver per paal (+{formatPrice(looseSaver(data, p.pole.diameter)!.opt.price)}, zelf aanbrengen)
-                    </Chip>
-                  </div>
+              {saver && hasSaverOptions(saver) && (
+                <Question title="Postsaver?" hint="Een postsaver beschermt de paal tegen rot in de grond, waar een paal het snelst slijt.">
+                  <SaverChoice mode={line.saver} onMode={(mode) => setLine(line.id, { saver: mode })} saver={saver} />
                 </Question>
               )}
             </div>
@@ -410,7 +410,7 @@ export function PalenStep({ data, state, update }: StepProps) {
         onClick={() =>
           update((s) => ({
             ...s,
-            poles: [...s.poles, { id: newId(), handle: options[0]?.handle ?? "", variantId: null, count: 1, looseSaver: false }],
+            poles: [...s.poles, { id: newId(), handle: options[0]?.handle ?? "", variantId: null, count: 1, saver: "none" }],
           }))
         }
         className="inline-flex items-center gap-2 rounded-full border border-dashed border-accent px-5 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/5"
@@ -430,48 +430,44 @@ function gateFrom(data: CalculatorData, handle: string): number | null {
   return prices.length ? Math.min(...prices) : null;
 }
 
-/** Postsaver on gate posts: none, fitted by Natuurhout (surcharge), or loose (shop price). */
+/** Postsaver on posts: none, fitted by Natuurhout (surcharge per post), or loose to fit yourself. */
 function SaverChoice({
-  data,
   mode,
   onMode,
-  choosableKey,
-  onKey,
-  fixedKey,
+  saver,
+  diameter,
 }: {
-  data: CalculatorData;
   mode: SaverMode;
   onMode: (m: SaverMode) => void;
-  choosableKey?: string;
-  onKey?: (k: string) => void;
-  fixedKey?: string;
+  saver: PostSaver;
+  /** Posts that come with a gate: their diameter is the customer's pick. */
+  diameter?: { value: string; onChange: (key: string) => void; saverFor: (key: string) => PostSaver };
 }) {
-  const key = fixedKey ?? choosableKey ?? "8-10cm";
-  const mounted = GATE_POSTSAVER_SURCHARGE[key];
-  const loose = looseSaver(data, key);
-  const priceFor = (k: string) => (mode === "loose" ? looseSaver(data, k)?.opt.price : GATE_POSTSAVER_SURCHARGE[k]);
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
         <Chip active={mode === "none"} onClick={() => onMode("none")}>Zonder postsaver</Chip>
-        <Chip active={mode === "mounted"} onClick={() => onMode("mounted")}>
-          Aangebracht door ons{fixedKey && mounted !== undefined ? ` (+${formatPrice(mounted)}/paal)` : ""}
-        </Chip>
-        {(choosableKey !== undefined || loose) && (
+        {saver.mounted !== null && (
+          <Chip active={mode === "mounted"} onClick={() => onMode("mounted")}>
+            Aangebracht door ons{diameter ? "" : ` (+${formatPrice(saver.mounted)}/paal)`}
+          </Chip>
+        )}
+        {saver.loose && (
           <Chip active={mode === "loose"} onClick={() => onMode("loose")}>
-            Los, zelf aanbrengen{fixedKey && loose ? ` (${formatPrice(loose.opt.price)}/paal)` : ""}
+            Los, zelf aanbrengen{diameter ? "" : ` (${formatPrice(saver.loose.opt.price)}/paal)`}
           </Chip>
         )}
       </div>
-      {mode !== "none" && choosableKey !== undefined && onKey && (
+      {mode !== "none" && diameter && (
         <div>
           <p className="text-sm font-medium text-ink/80">Diameter van de poortpalen</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {Object.keys(GATE_POSTSAVER_SURCHARGE).map((k) => {
-              const price = priceFor(k);
-              return price === undefined ? null : (
-                <Chip key={k} active={choosableKey === k} onClick={() => onKey(k)}>
-                  ø{k} ({mode === "loose" ? "" : "+"}{formatPrice(price)}/paal)
+            {POSTSAVER_KEYS.map((key) => {
+              const option = diameter.saverFor(key);
+              const price = mode === "loose" ? option.loose?.opt.price : option.mounted;
+              return price === undefined || price === null ? null : (
+                <Chip key={key} active={diameter.value === key} onClick={() => diameter.onChange(key)}>
+                  ø{key} ({mode === "loose" ? "" : "+"}{formatPrice(price)}/paal)
                 </Chip>
               );
             })}
@@ -501,7 +497,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
       ? validateCustomGate(parseFloat(gate.customWidth.replace(",", ".")), parseFloat(gate.customHeight.replace(",", ".")))
       : null;
   const pole = !postsIncluded(data, gate) ? gatePoleResolved(data, gate) : null;
-  const poleSaverKey = pole && canAddLooseSaver(pole.product.kind) ? postsaverKey(pole.pole.diameter) : null;
+  const poleSaver = pole ? postSaverFor(data, pole.product.kind, pole.pole) : null;
   const hw = option?.fieldGate ? data.fieldGateHardware : null;
   const latch = fieldGateLatch(data, gate);
 
@@ -656,8 +652,16 @@ function GateEditor({ data, gate, index, total, set, remove }: {
             </Question>
 
             {postsIncluded(data, gate) ? (
-              <Question title="Poortpalen" hint={`De ${POSTS_PER_GATE} kastanje poortpalen zijn inbegrepen. Een postsaver beschermt de paal tegen rot in de grond.`}>
-                <SaverChoice data={data} mode={gate.saver} onMode={(saver) => set({ saver })} choosableKey={gate.saverKey} onKey={(saverKey) => set({ saverKey })} />
+              <Question
+                title="Poortpalen voorzien van een postsaver?"
+                hint={`De ${POSTS_PER_GATE} kastanje poortpalen zijn inbegrepen. Een postsaver beschermt de paal tegen rot in de grond.`}
+              >
+                <SaverChoice
+                  mode={gate.saver}
+                  onMode={(saver) => set({ saver })}
+                  saver={includedPostSaver(data, gate.saverKey)}
+                  diameter={{ value: gate.saverKey, onChange: (saverKey) => set({ saverKey }), saverFor: (key) => includedPostSaver(data, key) }}
+                />
               </Question>
             ) : (
               pole && (
@@ -665,7 +669,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
                       {data.gatePoles.map((o) => (
-                        <Chip key={o.handle} active={o.handle === pole.product.handle} onClick={() => set({ poleHandle: o.handle, poleVariantId: null })}>
+                        <Chip key={o.handle} active={o.handle === pole.product.handle} onClick={() => set({ poleHandle: o.handle, poleVariantId: null, saver: "none" })}>
                           {o.title}
                         </Chip>
                       ))}
@@ -677,12 +681,19 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                           active={x.variantId === pole.pole.variantId}
                           disabled={!x.available}
                           onClick={() => set({ poleVariantId: x.variantId })}
-                          title={`${x.length} cm · ${pole.product.kind === "eiken" ? "" : "ø"}${x.diameter}`}
+                          title={`${x.length} cm · ${poleSize(pole.product.kind, x.diameter)}`}
                           note={`${formatPrice(x.price)}/stuk${x.available ? "" : " · uitverkocht"}`}
                         />
                       ))}
                     </div>
-                    {poleSaverKey && <SaverChoice data={data} mode={gate.saver} onMode={(saver) => set({ saver })} fixedKey={poleSaverKey} />}
+                    {poleSaver && hasSaverOptions(poleSaver) && (
+                      <div>
+                        <p className="text-sm font-medium text-ink/80">Poortpalen voorzien van een postsaver?</p>
+                        <div className="mt-2">
+                          <SaverChoice mode={gate.saver} onMode={(saver) => set({ saver })} saver={poleSaver} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </Question>
               )

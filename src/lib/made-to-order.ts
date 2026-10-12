@@ -17,6 +17,11 @@ const TERMS: Record<string, OrderTerm> = {
   "kastanje-poort-geschroefd": MADE_TO_MEASURE,
   "kastanje-poorten": MADE_TO_MEASURE,
   "maatwerk-poort": MADE_TO_MEASURE,
+  // Price list next to the webshop's eiken palen (src/lib/price-updates.ts).
+  "eiken-palen-met-postsaver": {
+    badge: "Op aanvraag",
+    note: "Wij brengen de postsaver voor u aan. Vraag deze palen aan; we bevestigen prijs en levertermijn per mail.",
+  },
   "cleft-field-poorten": {
     badge: "Op bestelling",
     note: "Levertijd ongeveer 4 à 5 weken, afhankelijk van de volgende vracht. We bevestigen de levertermijn per mail.",

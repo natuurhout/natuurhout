@@ -1,20 +1,25 @@
 import { formatPrice } from "@/lib/catalog";
 import {
   BLACK_HARDWARE_SURCHARGE,
-  GATE_POSTSAVER_SURCHARGE,
+  OAK_WITH_POSTSAVER,
   PEELED_SURCHARGE,
+  POSTSAVER_FITTING,
   POSTS_PER_GATE,
+  SCREEN_POST_CM,
+  SQUARE_POSTSAVER_KEY,
   customGatePrice,
   fencePostsFor,
   formatMeters,
+  isSquarePost,
   postRailFor,
   postsaverKey,
   recommendedPole,
   rollsFor,
-  screensFor,
+  screenRunCm,
   validateCustomGate,
   type CalculatorData,
   type GateOption,
+  type PoleOpt,
   type PoleOption,
 } from "@/lib/calculator-pricing";
 
@@ -43,10 +48,10 @@ export type PoleLine = {
   handle: string;
   variantId: number | null; // null = recommended for the fence height
   count: number | null; // null = recommended (first line only)
-  looseSaver: boolean; // add loose postsavers (round posts only)
+  saver: SaverMode;
 };
 
-/** Postsaver on gate posts: none, fitted by Natuurhout, or loose to fit yourself. */
+/** Postsaver on posts: none, fitted by Natuurhout, or loose to fit yourself. */
 export type SaverMode = "none" | "mounted" | "loose";
 
 export type Gate = {
@@ -72,7 +77,7 @@ export type Gate = {
 export type State = {
   types: ProductType[];
   fences: FenceLine[];
-  screen: { handle: string; variantId: number | null; meters: number; count: number | null };
+  screen: { handle: string; variantId: number | null; count: number };
   postRail: { rails: 2 | 3; meters: number; corners: number; peeled: boolean };
   poles: PoleLine[];
   gates: Gate[];
@@ -141,9 +146,9 @@ export function initialState(data: CalculatorData): State {
   return {
     types: [],
     fences: [newFenceLine(data)],
-    screen: { handle: data.screens[0]?.handle ?? "", variantId: null, meters: 6, count: null },
+    screen: { handle: data.screens[0]?.handle ?? "", variantId: null, count: 4 },
     postRail: { rails: 3, meters: 20, corners: 0, peeled: false },
-    poles: [{ id: newId(), handle: data.fencePoles[0]?.handle ?? "", variantId: null, count: null, looseSaver: false }],
+    poles: [{ id: newId(), handle: data.fencePoles[0]?.handle ?? "", variantId: null, count: null, saver: "none" }],
     gates: [],
     planters: {},
     contact: { name: "", email: "", phone: "", delivery: false, street: "", postcode: "", city: "", remarks: "" },
@@ -199,8 +204,8 @@ export function screenResolved(data: CalculatorData, state: State) {
     option.sizes.find((s) => s.available) ??
     option.sizes[0];
   if (!size) return null;
-  const count = state.screen.count ?? screensFor(state.screen.meters, size.width);
-  return { option, size, count };
+  const count = Math.max(0, Math.floor(state.screen.count));
+  return { option, size, count, lengthCm: screenRunCm(count, size.width) };
 }
 
 export function poleOptionsFor(data: CalculatorData, state: State): PoleOption[] {
@@ -273,12 +278,12 @@ export function gatePoleResolved(data: CalculatorData, gate: Gate) {
   const product = data.gatePoles.find((p) => p.handle === gate.poleHandle) ?? data.gatePoles[0];
   if (!product) return null;
   // A gate hangs on these posts: default to 180 cm or longer and, for round
-  // chestnut, the thickest stocked diameter. Square oak is sturdy at any size.
+  // posts, the thickest stocked diameter. Square posts are sturdy at any size.
   const thickness = (d: string) => parseFloat(d) || 0;
   const candidates = product.poles
     .filter((p) => p.available && p.length >= 180)
     .sort((a, b) =>
-      product.kind === "eiken"
+      isSquarePost(product.kind)
         ? a.length - b.length || a.price - b.price
         : thickness(b.diameter) - thickness(a.diameter) || a.length - b.length,
     );
@@ -310,9 +315,9 @@ export type Line = {
   url?: string;
 };
 
-/** Shop postsavers fit round posts; square oak takes none. */
-export function canAddLooseSaver(kind: PoleOption["kind"]): boolean {
-  return kind === "kastanje" || kind === "robinia";
+/** "ø6-8cm" for round posts, "7x7cm" for square ones. */
+export function poleSize(kind: PoleOption["kind"], diameter: string): string {
+  return `${isSquarePost(kind) ? "" : "ø"}${diameter}`;
 }
 
 export function looseSaver(data: CalculatorData, diameter: string) {
@@ -321,26 +326,63 @@ export function looseSaver(data: CalculatorData, diameter: string) {
   return key && opt ? { key, opt, url: `${data.loosePostsavers!.shopUrl}?variant=${opt.variantId}` } : null;
 }
 
+/** A sleeve fitted by Natuurhout: the loose sleeve plus the fitting. */
+export function mountedSaverPrice(data: CalculatorData, key: string): number | null {
+  const loose = looseSaver(data, key);
+  return loose ? loose.opt.price + POSTSAVER_FITTING : null;
+}
+
+export type PostSaver = {
+  /** Extra per post when Natuurhout fits it; null = not offered. */
+  mounted: number | null;
+  /** Loose sleeve to fit yourself; null = not offered. */
+  loose: ReturnType<typeof looseSaver>;
+};
+
+/** The postsaver options for one post, with their prices. */
+export function postSaverFor(data: CalculatorData, kind: PoleOption["kind"], pole: PoleOpt): PostSaver {
+  if (kind === "kastanje-postsaver") return { mounted: null, loose: null };
+  if (kind === "eiken") {
+    // Natuurhout's price list for oak with a postsaver; no loose sleeve fits.
+    const withSaver = OAK_WITH_POSTSAVER[`${pole.length}cm / ${pole.diameter.replace(/cm$/, "")}`];
+    return { mounted: withSaver === undefined ? null : withSaver - pole.price, loose: null };
+  }
+  const key = kind === "robinia-gezaagd" ? SQUARE_POSTSAVER_KEY : pole.diameter;
+  const loose = looseSaver(data, key);
+  if (kind === "kastanje") {
+    // The same post with a fitted postsaver is a webshop product of its own.
+    const fitted = [...data.fencePoles, ...data.screenPoles]
+      .find((o) => o.kind === "kastanje-postsaver")
+      ?.poles.find((p) => p.length === pole.length && p.diameter === pole.diameter);
+    if (fitted) return { mounted: Math.max(0, fitted.price - pole.price), loose };
+  }
+  return { mounted: loose ? mountedSaverPrice(data, loose.key) : null, loose };
+}
+
+export function hasSaverOptions(saver: PostSaver): boolean {
+  return saver.mounted !== null || saver.loose !== null;
+}
+
 export function fieldGateLatch(data: CalculatorData, gate: Gate) {
   const latches = data.fieldGateHardware?.latches ?? [];
   if (gate.latch === "none") return null;
   return latches.find((l) => l.variantId === gate.latch) ?? latches[0] ?? null;
 }
 
-function gateSaverLines(data: CalculatorData, group: string, mode: SaverMode, key: string): Line[] {
-  if (mode === "mounted") {
-    const surcharge = GATE_POSTSAVER_SURCHARGE[key];
-    return surcharge === undefined
-      ? []
-      : [{ group, label: `Postsaver aangebracht op poortpaal ø${key}`, detail: "meerkost per poortpaal", qty: POSTS_PER_GATE, unit: surcharge }];
+/** Postsaver lines for `qty` posts. */
+function saverLines(group: string, mode: SaverMode, saver: PostSaver, qty: number, what: string): Line[] {
+  if (mode === "mounted" && saver.mounted !== null) {
+    return [{ group, label: `Postsaver aangebracht door Natuurhout op ${what}`, detail: `meerkost per paal (incl. aanbrengen)`, qty, unit: saver.mounted }];
   }
-  if (mode === "loose") {
-    const loose = looseSaver(data, key);
-    return loose
-      ? [{ group, label: `Losse postsaver ø${loose.key} (zelf aanbrengen)`, qty: POSTS_PER_GATE, unit: loose.opt.price, url: loose.url }]
-      : [];
+  if (mode === "loose" && saver.loose) {
+    return [{ group, label: `Losse postsaver ø${saver.loose.key} (zelf aanbrengen)`, qty, unit: saver.loose.opt.price, url: saver.loose.url }];
   }
   return [];
+}
+
+/** Postsaver for the posts that come with a gate, by their diameter. */
+export function includedPostSaver(data: CalculatorData, key: string): PostSaver {
+  return { mounted: mountedSaverPrice(data, key), loose: looseSaver(data, key) };
 }
 
 export function buildLines(data: CalculatorData, state: State): Line[] {
@@ -370,7 +412,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
       lines.push({
         group: "Vlechtschermen",
         label: `${s.option.label}, ${s.size.height} × ${s.size.width} cm (h × b)`,
-        detail: `${s.count} schermen voor ${state.screen.meters} m`,
+        detail: `${s.count} schermen: samen ca. ${formatMeters(s.lengthCm)} lang, met een paal van ±${SCREEN_POST_CM} cm tussen de schermen en aan beide uiteinden`,
         qty: s.count,
         unit: s.size.price,
         url: `${s.option.shopUrl}?variant=${s.size.variantId}`,
@@ -384,21 +426,12 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
       if (!p || p.count <= 0) return;
       lines.push({
         group: "Palen",
-        label: `${p.product.title} ${p.pole.length} cm, ${p.product.kind === "eiken" ? "" : "ø"}${p.pole.diameter}`,
+        label: `${p.product.title} ${p.pole.length} cm, ${poleSize(p.product.kind, p.pole.diameter)}`,
         qty: p.count,
         unit: p.pole.price,
         url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
       });
-      const loose = line.looseSaver && canAddLooseSaver(p.product.kind) ? looseSaver(data, p.pole.diameter) : null;
-      if (loose) {
-        lines.push({
-          group: "Palen",
-          label: `Losse postsaver ø${loose.key} (zelf aanbrengen)`,
-          qty: p.count,
-          unit: loose.opt.price,
-          url: loose.url,
-        });
-      }
+      lines.push(...saverLines("Palen", line.saver, postSaverFor(data, p.product.kind, p.pole), p.count, p.product.title.toLowerCase()));
     });
   }
 
@@ -448,19 +481,18 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
       });
 
       if (postsIncluded(data, gate)) {
-        lines.push(...gateSaverLines(data, group, gate.saver, gate.saverKey));
+        lines.push(...saverLines(group, gate.saver, includedPostSaver(data, gate.saverKey), POSTS_PER_GATE, `poortpaal ø${gate.saverKey}`));
       } else {
         const p = gatePoleResolved(data, gate);
         if (p) {
           lines.push({
             group,
-            label: `Poortpaal: ${p.product.title} ${p.pole.length} cm, ${p.product.kind === "eiken" ? "" : "ø"}${p.pole.diameter}`,
+            label: `Poortpaal: ${p.product.title} ${p.pole.length} cm, ${poleSize(p.product.kind, p.pole.diameter)}`,
             qty: POSTS_PER_GATE,
             unit: p.pole.price,
             url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
           });
-          const key = canAddLooseSaver(p.product.kind) ? postsaverKey(p.pole.diameter) : null;
-          if (key) lines.push(...gateSaverLines(data, group, gate.saver, key));
+          lines.push(...saverLines(group, gate.saver, postSaverFor(data, p.product.kind, p.pole), POSTS_PER_GATE, "poortpaal"));
         }
       }
 

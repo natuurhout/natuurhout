@@ -52,20 +52,22 @@ const POLE_SOURCES: { handle: string; kind: PoleKind }[] = [
   { handle: "palen", kind: "kastanje" },
   { handle: "kastanje-palen-copy", kind: "kastanje-postsaver" },
   { handle: "robinia-palen", kind: "robinia" },
+  { handle: "vierkant-gezaagde-robinia-palen", kind: "robinia-gezaagd" },
   { handle: "eiken-palen", kind: "eiken" },
 ];
 
 function parsePole(v: ProductVariant, options: string[]): PoleOpt | null {
-  // "180cm / 6-8cm" (Lengte/Diameter), "6-8cm / 180cm" (Diameter/Lengte), "200cm / 10x10" (Lengte/Dikte)
+  // "180cm / 6-8cm" (Lengte/Diameter), "6-8cm / 180cm" (Diameter/Lengte), "200cm / 10x10" (Lengte/Dikte),
+  // "1.60m / 7x7cm" (Hoogte/Dikte)
   const parts = v.title.split("/").map((s) => s.trim());
   if (parts.length < 2) return null;
   const diameterFirst = /^(diameter|dikte)/i.test(options[0] ?? "");
   const lengthPart = diameterFirst ? parts[1] : parts[0];
   const diameterPart = diameterFirst ? parts[0] : parts.slice(1).join(" / ");
-  const lm = lengthPart.match(/(\d+)\s*cm/);
-  if (!lm) return null;
+  const length = cm(lengthPart);
+  if (length === null) return null;
   const diameter = /^\d+(\.\d+)?x\d+(\.\d+)?$/.test(diameterPart) ? `${diameterPart}cm` : diameterPart;
-  return { ...opt(v), length: parseInt(lm[1], 10), diameter };
+  return { ...opt(v), length, diameter };
 }
 
 function poleOptions(kinds: PoleKind[]): PoleOption[] {
@@ -86,8 +88,7 @@ const GATE_SOURCES: { handle: string; postsIncluded: boolean; fieldGate: boolean
   // "inclusief 2 poortpalen en het hang- en sluitwerk"
   { handle: "kastanje-poorten", postsIncluded: true, fieldGate: false },
   { handle: "kastanje-poort-geschroefd", postsIncluded: true, fieldGate: false },
-  // "Komt met hang- en sluitwerk en poortpalen."
-  { handle: "kastanje-kaderpoort", postsIncluded: true, fieldGate: false },
+  // (The kastanje kaderpoort is a unique Sale item now, not a calculator choice.)
   // "geleverd met stevige kastanje poortpalen en ... hang- en sluitwerk"
   { handle: "hazelaar-poort", postsIncluded: true, fieldGate: false },
   // "Inclusief: hang- en sluitwerk. Exclusief: steunpalen"
@@ -209,11 +210,13 @@ function loosePostsavers(): CalculatorData["loosePostsavers"] {
 export function calculatorData(): CalculatorData {
   return {
     fences: fenceOptions(),
-    // Fencing: chestnut, chestnut with postsaver, robinia. Oak only for screens.
-    fencePoles: poleOptions(["kastanje", "kastanje-postsaver", "robinia"]),
-    screenPoles: poleOptions(["kastanje", "kastanje-postsaver", "robinia", "eiken"]),
-    // Gates without posts: round chestnut (postsaver optional) or square oak.
-    gatePoles: poleOptions(["kastanje", "eiken"]),
+    // Fencing: chestnut, chestnut with postsaver, robinia (round or sawn).
+    // Oak only for screens.
+    fencePoles: poleOptions(["kastanje", "kastanje-postsaver", "robinia", "robinia-gezaagd"]),
+    screenPoles: poleOptions(["kastanje", "kastanje-postsaver", "robinia", "robinia-gezaagd", "eiken"]),
+    // Gates without posts: round chestnut, robinia (sturdier, lasts longer) or
+    // square oak; a postsaver is optional on each.
+    gatePoles: poleOptions(["kastanje", "robinia", "robinia-gezaagd", "eiken"]),
     gates: gateOptions(),
     screens: screenOptions(),
     postRail: postRailPrices(),

@@ -1,6 +1,7 @@
 import productsData from "@/data/products.json";
 import collectionsData from "@/data/collections.json";
 import { PROMO_COLLECTION, promotionCards, SALE, UNLISTED, withPromotionCollections, withPromotions } from "@/lib/promotions";
+import { withPriceUpdates } from "@/lib/price-updates";
 import { renameDeep } from "@/lib/renames.mjs";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
@@ -51,7 +52,7 @@ export type Collection = {
 };
 
 // Website promotions (src/lib/promotions.ts) are applied on top of the shop data.
-export const products = withPromotions(renameDeep(productsData as Product[]));
+export const products = withPromotions(withPriceUpdates(renameDeep(productsData as Product[])));
 export const collections = withPromotionCollections(collectionsData as Collection[]);
 
 export function getProduct(handle: string): Product | undefined {

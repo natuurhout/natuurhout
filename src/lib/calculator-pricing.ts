@@ -17,7 +17,12 @@ export type Opt = {
 export type RollOpt = Opt & { height: number; spacing: string; rollLength: number };
 export type FenceOption = { handle: string; title: string; shopUrl: string; rolls: RollOpt[] };
 
-export type PoleKind = "kastanje" | "kastanje-postsaver" | "robinia" | "eiken";
+export type PoleKind = "kastanje" | "kastanje-postsaver" | "robinia" | "robinia-gezaagd" | "eiken";
+
+/** Square posts (sawn robinia, oak): sizes read "7x7cm", not "ø6-8cm". */
+export function isSquarePost(kind: PoleKind): boolean {
+  return kind === "eiken" || kind === "robinia-gezaagd";
+}
 export type PoleOpt = Opt & { length: number; diameter: string };
 export type PoleOption = { handle: string; title: string; shopUrl: string; kind: PoleKind; poles: PoleOpt[] };
 
@@ -62,12 +67,19 @@ export type CalculatorData = {
 /* Rules set by Natuurhout (not shop data)                             */
 /* ------------------------------------------------------------------ */
 
-/** Surcharge per gate post for a postsaver fitted by Natuurhout, by post diameter. */
-export const GATE_POSTSAVER_SURCHARGE: Record<string, number> = {
-  "6-8cm": 3.2,
-  "8-10cm": 4.0,
-  "10-12cm": 4.7,
-};
+export { OAK_WITH_POSTSAVER, POSTSAVER_FITTING } from "@/lib/price-updates";
+
+/**
+ * Postsaver sleeve sizes, by round-post diameter (the webshop's loose
+ * postsavers). Fitted by Natuurhout it costs the sleeve plus POSTSAVER_FITTING.
+ */
+export const POSTSAVER_KEYS = ["6-8cm", "8-10cm", "10-12cm"];
+
+/** Sawn robinia posts (7x7, 8x8 cm) take the 120 mm sleeve. */
+export const SQUARE_POSTSAVER_KEY = "10-12cm";
+
+/** Vlechtschermen: a post of about 10 cm between the screens and at both ends. */
+export const SCREEN_POST_CM = 10;
 
 /** Black instead of galvanised hardware, per gate leaf. */
 export const BLACK_HARDWARE_SURCHARGE = 15.5;
@@ -114,6 +126,12 @@ export function rollsFor(meters: number, rollLength: number): number {
 export function fencePostsFor(meters: number): number {
   if (!(meters > 0)) return 0;
   return Math.ceil(meters / 2 - 1e-9) + 1;
+}
+
+/** Length of a row of screens with a post between them and at both ends (cm). */
+export function screenRunCm(count: number, screenWidthCm: number): number {
+  if (!(count > 0)) return 0;
+  return count * screenWidthCm + (count + 1) * SCREEN_POST_CM;
 }
 
 /** Screens in a run, and the posts between and around them. */
@@ -165,7 +183,7 @@ export function postsaverKey(diameter: string): string | null {
   const m = diameter.replace(/\s+/g, "").match(/(\d+)-(\d+)cm/);
   if (!m) return null;
   const key = `${m[1]}-${m[2]}cm`;
-  return key in GATE_POSTSAVER_SURCHARGE ? key : null;
+  return POSTSAVER_KEYS.includes(key) ? key : null;
 }
 
 /** Recommended post length for a fence height: the first stocked length at least 30 cm longer. */
