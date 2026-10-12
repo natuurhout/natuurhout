@@ -89,6 +89,10 @@
   }
 
   .legacy-page h1 { @apply mb-6 text-4xl sm:text-5xl; }
+  /* /producten/: the heading with the small waving mascot beside it. */
+  .legacy-page .producten-heading { @apply mb-6 flex items-end gap-3 sm:gap-4; }
+  .legacy-page .producten-heading h1 { @apply mb-0; }
+  .legacy-page .producten-heading__mascotte { @apply h-16 w-auto shrink-0 sm:h-20; }
   .legacy-page h2 { @apply mb-5 mt-9 text-3xl sm:text-4xl; }
   .legacy-page h3 { @apply mb-4 mt-7 text-2xl sm:text-3xl; }
   .legacy-page h4 { @apply mb-3 mt-6 text-xl sm:text-2xl; }

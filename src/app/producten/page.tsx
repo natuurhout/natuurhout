@@ -11,7 +11,8 @@ import { getLegacyPageByPath } from "@/lib/legacy";
  * their own, the two hazelaar screens carry their webshop names, and their
  * tiles show a current photo instead of the old "Promotie" banner, and the
  * Services/FAQ block below the tiles is rebuilt as tabs (ProductenFaq) with
- * updated answers. Everything else renders verbatim; the audit checks that.
+ * updated answers. The h1 reads "Natuurhout producten", with the waving
+ * mascot beside it. Everything else renders verbatim; the audit checks that.
  */
 const page = getLegacyPageByPath("/producten/");
 
@@ -45,8 +46,16 @@ const ADDED = [
   },
 ];
 
+// Approved new h1 (Xander), recorded as approvedHeading in handbuilt-routes.json:
+// Natuurhout sells more woods than chestnut. The title in Google stays the snapshot's.
+const HEADING = "Natuurhout producten";
+
 function edit(html: string) {
   const $ = load(html, null, false);
+  $("h1").first().text(HEADING).wrap('<div class="producten-heading"></div>');
+  $(".producten-heading").append(
+    '<img src="/mascotte-zwaai.webp" alt="" width="496" height="640" class="producten-heading__mascotte" loading="eager" decoding="async">',
+  );
   $("#content-section-2").remove(); // rebuilt as <ProductenFaq />
   for (const href of REMOVED) $(`.portfolio-title a[href="${href}"]`).closest(".columns").remove();
   for (const tile of ADDED) {
