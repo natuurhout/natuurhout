@@ -69,10 +69,10 @@ export const NEW_PROJECTS: NewProject[] = [
   {
     slug: "menen-kastanje-poort-hekwerk",
     title: "Project Menen – Kastanje poort & hekwerk",
-    summary: "Kastanje hekwerk en een kastanje premium poortje in Menen, aan de gevel bevestigd met halfronde palen en met een robinia poortpaal.",
+    summary: "Kastanje hekwerk van 100 cm en een kastanje premium poortje in Menen, aan de gevel bevestigd met halfronde palen en met een robinia poortpaal.",
     description: [
-      "Plaatsing van kastanje hekwerk met een kastanje premium poortje in Menen. Tegen de gevel bevestigden we halfronde kastanje palen, met stalen pluggen in de muur. Aan de ene kant zit daar het hekwerk aan vast, aan de andere kant hangt het poortje ertegen. Zo zit alles extra stevig.",
-      "Als poortpaal in de grond gebruikten we een gezaagde robinia paal, voor extra stevigheid. Robinia is steviger en duurzamer dan kastanje en daardoor ideaal als poortpaal. Kastanje en robinia laten zich makkelijk combineren: ze vergrijzen op dezelfde manier.",
+      "Plaatsing van kastanje hekwerk van 100 cm hoog met een latafstand van 4/5 cm en een kastanje premium poortje in Menen. Tegen de gevel bevestigden we halfronde kastanje palen, met stalen pluggen in de muur. Aan de ene kant zit daar het hekwerk aan vast, aan de andere kant hangt het poortje ertegen. Zo zit alles extra stevig.",
+      "Als poortpaal in de grond gebruikten we een geschaafde robinia paal, voor extra stevigheid. Robinia is steviger en duurzamer dan kastanje en daardoor ideaal als poortpaal. Kastanje en robinia laten zich makkelijk combineren: ze vergrijzen op dezelfde manier.",
     ],
     products: [
       { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
