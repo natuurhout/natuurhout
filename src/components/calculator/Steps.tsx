@@ -49,6 +49,7 @@ import {
   type SaverMode,
   type State,
 } from "@/components/calculator/model";
+import GateSwing from "@/components/calculator/GateSwing";
 import { Chip, MetersInput, OptionCard, Question, Stepper } from "@/components/calculator/ui";
 
 export type StepProps = {
@@ -636,18 +637,61 @@ function GateEditor({ data, gate, index, total, set, remove }: {
               </div>
             </Question>
 
-            <Question title="Draairichting" hint="Gezien vanaf de kant waar u de poort opent.">
-              <div className="space-y-2">
-                {gate.leaves === 1 && (
-                  <div className="flex flex-wrap gap-2">
-                    <Chip active={gate.hinge === "links"} onClick={() => set({ hinge: "links" })}>Scharnieren links</Chip>
-                    <Chip active={gate.hinge === "rechts"} onClick={() => set({ hinge: "rechts" })}>Scharnieren rechts</Chip>
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  <Chip active={gate.opens === "binnen"} onClick={() => set({ opens: "binnen" })}>Opent naar binnen</Chip>
-                  <Chip active={gate.opens === "buiten"} onClick={() => set({ opens: "buiten" })}>Opent naar buiten</Chip>
+            <Question
+              title={gate.leaves === 1 ? "Draairichting enkele poort" : "Draairichting dubbele poort"}
+              hint={gate.leaves === 1 ? "Bovenaanzicht, gezien vanaf de straat. Kies aan welke kant de scharnieren komen." : "Bovenaanzicht, gezien vanaf de straat."}
+            >
+              {gate.leaves === 1 ? (
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  {(["rechts", "links"] as const).map((side, i) => (
+                    <button
+                      key={side}
+                      type="button"
+                      aria-pressed={gate.hinge === side}
+                      onClick={() => set({ hinge: side })}
+                      className={`overflow-hidden rounded-xl border text-left transition-colors ${
+                        gate.hinge === side ? "border-accent ring-2 ring-accent" : "border-brand/15 hover:border-accent"
+                      }`}
+                    >
+                      <GateSwing type={side} />
+                      <span className="flex items-start gap-2.5 p-2.5 sm:items-center sm:gap-3 sm:p-3">
+                        <span
+                          aria-hidden
+                          className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${gate.hinge === side ? "border-accent" : "border-ink/30"}`}
+                        >
+                          {gate.hinge === side && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
+                        </span>
+                        <span>
+                          <span className="block text-sm font-semibold text-ink">Type {i + 1} – {side} enkel</span>
+                          <span className="block text-xs text-ink/60">Scharnieren {side}, gezien vanaf de straat</span>
+                        </span>
+                      </span>
+                    </button>
+                  ))}
                 </div>
+              ) : (
+                <div className="max-w-sm overflow-hidden rounded-xl border border-brand/15">
+                  <GateSwing type="dubbel" />
+                  <p className="p-3 text-sm text-ink/70">Beide vleugels draaien naar binnen open, de sluiting zit in het midden.</p>
+                </div>
+              )}
+              <div className="mt-4 rounded-xl bg-brand-soft/60 p-4 text-sm text-ink/75">
+                <p>
+                  <strong className="text-ink">Standaard draait de poort naar binnen open</strong>, weg van de straat: zo zitten de scharnieren en
+                  de sluiting.
+                </p>
+                <label className="mt-2.5 flex cursor-pointer items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={gate.opens === "buiten"}
+                    onChange={(e) => set({ opens: e.target.checked ? "buiten" : "binnen" })}
+                    className="mt-0.5 h-4 w-4 accent-[#B05E10]"
+                  />
+                  <span>
+                    De poort moet naar buiten opendraaien.{" "}
+                    <span className="text-ink/60">We bespreken dan per mail of telefoon hoe we dat het best doen.</span>
+                  </span>
+                </label>
               </div>
             </Question>
 

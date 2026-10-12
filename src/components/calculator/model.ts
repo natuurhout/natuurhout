@@ -115,7 +115,7 @@ export function newGate(handle: string | null = null): Gate {
     customWidth: "",
     customHeight: "",
     leaves: 1,
-    hinge: "links",
+    hinge: "rechts",
     opens: "binnen",
     saver: "none",
     saverKey: "8-10cm",
@@ -482,7 +482,8 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
       const group = state.gates.length > 1 ? `Poort ${i + 1}` : "Poort";
       const kind = gate.leaves === 2 ? "dubbele poort (2 vleugels)" : "enkele poort";
       const swing =
-        gate.leaves === 1 ? `scharnieren ${gate.hinge}, opent naar ${gate.opens}` : `opent naar ${gate.opens}`;
+        (gate.leaves === 1 ? `${gate.hinge === "rechts" ? "type 1" : "type 2"}: scharnieren ${gate.hinge} gezien vanaf de straat, ` : "") +
+        (gate.opens === "buiten" ? "opent naar buiten (te bespreken per mail of telefoon)" : "opent naar binnen");
       lines.push({
         group,
         label: `${gateTitle(data, gate)} — ${size.label}`,
