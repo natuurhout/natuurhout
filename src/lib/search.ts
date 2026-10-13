@@ -4,6 +4,7 @@ import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
 import { groupHref, pageLinks, productMenu, QUOTE_HREF } from "@/lib/navigation";
 import { NEW_PROJECTS, newProjectHref } from "@/lib/realisaties";
+import { ARTIKELS, artikelHref } from "@/lib/artikels";
 
 export type SearchKind = "Productgroep" | "Webshop" | "Pagina" | "Info" | "Realisatie";
 
@@ -91,6 +92,9 @@ function build(): SearchItem[] {
       image: CARD_PHOTOS[product.handle] ?? product.images[0]?.src,
       price: product.priceFrom ? `vanaf ${formatPrice(product.priceFrom)}` : undefined,
     });
+  }
+  for (const artikel of ARTIKELS) {
+    add({ title: artikel.title, href: artikelHref(artikel), kind: "Info", keywords: `tips ${artikel.summary}`, image: artikel.image.src });
   }
   for (const project of NEW_PROJECTS) {
     add({ title: project.title, href: newProjectHref(project), kind: "Realisatie", keywords: project.summary, image: project.photos[0].src });

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import LegacyContent from "@/components/LegacyContent";
+import { withNewArtikels } from "@/lib/artikel-cards";
 import LegacyProductPage from "@/components/LegacyProductPage";
 import LegacyProjectPage from "@/components/LegacyProjectPage";
 import Realisaties from "@/components/Realisaties";
@@ -74,5 +75,8 @@ export default async function LegacyRoute({ params }: Props) {
       </>
     );
   }
+  // Tips & Ideeën: the articles written since WordPress come first in the
+  // snapshot's own blog grid (approved, handbuilt-routes.json).
+  if (page.pathname === "/tipsenideeen/") return <LegacyContent page={{ ...page, html: withNewArtikels(page.html) }} />;
   return <LegacyContent page={page} />;
 }

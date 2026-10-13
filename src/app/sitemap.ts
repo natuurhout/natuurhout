@@ -3,6 +3,7 @@ import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
 import { products } from "@/lib/catalog";
 import { groupHref, productMenu } from "@/lib/navigation";
 import { NEW_PROJECTS, newProjectHref } from "@/lib/realisaties";
+import { ARTIKELS, artikelHref } from "@/lib/artikels";
 import { siteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -12,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/calculator/`, changeFrequency: "monthly", priority: 0.8 },
     ...productMenu.map((group) => ({ url: `${siteUrl}${groupHref(group)}`, changeFrequency: "weekly" as const, priority: 0.8 })),
     ...NEW_PROJECTS.map((project) => ({ url: `${siteUrl}${newProjectHref(project)}`, changeFrequency: "monthly" as const, priority: 0.7 })),
+    ...ARTIKELS.map((artikel) => ({ url: `${siteUrl}${artikelHref(artikel)}`, lastModified: new Date(artikel.date), changeFrequency: "monthly" as const, priority: 0.6 })),
   ];
   const legacy: MetadataRoute.Sitemap = legacyPages
     .filter((page) => !isPermanentlyNoindexLegacyPath(page.pathname))

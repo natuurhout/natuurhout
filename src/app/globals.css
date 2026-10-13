@@ -358,3 +358,36 @@
 .font-display.tracking-tight {
   letter-spacing: -0.012em;
 }
+
+/* Tips & Ideeën articles (src/lib/artikels): Natuurhout's own step cards,
+   sketches and tip boxes, in the site's colours. */
+@layer components {
+  .artikel { @apply text-ink; }
+  .artikel a { @apply font-medium text-accent-deep underline decoration-accent/40 underline-offset-2 hover:text-ink; }
+  .artikel h2 { @apply m-0 mb-4 flex items-center gap-3 font-display text-2xl font-semibold sm:text-[1.7rem]; }
+  .artikel h3 { @apply mb-2 mt-6 text-base font-semibold text-ink; }
+  .artikel ol, .artikel ul { @apply m-0 space-y-1.5 pl-5 leading-7 text-ink/80; }
+  .artikel ol { @apply list-decimal; }
+  .artikel ul { @apply list-disc; }
+  .artikel strong { @apply font-semibold text-ink; }
+  .artikel .nh-num { @apply grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-deep font-sans text-sm font-bold text-white; }
+  .artikel .nh-steps { @apply mb-8 grid list-none grid-cols-2 gap-2 space-y-0 p-0 sm:grid-cols-3 lg:grid-cols-5; }
+  .artikel .nh-steps > li { @apply m-0; }
+  .artikel .nh-steps a { @apply block h-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm font-semibold text-ink no-underline transition-colors hover:border-accent; }
+  .artikel .nh-steps a span { @apply block text-xs font-bold uppercase tracking-wide text-accent-deep; }
+  .artikel .nh-card { @apply mb-6 scroll-mt-28 rounded-card border border-line bg-white p-5 sm:p-7; }
+  .artikel .nh-cols { @apply grid gap-4 sm:grid-cols-2; }
+  .artikel .nh-box { @apply rounded-xl border border-line bg-brand-soft/40 p-4; }
+  .artikel .nh-box h3 { @apply mt-0; }
+  .artikel .nh-sketch { @apply mx-0 mb-5 mt-1 rounded-xl border border-line bg-white p-2; }
+  .artikel .nh-sketch svg { @apply block h-auto w-full; }
+  .artikel .nh-sketch svg text { font-family: inherit; font-size: 13px; fill: #2b2b2b; }
+  .artikel .nh-sketch svg .nh-lbl { font-weight: 700; fill: #3f5f3a; }
+  .artikel .nh-sketch figcaption { @apply mt-1 text-center text-sm text-ink/60; }
+  .artikel .nh-tip { @apply mt-5 rounded-xl border-l-4 border-[#3f5f3a] bg-[#eef3ea] px-4 py-3 text-sm leading-6 text-ink/80; }
+  .artikel .nh-tip.nh-why { @apply border-accent bg-brand-soft/70; }
+  .artikel .nh-tip p { @apply m-0; }
+  .artikel .nh-badge { @apply ml-1 inline-block rounded-full bg-[#c49a6c] px-2 py-px align-middle text-[11px] font-semibold text-white; }
+  .artikel .nh-cta { @apply mt-8 space-y-1.5 rounded-card border border-dashed border-accent/50 bg-white p-6 text-center leading-7 text-ink/80; }
+  .artikel .nh-cta p { @apply m-0; }
+}

@@ -378,6 +378,12 @@
       "reason": "Customer project (realisatie) shown in the shared project layout, like the new projects: lead photo beside the title and description, links to the products used, then the other photos. Title, description, canonical, structured data, h1, all text, every photo and the previous/next project links are the snapshot's own. Its title differs from /project/project-overmere/, which WordPress gave the same title (see legacyMetadataTitle in src/lib/legacy.ts).",
       "preserveContent": true,
       "approvedTitle": "Project Overmere – Schutting in lariks schaaldelen | Natuurhout"
+    },
+    {
+      "pathname": "/tipsenideeen/",
+      "approvedBy": "Xander",
+      "reason": "Tips & Ideeën stays the blog overview: the articles Natuurhout writes on the new site (src/lib/artikels.ts, pages at /tipsenideeen/<slug>/) are added as the first cards of the snapshot's blog grid, newest first. The snapshot's own posts, heading, title, description and links render unchanged below them.",
+      "preserveContent": true
     }
   ]
 }
