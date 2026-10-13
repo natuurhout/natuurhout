@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { load } from "cheerio/slim";
 import LegacyContent from "@/components/LegacyContent";
 import ProductenFaq from "@/components/ProductenFaq";
+import ShopCatalogue from "@/components/ShopCatalogue";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
@@ -11,7 +12,8 @@ import { getLegacyPageByPath } from "@/lib/legacy";
  * their own, the two hazelaar screens carry their webshop names, and their
  * tiles show a current photo instead of the old "Promotie" banner, and the
  * Services/FAQ block below the tiles is rebuilt as tabs (ProductenFaq) with
- * updated answers. The h1 reads "Natuurhout producten", with the waving
+ * updated answers, and every product follows the tiles by category
+ * (ShopCatalogue, as on /shop/). The h1 reads "Natuurhout producten", with the waving
  * mascot beside it. Everything else renders verbatim; the audit checks that.
  */
 const page = getLegacyPageByPath("/producten/");
@@ -88,6 +90,14 @@ export default function ProductenPage() {
     // One root for the audit: the snapshot content now spans both parts.
     <div data-legacy-product={page.pathname}>
       <LegacyContent page={{ ...page, html: edit(page.html) }} />
+      {/* Every product of the range, by category (as on /shop/). */}
+      <section aria-labelledby="alle-producten" className="mx-auto w-full max-w-[1240px] bg-white px-4 pb-12 sm:px-6 lg:px-10">
+        <h2 id="alle-producten" className="font-display text-3xl font-semibold text-ink sm:text-4xl">Alle producten</h2>
+        <p className="mt-3 max-w-2xl leading-relaxed text-ink/70">
+          Elk product met zijn prijs, per categorie. Klik op een categorie om er meteen naartoe te gaan.
+        </p>
+        <ShopCatalogue heading="h3" />
+      </section>
       <ProductenFaq />
     </div>
   );
