@@ -22,7 +22,8 @@ const RENAMES: Record<string, string> = {
   "/project/hazelaar-vlechtscherm-hasseltre/": "Hazelaar Vlechtscherm - Hasseltre",
   "/project/hazelaarvlechtschermen/": "Hazelaar Vlechtscherm - Trepanel",
 };
-const REMOVED = ["/project/boerenlandhekken/"];
+// Sold out (Boerenlandhekken) or a unique Sale item now (the kaderpoort).
+const REMOVED = ["/project/boerenlandhekken/", "/project/raamwerkpoort/"];
 const PHOTOS: Record<string, string> = {
   "/project/hazelaar-vlechtscherm-hasseltre/": "/fotos/hazelaar-vlechtscherm-halve-latten.jpg",
   "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
