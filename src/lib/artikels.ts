@@ -15,6 +15,8 @@ export type Artikel = {
   /** ISO date of publication. */
   date: string;
   image: { src: string; alt: string };
+  /** Card image on the overview and in search, when it differs from the lead photo. */
+  thumbnail?: { src: string; alt: string };
   /** Approximate reading time in minutes. */
   minutes: number;
   html: string;
@@ -29,10 +31,13 @@ export const ARTIKELS: Artikel[] = [
       "Zelf je kastanje hekwerk en poort plaatsen? Van materiaal en palen tot rasterwerk, poort en afwerking: zo pak je het aan, met schetsen bij elke stap.",
     date: "2026-10-13",
     image: { src: "/fotos/kastanje-hekwerk-weide.jpg", alt: "Kastanje hekwerk geplaatst langs een grasveld" },
+    thumbnail: { src: "/fotos/tips/hekwerk-plaatsen-schets.jpg", alt: "Schets: hoekpaal en eindpaal, spantouw ertussen en tussenpalen langs het touw" },
     minutes: 6,
     html: HEKWERK_PLAATSEN,
   },
 ];
+
+export const artikelCard = (artikel: Artikel) => artikel.thumbnail ?? artikel.image;
 
 export const artikelHref = (artikel: Artikel) => `/tipsenideeen/${artikel.slug}/`;
 export const getArtikel = (slug: string) => ARTIKELS.find((artikel) => artikel.slug === slug);
