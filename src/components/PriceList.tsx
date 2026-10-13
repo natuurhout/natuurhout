@@ -203,7 +203,10 @@ function PriceTable({
 }
 
 // Small print under a product's price list (Xander).
+const RENT = "Ook te huur bij Natuurhout: €10, met €50 borg die u terugkrijgt bij het terugbrengen.";
 const NOTES: Record<string, string> = {
+  "tuin-voorhamer": RENT,
+  "grondboor-kopie": RENT,
   palen: "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
   "kastanje-palen-copy": "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
 };

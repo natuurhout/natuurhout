@@ -387,6 +387,7 @@
   .artikel .nh-tip { @apply mt-5 rounded-xl border-l-4 border-[#3f5f3a] bg-[#eef3ea] px-4 py-3 text-sm leading-6 text-ink/80; }
   .artikel .nh-tip.nh-why { @apply border-accent bg-brand-soft/70; }
   .artikel .nh-tip p { @apply m-0; }
+  .artikel .nh-note { @apply mb-0 mt-3 border-t border-line pt-3 text-sm leading-6 text-ink/75; }
   .artikel .nh-badge { @apply ml-1 inline-block rounded-full bg-[#c49a6c] px-2 py-px align-middle text-[11px] font-semibold text-white; }
   .artikel .nh-cta { @apply mt-8 space-y-1.5 rounded-card border border-dashed border-accent/50 bg-white p-6 text-center leading-7 text-ink/80; }
   .artikel .nh-cta p { @apply m-0; }

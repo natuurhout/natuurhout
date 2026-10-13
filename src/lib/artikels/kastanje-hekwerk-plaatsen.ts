@@ -18,7 +18,7 @@ export const HEKWERK_PLAATSEN = `
       <h3>Van Natuurhout</h3>
       <ul>
         <li><a href="/project/rasterwerk-kastanjehout/">Kastanje hekwerk</a> (rasterwerk op rol)</li>
-        <li><a href="/project/kastanjepalen/">Kastanje palen</a> (geschild en gepunt)</li>
+        <li><a href="/project/kastanjepalen/">Kastanje palen</a> (geschild en aan één kant gepunt)</li>
         <li><a href="/assortiment/poorten/">Kastanje poort</a></li>
         <li><a href="/shop/houtschroeven/">Houtschroeven</a></li>
         <li><a href="/shop/beslag-hang-sluitwerk/">Hang- en sluitwerk</a> (bij de meeste poorten inbegrepen)</li>
@@ -28,13 +28,14 @@ export const HEKWERK_PLAATSEN = `
       <h3>Zelf voorzien</h3>
       <ul>
         <li>Boormachine + bits</li>
-        <li>Spade of <a href="/shop/grondboor-kopie/">grondboor</a> <span class="nh-badge">te huur</span></li>
-        <li><a href="/shop/tuin-voorhamer/">Slaghamer</a> <span class="nh-badge">te huur</span></li>
+        <li>Spade of <a href="/shop/grondboor-kopie/">grondboor</a> <span class="nh-badge">te huur of te koop</span></li>
+        <li><a href="/shop/tuin-voorhamer/">Slaghamer</a> <span class="nh-badge">te huur of te koop</span></li>
         <li>Spantouw + paaltjes</li>
         <li>Waterpas</li>
         <li>Rolmeter</li>
         <li>(Ketting)zaag <em>(optioneel)</em></li>
       </ul>
+      <p class="nh-note"><strong>Huren bij Natuurhout:</strong> een slaghamer of handboor huur je voor €10, met €50 borg die je terugkrijgt bij het terugbrengen.</p>
     </div>
   </div>
   <div class="nh-tip"><p><strong>Hoeveel heb je nodig?</strong> Met onze <a href="/calculator/?keuze=hekwerk">calculator</a> reken je in een paar klikken uit hoeveel rollen, palen en schroeven je nodig hebt, met een richtprijs erbij.</p></div>

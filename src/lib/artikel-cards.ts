@@ -25,6 +25,11 @@ export function withNewArtikels(html: string): string {
   </div>
 </article></div></div></div>`;
   }).join("");
+  // Dutch read-more links on the older posts too (Xander).
+  grid.find(".excerpt-read-more").each((_, link) => {
+    const icon = $(link).find("i").toArray();
+    $(link).text("Lees meer").append(icon);
+  });
   const first = grid.children(".clear").first();
   if (first.length) first.after(cards);
   else grid.prepend(cards);
