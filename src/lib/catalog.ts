@@ -3,6 +3,7 @@ import collectionsData from "@/data/collections.json";
 import { PROMO_COLLECTION, promotionCards, SALE, UNLISTED, withPromotionCollections, withPromotions } from "@/lib/promotions";
 import { withPriceUpdates } from "@/lib/price-updates";
 import { renameDeep } from "@/lib/renames.mjs";
+import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
 // from natuurhout.shop (Shopify products.json, fetched 2026-08-17) per
@@ -52,8 +53,11 @@ export type Collection = {
 };
 
 // Website promotions (src/lib/promotions.ts) are applied on top of the shop data.
-export const products = withPromotions(withPriceUpdates(renameDeep(productsData as Product[])));
-export const collections = withPromotionCollections(collectionsData as Collection[]);
+export const products = withPromotions(withPriceUpdates([...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS]));
+export const collections = withPromotionCollections(collectionsData as Collection[]).map((collection) => {
+  const added = Object.entries(WEBSITE_PRODUCT_COLLECTIONS).filter(([, target]) => target === collection.handle).map(([handle]) => handle);
+  return added.length ? { ...collection, products: [...collection.products, ...added] } : collection;
+});
 
 export function getProduct(handle: string): Product | undefined {
   return products.find((p) => p.handle === handle);

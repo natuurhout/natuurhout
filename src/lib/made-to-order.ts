@@ -22,6 +22,11 @@ const TERMS: Record<string, OrderTerm> = {
     badge: "Op aanvraag",
     note: "Wij brengen de postsaver voor u aan. Vraag deze palen aan; we bevestigen prijs en levertermijn per mail.",
   },
+  // Not in the webshop (src/lib/website-products.ts).
+  snelbeton: {
+    badge: "Op aanvraag",
+    note: "Snelbeton bestelt u via een aanvraag: we houden het klaar om af te halen in Zele of leveren het mee met uw bestelling. We bevestigen per mail.",
+  },
   "cleft-field-poorten": {
     badge: "Op bestelling",
     note: "Levertijd ongeveer 4 à 5 weken, afhankelijk van de volgende vracht. We bevestigen de levertermijn per mail.",

@@ -215,9 +215,9 @@ function companions(product: Product): string[] {
     case "hekwerk":
       return [POSTS[w], "kastanje-paal-met-postsaver", "hekwerk-draadverbinders", GATE[w], "grondboor"];
     case "poort":
-      return [FENCE[w], POSTS[w], "kastanje-paal-met-postsaver", "beslag-hang-sluitwerk", "grondboor"];
+      return [FENCE[w], POSTS[w], "kastanje-paal-met-postsaver", "snelbeton", "beslag-hang-sluitwerk", "grondboor"];
     case "veldpoort":
-      return ["beslag-hang-sluitwerk", "eiken-palen", "vierkant-gezaagde-robinia-palen", "post-rail-omheining"];
+      return ["beslag-hang-sluitwerk", "eiken-palen", "snelbeton", "vierkant-gezaagde-robinia-palen", "post-rail-omheining"];
     case "palen":
       return ["kastanje-paal-met-postsaver", "grondboor", "tuin-voorhamer", w === "robinia" ? FENCE.robinia : FENCE.kastanje, "hekwerk-draadverbinders"];
     case "postsaver":

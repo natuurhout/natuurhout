@@ -22,6 +22,7 @@ export const HEKWERK_PLAATSEN = `
         <li><a href="/assortiment/poorten/">Kastanje poort</a></li>
         <li><a href="/shop/houtschroeven/">Houtschroeven</a></li>
         <li><a href="/shop/beslag-hang-sluitwerk/">Hang- en sluitwerk</a> (bij de meeste poorten inbegrepen)</li>
+        <li><a href="/shop/snelbeton/">Snelbeton</a> voor de poortpalen <em>(optioneel)</em></li>
       </ul>
     </div>
     <div class="nh-box">
@@ -174,7 +175,7 @@ export const HEKWERK_PLAATSEN = `
   <ul>
     <li>Begin met de <strong>poortpaal</strong> waaraan de poort komt te hangen.</li>
     <li>Maak een <strong>gat</strong> met een grondboor of spade.</li>
-    <li>Zet de paal <strong>recht</strong> en voeg eventueel <strong>snelbeton</strong> toe.</li>
+    <li>Zet de paal <strong>recht</strong> en voeg eventueel <a href="/shop/snelbeton/"><strong>snelbeton</strong></a> toe.</li>
     <li>Een schuine <strong>steunpaal</strong> geeft extra stevigheid.</li>
   </ul>
   <h3>4.2 Poort monteren</h3>

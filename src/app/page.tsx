@@ -131,6 +131,7 @@ const homeSections: HomeSection[] = [
     href: "/shop/#plaatsing-materiaal",
     handles: [
       "houtschroeven",
+      "snelbeton",
       "hekwerk-draadverbinders",
       "beslag-hang-sluitwerk",
       "grondboor",
