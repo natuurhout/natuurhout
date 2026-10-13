@@ -12,8 +12,9 @@ import { getLegacyPageByPath } from "@/lib/legacy";
  * their own, the two hazelaar screens carry their webshop names, and their
  * tiles show a current photo instead of the old "Promotie" banner, and the
  * Services/FAQ block below the tiles is rebuilt as tabs (ProductenFaq) with
- * updated answers, and every product follows the tiles by category
- * (ShopCatalogue, as on /shop/). The h1 reads "Natuurhout producten", with the waving
+ * updated answers. The photo tiles are replaced by a short index of their
+ * links, since every product follows by category (ShopCatalogue, as on
+ * /shop/). The h1 reads "Natuurhout producten", with the waving
  * mascot beside it. Everything else renders verbatim; the audit checks that.
  */
 const page = getLegacyPageByPath("/producten/");
@@ -76,6 +77,15 @@ function edit(html: string) {
   for (const [href, src] of Object.entries(PHOTOS)) {
     $(`.portfolio-title a[href="${href}"]`).closest(".gdlr-portfolio-item").find(".portfolio-thumbnail img").attr("src", src).removeAttr("width").removeAttr("height");
   }
+  // The photo tiles showed the same products as the full catalogue below
+  // (Xander: "dan zie je ze dubbel"). Only their links stay, as a short index
+  // of the product pages under the heading.
+  const index = $(".portfolio-title a")
+    .map((_, a) => `<a href="${$(a).attr("href")}">${$(a).text().trim()}</a>`)
+    .get()
+    .join('<span aria-hidden="true"> · </span>');
+  $("#content-section-1").remove();
+  $(".producten-heading").after(`<p class="producten-index"><strong>Meer uitleg per product:</strong> ${index}</p>`);
   return $.html();
 }
 

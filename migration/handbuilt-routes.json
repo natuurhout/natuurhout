@@ -201,7 +201,7 @@
     {
       "pathname": "/producten/",
       "approvedBy": "Xander",
-      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner). The Services/FAQ block is rebuilt as tabs (Veelgestelde vragen (FAQ), Service) with updated delivery, pick-up and payment answers, and the Engels/Frans rasterwerk question replaced by the hazelaar/kastanje/robinia comparison. Thuislevering: \"fax\" replaced by WhatsApp. Montage/plaatsing answer extended (request by mail with photos, or via WhatsApp). The Robinia Hekwerk tile shows Natuurhout's new main robinia photo. The webshop's Robinia Poort (no WordPress page) is added as a tile after Hazelaar Poort, linking to /shop/robinia-poort/, and the webshop's Gezaagde robinia palen after Robinia Palen, linking to /shop/vierkant-gezaagde-robinia-palen/; the WordPress row-break divs are dropped so the grid wraps by itself. The Kastanje Premium Poorten tile shows Natuurhout's new photo of the gate. The Kastanje Palen tile shows Natuurhout's new photo of the posts. The Post & Rail tile shows Natuurhout's new paddock photo. The Kaderpoort Kastanje tile is removed: the kaderpoort is a unique Sale item now. The h1 \"Kastanje Producten | Assortiment Hout | Hekwerk\" is replaced by \"Natuurhout producten\" on Xander's request, since the range covers more woods than chestnut (approvedHeading), with the waving mascot beside it. Below the tiles, every product of the range follows by category (the /shop/ catalogue: category tiles, then product cards), on Xander's request.",
+      "reason": "Product overview: the sold-out Boerenlandhekken tile removed and the two hazelaar screens renamed to their webshop names (Hasseltre, Trepanel), on Xander's request. Everything else is the verbatim snapshot. The Hasseltre and Trepanel tiles show a current photo instead of the old images (the Trepanel one was an expired 'Promotie' banner). The Services/FAQ block is rebuilt as tabs (Veelgestelde vragen (FAQ), Service) with updated delivery, pick-up and payment answers, and the Engels/Frans rasterwerk question replaced by the hazelaar/kastanje/robinia comparison. Thuislevering: \"fax\" replaced by WhatsApp. Montage/plaatsing answer extended (request by mail with photos, or via WhatsApp). The Robinia Hekwerk tile shows Natuurhout's new main robinia photo. The webshop's Robinia Poort (no WordPress page) is added as a tile after Hazelaar Poort, linking to /shop/robinia-poort/, and the webshop's Gezaagde robinia palen after Robinia Palen, linking to /shop/vierkant-gezaagde-robinia-palen/; the WordPress row-break divs are dropped so the grid wraps by itself. The Kastanje Premium Poorten tile shows Natuurhout's new photo of the gate. The Kastanje Palen tile shows Natuurhout's new photo of the posts. The Post & Rail tile shows Natuurhout's new paddock photo. The Kaderpoort Kastanje tile is removed: the kaderpoort is a unique Sale item now. The photo tiles themselves are then removed (their photos are the removed images listed below), because the full catalogue below shows the same products: their titles and links stay as a short index of the product pages under the heading. The h1 \"Kastanje Producten | Assortiment Hout | Hekwerk\" is replaced by \"Natuurhout producten\" on Xander's request, since the range covers more woods than chestnut (approvedHeading), with the waving mascot beside it. Below the tiles, every product of the range follows by category (the /shop/ catalogue: category tiles, then product cards), on Xander's request.",
       "approvedHeading": "Natuurhout producten",
       "preserveContent": true,
       "removedContent": [
@@ -224,7 +224,18 @@
         "/wp-content/uploads/2016/01/901799_752360984796607_487253914146542605_o.jpg",
         "/wp-content/uploads/2016/01/375166_571174549581919_21000887_n.jpg",
         "Kaderpoort Kastanje",
-        "/wp-content/uploads/2016/01/kaderpoort-1-400x300.jpg"
+        "/wp-content/uploads/2016/01/kaderpoort-1-400x300.jpg",
+        "/wp-content/uploads/2016/01/Frans-Rasterwerk-1.20m-scaled-e1601390421420.jpg",
+        "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-400x300.webp",
+        "/wp-content/uploads/2026/04/1-1.webp",
+        "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-400x300.jpg",
+        "/wp-content/uploads/2016/01/Hazelaar-poort.webp",
+        "/wp-content/uploads/2016/01/Untitled-design-3.png",
+        "/wp-content/uploads/2016/01/IMG_7994-400x300.jpg",
+        "/wp-content/uploads/2026/04/Copy-of-Copy-of-Robinia-Hekwerk-1.20m-4cm.png",
+        "/wp-content/uploads/2016/01/IMG_0585-400x300.jpeg",
+        "/wp-content/uploads/2020/09/ffa351a0-0fc0-4adc-8cf9-392cf0a0c642.jpg",
+        "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-400x300.jpg"
       ],
       "droppedLinks": {
         "/project/boerenlandhekken/": "Product sold out; removed from the overview and the menu on Xander's request.",
