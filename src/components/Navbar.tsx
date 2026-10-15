@@ -9,7 +9,11 @@ import { WhatsAppIcon } from "@/components/WhatsApp";
 import { promotions } from "@/lib/catalog";
 import { searchIndex } from "@/lib/search";
 
-const usps = ["15 jaar ervaring", "Levering in heel België", "Service op maat"];
+// Natuurhout's strengths (Xander): family business for about 15 years, a big
+// stock and quick delivery, deliveries done by themselves, help loading and
+// advice. All rotate on small screens; side by side, the third shows from
+// 1280px and the fourth from 1440px, where they fit next to the opening hours.
+const usps = ["Familiebedrijf · 15 jaar ervaring", "Grote voorraad, snel geleverd", "Eigen levering in heel België", "Hulp bij inladen en advies"];
 
 const box = "flex items-center gap-3 rounded-xl border border-line bg-white p-1.5 transition-colors";
 const iconCircle = "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg";
@@ -46,8 +50,8 @@ export default function Navbar() {
                 <span>{rating} op Google</span>
               </a>
             </li>
-            {usps.map((usp) => (
-              <li key={usp}>
+            {usps.map((usp, i) => (
+              <li key={usp} className={i === 2 ? "usp-lg" : i === 3 ? "usp-wide" : undefined}>
                 <Check aria-hidden className="h-4 w-4 shrink-0 stroke-[3] text-accent-bright" />
                 {usp}
               </li>

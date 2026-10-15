@@ -176,10 +176,10 @@ function homeFaqs(): FaqItem[] {
 }
 
 const usps = [
-  { icon: Leaf, title: "Duurzame producten", text: "Onbehandeld hout dat tegen ons klimaat kan." },
-  { icon: Truck, title: "Levering mogelijk", text: "Thuislevering of zelf ophalen in Zele." },
-  { icon: ShieldCheck, title: "+15 jaar ervaring", text: "Advies van mensen die het hout kennen." },
-  { icon: Store, title: "Groot assortiment", text: "Hekwerk, poorten, palen en plaatsingsmateriaal." },
+  { icon: ShieldCheck, title: "Familiebedrijf, 15 jaar ervaring", text: "Advies van mensen die het hout kennen." },
+  { icon: Store, title: "Grote voorraad", text: "Veel uit voorraad leverbaar, dus snel bij u." },
+  { icon: Truck, title: "Eigen levering", text: "Wij leveren zelf in heel België, of u haalt af in Zele." },
+  { icon: Leaf, title: "Hulp bij inladen", text: "Afhalen in Zele? We helpen u inladen en geven advies." },
 ];
 
 // Shortcuts into the calculator, each opening with that product chosen.

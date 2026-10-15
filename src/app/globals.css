@@ -33,7 +33,7 @@
 }
 
 @layer components {
-  /* Header USPs: one at a time, rotating, below 992px; all three side by side above. */
+  /* Header USPs: one at a time, rotating, below 992px; side by side above. */
   .usp-rotate {
     position: relative;
     height: 1.25rem;
@@ -49,19 +49,20 @@
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    animation: usp-cycle 16s infinite;
+    animation: usp-cycle 20s infinite;
   }
-  /* Four items, 4s each: the Google score, then the three USPs. */
+  /* Five items, 4s each: the Google score, then the four USPs. */
   .usp-rotate > li:nth-child(2) { animation-delay: 4s; }
   .usp-rotate > li:nth-child(3) { animation-delay: 8s; }
   .usp-rotate > li:nth-child(4) { animation-delay: 12s; }
+  .usp-rotate > li:nth-child(5) { animation-delay: 16s; }
   /* Visibility as well as opacity: the stacked, faded-out items must not
      cover the visible one (the Google link has to stay clickable). */
   @keyframes usp-cycle {
     0% { opacity: 0; transform: translateY(6px); visibility: visible; }
-    3%, 22% { opacity: 1; transform: none; visibility: visible; }
-    25% { opacity: 0; transform: translateY(-6px); visibility: visible; }
-    25.01%, 100% { opacity: 0; visibility: hidden; }
+    2.5%, 17.5% { opacity: 1; transform: none; visibility: visible; }
+    20% { opacity: 0; transform: translateY(-6px); visibility: visible; }
+    20.01%, 100% { opacity: 0; visibility: hidden; }
   }
   @media (prefers-reduced-motion: reduce) {
     .usp-rotate > li { animation: none; visibility: hidden; }
@@ -70,9 +71,15 @@
   @media (min-width: 992px) {
     .usp-rotate { position: static; height: auto; flex: none; display: flex; gap: 1.5rem; }
     .usp-rotate > li { position: static; opacity: 1; visibility: visible; animation: none; transform: none; }
+    .usp-rotate > li.usp-lg,
+    .usp-rotate > li.usp-wide { display: none; }
   }
   @media (min-width: 1280px) {
-    .usp-rotate { gap: 2.5rem; }
+    .usp-rotate { gap: 2rem; }
+    .usp-rotate > li.usp-lg { display: flex; }
+  }
+  @media (min-width: 1440px) {
+    .usp-rotate > li.usp-wide { display: flex; }
   }
 
   .legacy-page {
