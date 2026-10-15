@@ -208,6 +208,10 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
       ["Langer mee met een postsaver", "wij raden hem altijd aan: hij beschermt de paal op de overgang tussen lucht en grond, waar hij het eerst rot."],
       ["Onbehandeld kastanjehout", "het looizuur beschermt tegen rot en schimmel, zonder chemische behandeling."],
       ["Veel maten", "van 100 tot 300 cm lang, ø 6-8, 8-10 of 10-12 cm; zelfde hout als het kastanje hekwerk."],
+      [
+        "Welke lengte?",
+        "hekwerk van 60 cm → palen van 1 m; 80 cm → 1,20 m; 90 of 100 cm → 1,50 m; 120 cm → 1,80 m; 150 cm → 2 of 2,50 m; 180 cm → 2,50 m.",
+      ],
     ],
     uses: [
       "Palen voor kastanje of hazelaar hekwerk (ø 8-10 cm)",

@@ -14,6 +14,7 @@ import {
   POSTSAVER_KEYS,
   POSTS_PER_GATE,
   SCREEN_POST_CM,
+  advisedPostLength,
   fencePostsFor,
   formatMeters,
   isSquarePost,
@@ -42,6 +43,7 @@ import {
   postsIncluded,
   recommendedPoleCount,
   screenResolved,
+  tallestHeight,
   toggleType,
   type Gate,
   type PostSaver,
@@ -324,6 +326,9 @@ export function PalenStep({ data, state, update }: StepProps) {
   const options = poleOptionsFor(data, state);
   const recommended = recommendedPoleCount(data, state);
   const chosen = state.poles.reduce((sum, line, i) => sum + (poleResolved(data, state, line, i)?.count ?? 0), 0);
+  const tallest = tallestHeight(data, state);
+  const postLength = advisedPostLength(tallest);
+  const postMeters = (cm: number) => `${(cm / 100).toLocaleString("nl-BE")} m`;
   const setLine = (id: number, patch: Partial<State["poles"][number]>) =>
     update((s) => ({ ...s, poles: s.poles.map((l) => (l.id === id ? { ...l, ...patch } : l)) }));
 
@@ -348,6 +353,15 @@ export function PalenStep({ data, state, update }: StepProps) {
             Hekwerk: een paal om de ±1,80 m, bij hekwerk vanaf 1,50 m hoog om de ±1,50 m, plus een eindpaal. Op zachte grond zet u
             de palen dichter bij elkaar; nooit meer dan 2 m tussen twee palen. Wij raden ronde palen van ø 8-10 cm aan, met een
             postsaver; ø 6-8 cm is goed als schoorpaal.
+          </p>
+        )}
+        {(state.types.includes("hekwerk") || state.types.includes("vlechtschermen")) && (
+          <p className="mt-1">
+            <span className="font-semibold text-ink">Paallengte:</span> voor {tallest} cm hoog raden we palen van{" "}
+            {tallest > 120 && tallest <= 150 ? "2 m of 2,5 m" : postMeters(postLength)} aan, ongeveer een derde in de grond.{" "}
+            <span className="text-ink/60">
+              (60 cm → 1 m · 80 cm → 1,2 m · 90–100 cm → 1,5 m · 120 cm → 1,8 m · 150 cm → 2 of 2,5 m · 180 cm → 2,5 m)
+            </span>
           </p>
         )}
         {chosen !== recommended && (

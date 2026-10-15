@@ -206,11 +206,38 @@ export function postsaverKey(diameter: string): string | null {
   return POSTSAVER_KEYS.includes(key) ? key : null;
 }
 
-/** Recommended post length for a fence height: the first stocked length at least 30 cm longer. */
 /** Round fence posts: Natuurhout always advises ø 8-10 cm (ø 6-8 cm serves as a strut). */
 const ADVISED_ROUND_DIAMETER = /^8-10/;
 
+/**
+ * Post length Natuurhout advises per fence height, in cm (Xander): a third
+ * or so in the ground. For 150 cm fencing 200 cm will do, 250 cm is sturdier.
+ */
+export const ADVISED_POST_LENGTH: [fenceCm: number, postCm: number][] = [
+  [60, 100],
+  [80, 120],
+  [90, 150],
+  [100, 150],
+  [120, 180],
+  [150, 200],
+  [180, 250],
+];
+
+/** The advised post length for a fence (or screen) height; between the listed heights, the next one up. */
+export function advisedPostLength(heightCm: number): number {
+  return ADVISED_POST_LENGTH.find(([fence]) => fence >= heightCm)?.[1] ?? heightCm + 70;
+}
+
+/** Recommended post: the advised length (or the next stocked one up), ø 8-10 cm where round. */
 export function recommendedPole(poles: PoleOpt[], fenceHeightCm: number): PoleOpt | undefined {
-  const fit = poles.filter((p) => p.available && p.length >= fenceHeightCm + 30).sort((a, b) => a.length - b.length || a.price - b.price);
-  return fit.find((p) => ADVISED_ROUND_DIAMETER.test(p.diameter)) ?? fit[0] ?? poles.find((p) => p.available) ?? poles[0];
+  const target = advisedPostLength(fenceHeightCm);
+  const fit = poles.filter((p) => p.available && p.length >= target).sort((a, b) => a.length - b.length || a.price - b.price);
+  // None long enough in stock (e.g. sawn robinia, 160–180 cm): the longest there is.
+  const longest = poles.filter((p) => p.available).sort((a, b) => b.length - a.length);
+  return (
+    fit.find((p) => ADVISED_ROUND_DIAMETER.test(p.diameter)) ??
+    fit[0] ??
+    longest[0] ??
+    poles[0]
+  );
 }

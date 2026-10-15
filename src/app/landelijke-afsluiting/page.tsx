@@ -65,7 +65,7 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Hoe diep moeten de palen in de grond?",
-      text: "Zet de palen ongeveer een derde van hun lengte in de grond. Voor hekwerk van 1 m hoog kiest u dus palen van 1,50 m. Zet eerst de hoek- en eindpalen, span een touw en plaats daarna de tussenpalen.",
+      text: "Zet de palen ongeveer een derde van hun lengte in de grond. Wij raden aan: voor hekwerk van 60 cm palen van 1 m, voor 80 cm palen van 1,20 m, voor 90 cm en 1 m palen van 1,50 m, voor 1,20 m palen van 1,80 m, voor 1,50 m palen van 2 of 2,50 m en voor 1,80 m palen van 2,50 m. Zet eerst de hoek- en eindpalen, span een touw en plaats daarna de tussenpalen.",
     },
     {
       q: "Welke hoogte kies ik voor mijn tuinafsluiting?",
