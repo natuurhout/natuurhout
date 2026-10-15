@@ -123,7 +123,6 @@ function PriceTable({
   setQty: (id: number, n: number) => void;
 }) {
   const multi = columns.length > 1;
-  const term = orderTerm(product.handle);
   // When nothing is in stock the banner above the table says it once.
   const allOnOrder = product.variants.every((v) => !v.available);
 
@@ -189,9 +188,7 @@ function PriceTable({
               <td className="px-4 py-2 text-right align-middle sm:px-5">
                 <Stepper value={n} label={label} onChange={(value) => setQty(variant.id, value)} />
                 {!variant.available && !allOnOrder && (
-                  <span className="mt-1 block text-[11px] font-semibold uppercase tracking-wide text-accent-deep">
-                    {term.badge}
-                  </span>
+                  <span className="mt-1 block text-[11px] font-medium text-ink/50">op aanvraag*</span>
                 )}
               </td>
             </tr>
@@ -210,6 +207,8 @@ const NOTES: Record<string, string> = {
   palen: "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
   "kastanje-palen-copy": "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
 };
+
+const allOnProductOrder = (product: Product) => product.variants.every((v) => !v.available);
 
 export default function PriceList({ products: shown }: { products: Product[] }) {
   // Eiken palen come with a request-only list of the same posts with a postsaver.
@@ -280,15 +279,17 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
                   {product.title}
                 </h3>
               )}
+              <PriceTable product={product} list={lists[i]} qty={qty} setQty={setQty} />
+              {/* Under the table, so it explains rather than leads: the rows say "op aanvraag*". */}
               {soldOut && (
-                <p className="flex items-start gap-2 border-b border-line bg-accent/[0.07] px-4 py-2.5 text-xs leading-5 text-ink/75 sm:px-5">
-                  <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-deep" />
+                <p className="flex items-start gap-2 border-t border-line bg-ground/60 px-4 py-2.5 text-xs leading-5 text-ink/65 sm:px-5">
+                  <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/45" />
                   <span>
-                    <strong className="text-ink">{orderTerm(product.handle).badge}:</strong> {orderTerm(product.handle).note}
+                    <strong className="font-semibold text-ink/80">{allOnProductOrder(product) ? orderTerm(product.handle).badge : "* Op aanvraag"}:</strong>{" "}
+                    {orderTerm(product.handle).note}
                   </span>
                 </p>
               )}
-              <PriceTable product={product} list={lists[i]} qty={qty} setQty={setQty} />
               {NOTES[product.handle] && (
                 <p className="border-t border-line px-4 py-2.5 text-xs text-ink/55 sm:px-5">{NOTES[product.handle]}</p>
               )}

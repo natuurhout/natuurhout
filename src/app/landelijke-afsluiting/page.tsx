@@ -47,10 +47,10 @@ function faqs(): FaqItem[] {
     robinia && `robinia hekwerk van 1 m hoog vanaf ${robinia}`,
     hazelaar && `hazelaar hekwerk van 90 cm hoog vanaf ${hazelaar}`,
   ].filter(Boolean).join(", ");
-  const costText = `Bij Natuurhout kost ${cost} per lopende meter (incl. btw). Reken daarbij een paal om de ±1,80 m${palen ? `; kastanje palen kosten vanaf ${formatPrice(palen)} per stuk` : ""}. Met de calculator berekent u meteen de richtprijs van uw volledige afsluiting.`;
+  const costText = `Hekwerk verkopen we per rol van 5 of 10 meter. Omgerekend kost bij Natuurhout ${cost} per lopende meter (incl. btw). Het meest gekozen is hekwerk van 1,20 m hoog met een smalle latafstand. Reken daarbij een paal om de ±1,80 m${palen ? `; kastanje palen kosten vanaf ${formatPrice(palen)} per stuk` : ""}. Met de calculator berekent u meteen de richtprijs van uw volledige afsluiting.`;
   return [
     {
-      q: "Wat kost een landelijke afsluiting per meter?",
+      q: "Wat kost een landelijke afsluiting?",
       text: costText,
       body: (
         <>

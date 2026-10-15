@@ -85,6 +85,19 @@ const localBusiness = {
   parentOrganization: { "@id": `${siteUrl}/#organization` },
 };
 
+/**
+ * The roll customers buy most (Xander: 1,20 m or 1 m with narrow spacing),
+ * as "1,20 m · latafstand 4,5/5 cm" and its price for one roll. Hekwerk is
+ * sold per roll, never per metre.
+ */
+function popularRoll(handle: string, titleStart: string, spacing: string) {
+  const variant = getProduct(handle)?.variants.find((v) => v.title.startsWith(titleStart));
+  const m = variant?.title.match(/^(\d+)cm.*\((\d+)m rol\)/);
+  if (!variant || !m) return null;
+  const height = (Number(m[1]) / 100).toFixed(2).replace(".", ",");
+  return { label: `${height} m hoog · latafstand ${spacing}`, price: `${formatPrice(variant.price)} per rol van ${m[2]} m` };
+}
+
 /** Lowest current webshop price of a product ("€175,00"). */
 const priceFrom = (handle: string) => {
   const price = getProduct(handle)?.priceFrom;
@@ -98,32 +111,28 @@ const mainProducts = [
     href: "/project/rasterwerk-kastanjehout/",
     src: CALCULATOR_HEKWERK_PHOTO,
     text: "De klassieke landelijke afsluiting, van 60 cm tot 1,80 m hoog.",
-    price: pricePerMeterFrom("kastanje-rasterwerk", undefined, true),
-    unit: "/m",
+    popular: popularRoll("kastanje-rasterwerk", "120cm / 4.5/5cm", "4,5/5 cm"),
   },
   {
     title: "Robinia hekwerk",
     href: "/project/robinia-rasterwerk/",
     src: "/fotos/robinia-hekwerk-hoofdfoto.jpg",
     text: "De duurzaamste Europese houtsoort, van 1 m tot 1,50 m hoog.",
-    price: pricePerMeterFrom("robinia-hekwerk"),
-    unit: "/m",
+    popular: popularRoll("robinia-hekwerk", "120cm / 4cm", "4 cm"),
   },
   {
     title: "Hazelaar hekwerk",
     href: "/project/hazelaarrasterwerk/",
     src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp",
-    text: "Licht en landelijk, mooi rond borders en moestuinen.",
-    price: pricePerMeterFrom("hazelaar-hekwerk"),
-    unit: "/m",
+    text: "Licht en landelijk, van 60 cm tot 1,50 m hoog.",
+    popular: popularRoll("hazelaar-hekwerk", "120cm / 3/5cm", "3/5 cm"),
   },
   {
     title: "Houten poorten",
     href: "/houten-tuinpoorten/",
     src: "/fotos/kastanje-premium-poort-hekwerk.jpg",
     text: "Kastanje, robinia en hazelaar poorten, ook op maat, met palen en beslag.",
-    price: priceFrom("hazelaar-poort"),
-    unit: "",
+    popular: { label: "Kastanje premium poort", price: `vanaf ${priceFrom("kastanje-poorten") ?? ""}` },
   },
 ];
 
@@ -151,14 +160,15 @@ const carouselTiles = categories
 
 function homeFaqs(): FaqItem[] {
   const kastanje = pricePerMeterFrom("kastanje-rasterwerk", 100);
+  const roll = popularRoll("kastanje-rasterwerk", "120cm / 4.5/5cm", "4,5/5 cm");
   return [
     {
       q: "Welk hekwerk kies ik: kastanje, robinia of hazelaar?",
       text: "Kastanje is de klassieker: duurzaam zonder behandeling (ongeveer 15 tot 25 jaar) en in de meeste hoogtes. Robinia is de duurzaamste Europese houtsoort (ongeveer 25 tot 40 jaar) en heel stevig. Hazelaar is lichter en speelser van uitzicht en past mooi rond borders en moestuinen (ongeveer 8 tot 15 jaar).",
     },
     {
-      q: "Wat kost kastanje hekwerk per meter?",
-      text: `${kastanje ? `Kastanje hekwerk van 1 m hoog kost bij Natuurhout vanaf ${kastanje} per lopende meter, incl. btw. ` : ""}Reken daarbij een paal om de ±1,80 m. Met de calculator berekent u meteen de richtprijs van hekwerk, palen en poort samen.`,
+      q: "Wat kost kastanje hekwerk?",
+      text: `Kastanje hekwerk wordt per rol verkocht, van 5 of 10 meter.${roll ? ` De meest gekozen rol, ${roll.label}, kost ${roll.price} (incl. btw)${kastanje ? `; voor 1 m hoog komt dat neer op vanaf ${kastanje} per meter` : ""}.` : ""} Reken daarbij een paal om de ±1,80 m. Met de calculator berekent u meteen hoeveel rollen en palen u nodig heeft, met de richtprijs van hekwerk, palen en poort samen.`,
     },
     {
       q: "Verkopen jullie ook houten poorten bij het hekwerk?",
@@ -442,8 +452,8 @@ export default function HomePage() {
             Kies uw hekwerk en bijpassende poort
           </h2>
           <p className="mt-3 max-w-3xl leading-relaxed text-ink/70">
-            Hekwerk op rol in drie houtsoorten, met de poorten die erbij horen. Alle prijzen zijn incl. btw; bekijk per
-            product de hoogtes, latafstanden en de actuele prijzen.
+            Hekwerk op rol in drie houtsoorten, met de poorten die erbij horen. Bij elk product ziet u de meest gekozen
+            uitvoering; alle hoogtes, latafstanden en prijzen (incl. btw) vindt u op de productpagina.
           </p>
           <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
             {mainProducts.map((product) => (
@@ -458,10 +468,11 @@ export default function HomePage() {
                   <span className="flex flex-1 flex-col p-4">
                     <span className="font-display text-lg font-semibold leading-tight text-ink group-hover:text-accent-deep">{product.title}</span>
                     <span className="mt-1 text-sm leading-snug text-ink/65">{product.text}</span>
-                    {product.price && (
-                      <span className="mt-auto pt-3 text-sm text-ink/60">
-                        vanaf <strong className="text-base text-ink">{product.price}</strong>
-                        {product.unit === "/m" && " per meter"}
+                    {product.popular && (
+                      <span className="mt-auto block border-t border-line pt-3 text-sm">
+                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-accent-deep">Meest gekozen</span>
+                        <span className="block text-ink/65">{product.popular.label}</span>
+                        <strong className="block text-ink">{product.popular.price}</strong>
                       </span>
                     )}
                   </span>
