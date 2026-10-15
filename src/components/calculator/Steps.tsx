@@ -717,7 +717,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
               </Question>
             ) : (
               pole && (
-                <Question title="Poortpalen" hint={`${POSTS_PER_GATE} palen per poort, ook bij een dubbele poort.${option?.fieldGate ? " Voor veldpoorten raden we vierkante eiken palen aan." : ""}`}>
+                <Question title="Poortpalen" hint={`${POSTS_PER_GATE} palen per poort, ook bij een dubbele poort.${option?.fieldGate ? " Voor veldpoorten raden we vierkante eiken palen aan." : gate.handle === "robinia-poort" ? " Voor de robinia poort raden we gezaagde robinia palen aan." : ""}`}>
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
                       {data.gatePoles.map((o) => (

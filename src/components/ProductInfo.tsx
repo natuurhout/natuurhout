@@ -135,13 +135,21 @@ function Highlights({ highlights, more }: { highlights: ProductHighlights; more:
       <div>
         <h3 className="font-display text-lg font-semibold text-ink">Pluspunten van dit product</h3>
         <ul className="mt-3 space-y-2.5">
-          {highlights.plus.map(([lead, text]) => (
+          {highlights.plus.map(([lead, text, link]) => (
             <li key={lead} className="flex gap-3 leading-7 text-ink/80">
               <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-soft text-brand-dark">
                 <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={3} />
               </span>
               <span>
                 <strong className="text-ink">{lead}</strong>: {text}
+                {link && (
+                  <>
+                    {" "}
+                    <Link href={link.href} className={linkClass}>
+                      {link.label} →
+                    </Link>
+                  </>
+                )}
               </span>
             </li>
           ))}

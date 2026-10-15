@@ -208,6 +208,8 @@ function wood(product: Product): "kastanje" | "robinia" | "hazelaar" | null {
 const FENCE = { kastanje: "kastanje-rasterwerk", robinia: "robinia-hekwerk", hazelaar: "hazelaar-hekwerk" };
 const GATE = { kastanje: "kastanje-poorten", robinia: "robinia-poort", hazelaar: "hazelaar-poort" };
 const POSTS = { kastanje: "palen", robinia: "robinia-palen", hazelaar: "palen" };
+// The robinia poort comes without posts and hangs best on sawn robinia.
+const GATE_POSTS = { kastanje: "palen", robinia: "vierkant-gezaagde-robinia-palen", hazelaar: "palen" };
 
 function companions(product: Product): string[] {
   const w = wood(product) ?? "kastanje";
@@ -215,7 +217,9 @@ function companions(product: Product): string[] {
     case "hekwerk":
       return [POSTS[w], "kastanje-paal-met-postsaver", "hekwerk-draadverbinders", GATE[w], "grondboor"];
     case "poort":
-      return [FENCE[w], POSTS[w], "kastanje-paal-met-postsaver", "snelbeton", "beslag-hang-sluitwerk", "grondboor"];
+      return w === "robinia"
+        ? [GATE_POSTS.robinia, FENCE.robinia, "snelbeton", "kastanje-paal-met-postsaver", "grondboor"]
+        : [FENCE[w], GATE_POSTS[w], "kastanje-paal-met-postsaver", "snelbeton", "beslag-hang-sluitwerk", "grondboor"];
     case "veldpoort":
       return ["beslag-hang-sluitwerk", "eiken-palen", "snelbeton", "vierkant-gezaagde-robinia-palen", "post-rail-omheining"];
     case "palen":

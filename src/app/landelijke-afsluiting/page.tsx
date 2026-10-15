@@ -73,11 +73,12 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Hoe lang gaat een houten afsluiting mee?",
-      text: "Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15 jaar. Een postsaver rond de voet van de palen verlengt de levensduur van de palen.",
+      text: "Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15 jaar. Kastanje palen gaan in de grond zo’n 10 à 15 jaar mee, afhankelijk van de dikte: hoe dikker, hoe langer. Een postsaver rond de voet van de palen verlengt de levensduur van de palen.",
       body: (
         <>
           Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15
-          jaar. Een <Link href="/project/postsaver-voor-palen/" className={textLink}>postsaver</Link> rond de voet van de palen verlengt de
+          jaar. Kastanje palen gaan in de grond zo’n 10 à 15 jaar mee, afhankelijk van de dikte: hoe dikker, hoe langer. Een{" "}
+          <Link href="/project/postsaver-voor-palen/" className={textLink}>postsaver</Link> rond de voet van de palen verlengt de
           levensduur van de palen. Lees ook{" "}
           <Link href="/kastanje-hazelaar-of-robinia-hekwerk-wat-is-het-verschil/" className={textLink}>het verschil tussen kastanje, hazelaar en robinia</Link>.
         </>

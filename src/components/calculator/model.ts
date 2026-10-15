@@ -22,6 +22,7 @@ import {
   type CalculatorData,
   type GateOption,
   type PoleOpt,
+  type PoleKind,
   type PoleOption,
 } from "@/lib/calculator-pricing";
 
@@ -276,8 +277,15 @@ export function gateSize(data: CalculatorData, gate: Gate): GateSize | null {
   return { label: dims, price: size.price, available: size.available };
 }
 
+/** Gates sold without posts that look best on a particular post (Xander: the robinia poort on sawn robinia). */
+const GATE_POLE_KIND: Record<string, PoleKind> = { "robinia-poort": "robinia-gezaagd" };
+
 export function gatePoleResolved(data: CalculatorData, gate: Gate) {
-  const product = data.gatePoles.find((p) => p.handle === gate.poleHandle) ?? data.gatePoles[0];
+  const preferred = gate.handle ? GATE_POLE_KIND[gate.handle] : undefined;
+  const product =
+    data.gatePoles.find((p) => p.handle === gate.poleHandle) ??
+    data.gatePoles.find((p) => p.kind === preferred) ??
+    data.gatePoles[0];
   if (!product) return null;
   // A gate hangs on these posts: default to 180 cm or longer and, for round
   // posts, the thickest stocked diameter. Square posts are sturdy at any size.

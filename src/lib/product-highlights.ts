@@ -7,7 +7,8 @@
  * or their path when they have none.
  */
 
-export type Highlight = [lead: string, text: string];
+/** A bold lead, one line of explanation and, optionally, a link to the product it names. */
+export type Highlight = [lead: string, text: string, link?: { href: string; label: string }];
 
 export type ProductHighlights = {
   plus: Highlight[];
@@ -135,7 +136,12 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
     plus: [
       ["Pen-en-gatverbindingen", "een frame van geschaafde robinia profielen van 7x5 cm."],
       ["Zelfde latten als het robinia hekwerk", "voorgeboord en vastgeschroefd, voor een strak geheel."],
-      ["Met hang- en sluitwerk", "scharnieren en sluiting inbegrepen (palen apart)."],
+      ["Met hang- en sluitwerk", "scharnieren en sluiting zijn inbegrepen."],
+      [
+        "Palen apart",
+        "de poortpalen zitten er niet standaard bij. Wij raden vierkant gezaagde robinia palen aan: strak en even duurzaam als de poort.",
+        { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "Gezaagde robinia palen" },
+      ],
       ["Extreem duurzaam", "robinia is van nature heel goed bestand tegen vocht en rot."],
     ],
     uses: [
@@ -197,10 +203,11 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
   palen: {
     plus: [
       ["Geschild en gepunt", "rond, aan één kant gepunt: makkelijk in de grond te kloppen."],
+      ["Zo’n 10 à 15 jaar in de grond", "afhankelijk van de dikte en de grond: hoe dikker de paal, hoe langer hij meegaat."],
       ["Onbehandeld kastanjehout", "het looizuur beschermt tegen rot en schimmel, zonder chemische behandeling."],
       ["Veel maten", "van 100 tot 300 cm lang, ø 6-8, 8-10 of 10-12 cm."],
       ["Zelfde hout als het hekwerk", "past perfect bij kastanje rasterwerk en poorten."],
-      ["Ook met postsaver", "voor een veel langere levensduur in de grond."],
+      ["Ook met postsaver", "die beschermt de paal op de overgang tussen lucht en grond, waar hij het eerst rot."],
     ],
     uses: [
       "Palen voor kastanje of hazelaar hekwerk",
@@ -233,7 +240,7 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
     uses: [
       "Tuinafsluitingen en houten hekken",
       "Steunpalen bij kastanje of robinia hekwerk",
-      "Poortpalen voor robinia poorten",
+      "Poortpalen voor de robinia poort (onze aanrader)",
       "Weides, moestuinen en boomgaarden",
     ],
   },
