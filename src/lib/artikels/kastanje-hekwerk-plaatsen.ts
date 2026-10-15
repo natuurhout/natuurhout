@@ -75,8 +75,9 @@ export const HEKWERK_PLAATSEN = `
     <li>Zet de palen <strong>loodrecht</strong> met een waterpas.</li>
     <li>Zet de palen ongeveer <strong>⅓ van hun lengte in de grond</strong>.</li>
     <li>Vul aan met aarde en <strong>stamp goed aan</strong>.</li>
-    <li>Plaats daarna de <strong>tussenpalen</strong> langs het touw, ongeveer <strong>om de 2 meter</strong>.</li>
+    <li>Plaats daarna de <strong>tussenpalen</strong> langs het touw, gemiddeld <strong>om de 1,80 meter</strong>.</li>
   </ol>
+  <div class="nh-tip"><p><strong>Hoe ver uit elkaar?</strong> Wij raden gemiddeld <strong>1,80 m</strong> tussen de palen aan. Bij hoog hekwerk (1,50 m en hoger) liefst om de <strong>1,50 m</strong>. Op zachte grond zet je ze dichter bij elkaar dan op stevige grond. Laat nooit meer dan <strong>2 meter</strong> tussen twee palen.</p></div>
   <div class="nh-tip"><p><strong>Tip:</strong> voor extra stevigheid kun je de hoekpalen ondersteunen met een schuine steunpaal.</p></div>
 </section>
 

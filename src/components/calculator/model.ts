@@ -227,7 +227,7 @@ export function tallestHeight(data: CalculatorData, state: State): number {
 
 export function recommendedPoleCount(data: CalculatorData, state: State): number {
   let total = 0;
-  if (state.types.includes("hekwerk")) for (const line of state.fences) total += fencePostsFor(line.meters);
+  if (state.types.includes("hekwerk")) for (const line of state.fences) total += fencePostsFor(line.meters, line.height);
   if (state.types.includes("vlechtschermen")) {
     const s = screenResolved(data, state);
     if (s && s.count > 0) total += s.count + 1;

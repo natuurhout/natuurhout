@@ -175,7 +175,7 @@ export function HekwerkStep({ data, state, update }: StepProps) {
               </Question>
 
               {resolved && (
-                <Question title="Welke latafstand?" hint="Een kleinere afstand tussen de latten geeft meer privacy.">
+                <Question title="Welke latafstand?" hint="Met een kleinere latafstand oogt het hekwerk dichter en houdt het kleine dieren beter tegen.">
                   <div className="grid gap-2 sm:grid-cols-2">
                     {resolved.options.map((r) => (
                       <OptionCard
@@ -328,7 +328,9 @@ export function PalenStep({ data, state, update }: StepProps) {
     update((s) => ({ ...s, poles: s.poles.map((l) => (l.id === id ? { ...l, ...patch } : l)) }));
 
   const breakdown: string[] = [];
-  if (state.types.includes("hekwerk")) state.fences.forEach((f) => breakdown.push(`${fencePostsFor(f.meters)} voor ${f.meters} m hekwerk`));
+  if (state.types.includes("hekwerk")) state.fences.forEach((f) =>
+      breakdown.push(`${fencePostsFor(f.meters, f.height)} voor ${f.meters} m hekwerk${f.height ? ` van ${f.height} cm` : ""}`),
+    );
   if (state.types.includes("vlechtschermen")) {
     const s = screenResolved(data, state);
     if (s) breakdown.push(`${s.count + 1} voor ${s.count} vlechtschermen`);
@@ -339,8 +341,14 @@ export function PalenStep({ data, state, update }: StepProps) {
       <div className="rounded-xl bg-brand-soft/60 p-4 text-sm text-ink/80">
         <p>
           <span className="font-semibold text-ink">Aanbevolen: {recommended} palen</span>
-          {breakdown.length > 0 && <> ({breakdown.join(", ")})</>}. Hekwerk: één paal per 2 meter plus een eindpaal.
+          {breakdown.length > 0 && <> ({breakdown.join(", ")})</>}.
         </p>
+        {state.types.includes("hekwerk") && (
+          <p className="mt-1">
+            Hekwerk: een paal om de ±1,80 m, bij hekwerk vanaf 1,50 m hoog om de ±1,50 m, plus een eindpaal. Op zachte grond zet u
+            de palen dichter bij elkaar; nooit meer dan 2 m tussen twee palen.
+          </p>
+        )}
         {chosen !== recommended && (
           <p className="mt-1 font-medium text-accent-deep">U heeft nu {chosen} palen gekozen.</p>
         )}

@@ -128,10 +128,24 @@ export function rollsFor(meters: number, rollLength: number): number {
   return Math.max(1, Math.ceil(meters / rollLength - 1e-9));
 }
 
-/** Fence posts for one straight run: one every 2 m plus the end post. */
-export function fencePostsFor(meters: number): number {
+/**
+ * Post spacing Natuurhout recommends (Xander): about 1.80 m, about 1.50 m
+ * for fencing from 1.50 m high, never more than 2 m. Soft ground needs the
+ * posts closer together.
+ */
+export const POST_SPACING_M = 1.8;
+export const HIGH_FENCE_POST_SPACING_M = 1.5;
+export const HIGH_FENCE_FROM_CM = 150;
+export const MAX_POST_SPACING_M = 2;
+
+export function postSpacingFor(heightCm: number | null | undefined): number {
+  return heightCm && heightCm >= HIGH_FENCE_FROM_CM ? HIGH_FENCE_POST_SPACING_M : POST_SPACING_M;
+}
+
+/** Fence posts for one straight run: one every postSpacingFor(height) plus the end post. */
+export function fencePostsFor(meters: number, heightCm?: number | null): number {
   if (!(meters > 0)) return 0;
-  return Math.ceil(meters / 2 - 1e-9) + 1;
+  return Math.ceil(meters / postSpacingFor(heightCm) - 1e-9) + 1;
 }
 
 /** Length of a row of screens with a post between them and at both ends (cm). */

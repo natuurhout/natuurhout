@@ -54,7 +54,7 @@ function faqs(): FaqItem[] {
     robinia && `robinia hekwerk van 1 m hoog vanaf ${robinia}`,
     hazelaar && `hazelaar hekwerk van 90 cm hoog vanaf ${hazelaar}`,
   ].filter(Boolean).join(", ");
-  const costText = `Bij Natuurhout kost ${cost} per lopende meter (incl. btw). Reken daarbij één paal per 2 meter${palen ? `; kastanje palen kosten vanaf ${formatPrice(palen)} per stuk` : ""}. Met de calculator berekent u meteen de richtprijs van uw volledige afsluiting.`;
+  const costText = `Bij Natuurhout kost ${cost} per lopende meter (incl. btw). Reken daarbij een paal om de ±1,80 m${palen ? `; kastanje palen kosten vanaf ${formatPrice(palen)} per stuk` : ""}. Met de calculator berekent u meteen de richtprijs van uw volledige afsluiting.`;
   return [
     {
       q: "Wat kost een landelijke afsluiting per meter?",
@@ -68,7 +68,7 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Hoeveel palen heb ik nodig voor hekwerk?",
-      text: "Reken één paal per 2 meter hekwerk, plus een eindpaal. Voor 20 meter hekwerk zijn dat dus 11 palen. Bij vlechtschermen heeft u altijd één paal meer dan schermen: een begin- en eindpaal en één tussen elke twee schermen.",
+      text: "Wij raden gemiddeld een paal om de 1,80 m aan, plus een eindpaal: voor 20 meter hekwerk zijn dat 13 palen. Bij hoog hekwerk (1,50 m en hoger) zet u de palen liefst om de 1,50 m. Het hangt ook af van de ondergrond: op zachte grond zet u ze dichter bij elkaar dan op stevige grond. Laat nooit meer dan 2 meter tussen twee palen. Bij vlechtschermen heeft u altijd één paal meer dan schermen: een begin- en eindpaal en één tussen elke twee schermen.",
     },
     {
       q: "Hoe diep moeten de palen in de grond?",
@@ -76,7 +76,7 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Welke hoogte kies ik voor mijn tuinafsluiting?",
-      text: "Hekwerk van 60 tot 90 cm is mooi om een border, moestuin of voortuin af te bakenen. Van 1 m tot 1,20 m is de klassieke tuinafsluiting, die ook kinderen of een hond binnenhoudt. Wilt u meer privacy, kies dan hekwerk of vlechtschermen van 1,50 tot 1,80 m hoog.",
+      text: "Hekwerk van 60 tot 90 cm is mooi om een border, moestuin of voortuin af te bakenen. Van 1 m tot 1,20 m is de klassieke tuinafsluiting, die ook kinderen of een hond binnenhoudt. Hekwerk van 1,50 tot 1,80 m hoog kiest u voor een hogere afsluiting, bijvoorbeeld voor grotere honden of om dieren binnen of buiten te houden. Door hekwerk kijkt u tussen de latten door; wilt u privacy, kies dan vlechtschermen.",
     },
     {
       q: "Hoe lang gaat een houten afsluiting mee?",
@@ -171,7 +171,9 @@ export default function LandelijkeAfsluitingPage() {
         <Section title="Hekwerk: de klassieke landelijke afsluiting">
           <p>
             Hekwerk of rasterwerk bestaat uit gekloven latten die met verzinkte draad op een rol zijn gebonden. Het volgt
-            vlot de lijn van uw tuin, ook op oneffen terrein, en is snel geplaatst tussen houten palen.
+            vlot de lijn van uw tuin, ook op oneffen terrein, en is snel geplaatst tussen houten palen: gemiddeld om de
+            1,80 m, bij hoog hekwerk om de 1,50 m en nooit meer dan 2 m uit elkaar. Het hekwerk blijft open, u kijkt
+            tussen de latten door.
           </p>
           <ul className="grid gap-3 sm:grid-cols-3">
             <ProductItem href="/project/rasterwerk-kastanjehout/" name="Kastanje hekwerk">
