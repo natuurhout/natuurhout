@@ -9,6 +9,7 @@ import { MOBILE, PHONE } from "@/lib/contact";
 import type { LegacyPage } from "@/lib/legacy";
 import { SHOP_PRICES_MARKER, type LegacyProduct } from "@/lib/legacy-product";
 import { boughtTogether, productFacts } from "@/lib/product-info";
+import { productHighlights } from "@/lib/product-highlights";
 import { realisatiesFor } from "@/lib/realisaties";
 
 /*
@@ -116,6 +117,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
           facts: info.pricesFromShop ? productFacts(primary) : [],
           kenmerken: info.sections.kenmerken,
           pluspunten: info.sections.pluspunten,
+          highlights: productHighlights(primary?.handle ?? page.pathname),
           tips: info.sections.tips,
           photos: info.photos,
           fencing,

@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
-import { Leaf, ShieldCheck, Store, Truck } from "lucide-react";
+import { Handshake, Phone, Truck, Users, Warehouse } from "lucide-react";
 import PriceList from "@/components/PriceList";
 import ProductGallery, { type GalleryImage } from "@/components/ProductGallery";
 import { discountPercent, type Product } from "@/lib/catalog";
+import { PHONE } from "@/lib/contact";
 import { SHOP_EXTRA_PHOTOS } from "@/lib/extra-photos";
 import { productLead } from "@/lib/seo";
 
@@ -13,23 +14,36 @@ import { productLead } from "@/lib/seo";
  * photos and — when a product is not sold in the webshop — their own prices.
  */
 
+// Why buy here: the same strengths as the top bar, for every product.
 const assurances = [
-  { icon: Truck, label: "Levering mogelijk" },
-  { icon: Store, label: "Afhalen in Zele" },
-  { icon: ShieldCheck, label: "+15 jaar ervaring" },
-  { icon: Leaf, label: "Duurzaam hout" },
+  { icon: Users, label: "Familiebedrijf · 15 jaar ervaring" },
+  { icon: Warehouse, label: "Op voorraad: binnen de week geleverd" },
+  { icon: Truck, label: "Eigen levering in heel België" },
+  { icon: Handshake, label: "Afhalen in Zele, wij helpen inladen" },
 ];
 
 function Assurances({ className }: { className: string }) {
   return (
-    <ul className={className}>
-      {assurances.map(({ icon: Icon, label }) => (
-        <li key={label} className="flex items-center gap-2.5">
-          <Icon className="h-4 w-4 shrink-0 text-accent" />
-          {label}
-        </li>
-      ))}
-    </ul>
+    <div className={className}>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/50">Waarom Natuurhout</p>
+      <ul className="mt-3 grid gap-2.5 max-md:grid-cols-2 max-md:gap-x-4">
+        {assurances.map(({ icon: Icon, label }) => (
+          <li key={label} className="flex items-start gap-2.5">
+            <Icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+            {label}
+          </li>
+        ))}
+      </ul>
+      <a
+        href={PHONE.href}
+        className="mt-3.5 flex items-center gap-2.5 border-t border-line pt-3 font-medium text-accent-deep hover:text-ink"
+      >
+        <Phone aria-hidden className="h-4 w-4 shrink-0" />
+        <span>
+          Advies nodig? <span className="whitespace-nowrap">{PHONE.label}</span>
+        </span>
+      </a>
+    </div>
   );
 }
 
@@ -56,7 +70,7 @@ export function ProductHero({
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:items-start lg:gap-10">
       <div className="md:sticky md:top-24">
         <ProductGallery images={images} badge={bestSaving > 0 ? `Tot −${bestSaving}%` : undefined} />
-        <Assurances className="mt-5 hidden gap-2.5 rounded-card border border-line bg-white p-4 text-sm text-ink/75 md:grid" />
+        <Assurances className="mt-5 hidden rounded-card border border-line bg-white p-4 text-sm text-ink/75 md:block" />
       </div>
 
       <div className="min-w-0">
@@ -71,7 +85,7 @@ export function ProductHero({
           {children}
         </div>
 
-        <Assurances className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm text-ink/75 md:hidden" />
+        <Assurances className="mt-5 rounded-card border border-line bg-white p-4 text-sm text-ink/75 md:hidden" />
       </div>
     </div>
   );

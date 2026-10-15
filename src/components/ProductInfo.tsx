@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Check } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ProductTabs, { type ProductTab } from "@/components/ProductTabs";
 import { compareAtPrice, formatPrice, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
@@ -8,6 +9,7 @@ import { orderTerm } from "@/lib/made-to-order";
 import { MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import type { LegacyPhoto } from "@/lib/legacy-product";
+import type { ProductHighlights } from "@/lib/product-highlights";
 
 /*
  * Everything below a product page's price list: the information tabs with a
@@ -126,12 +128,51 @@ export function ShopPriceMatrix({ product }: { product: Product }) {
   );
 }
 
+/** This product's own strong points and uses, above any "Waarom kiezen voor …" copy. */
+function Highlights({ highlights, more }: { highlights: ProductHighlights; more: string }) {
+  return (
+    <div className="max-w-3xl space-y-8">
+      <div>
+        <h3 className="font-display text-lg font-semibold text-ink">Pluspunten van dit product</h3>
+        <ul className="mt-3 space-y-2.5">
+          {highlights.plus.map(([lead, text]) => (
+            <li key={lead} className="flex gap-3 leading-7 text-ink/80">
+              <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-soft text-brand-dark">
+                <Check aria-hidden className="h-3.5 w-3.5" strokeWidth={3} />
+              </span>
+              <span>
+                <strong className="text-ink">{lead}</strong>: {text}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 className="font-display text-lg font-semibold text-ink">Waarvoor gebruikt u het?</h3>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {highlights.uses.map((use) => (
+            <li key={use} className="rounded-card border border-line bg-white px-4 py-2.5 text-sm leading-6 text-ink/80">
+              {use}
+            </li>
+          ))}
+        </ul>
+      </div>
+      {more && (
+        <div className="border-t border-line pt-6">
+          <Html html={more} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function productInfoTabs({
   omschrijving,
   prijzen,
   facts,
   kenmerken,
   pluspunten,
+  highlights,
   tips,
   photos,
   fencing,
@@ -142,6 +183,8 @@ export function productInfoTabs({
   facts: { label: string; value: string }[];
   kenmerken: string;
   pluspunten: string;
+  /** The product's own pluspunten and uses (src/lib/product-highlights.ts). */
+  highlights?: ProductHighlights;
   tips: string;
   photos?: LegacyPhoto[];
   fencing: boolean;
@@ -176,21 +219,13 @@ export function productInfoTabs({
           ),
         }
       : null,
-    {
-      id: "pluspunten",
-      label: "Pluspunten",
-      content: pluspunten ? (
-        <Html html={pluspunten} />
-      ) : (
-        <Html
-          html={`<h3>Waarom bij Natuurhout?</h3><ul>
-<li><strong>Zo’n 15 jaar ervaring</strong> met natuurlijke tuinafsluitingen in kastanje, robinia en hazelaar.</li>
-<li><strong>Persoonlijk advies</strong> — bel of mail ons, we denken graag mee over uw project.</li>
-<li><strong>Afhalen in Zele</strong> of <strong>levering</strong>: de kosten hangen af van de locatie, grotere bestellingen leveren we aan een gereduceerd tarief.</li>
-</ul>`}
-        />
-      ),
-    },
+    highlights || pluspunten
+      ? {
+          id: "pluspunten",
+          label: "Pluspunten",
+          content: highlights ? <Highlights highlights={highlights} more={pluspunten} /> : <Html html={pluspunten} />,
+        }
+      : null,
     {
       id: "tips",
       label: "Tips",
