@@ -7,6 +7,15 @@ import type { Collection, Product, ProductVariant } from "@/lib/catalog";
  * orders are paid.
  */
 
+/**
+ * Products taken off the website altogether (Xander), with the page their
+ * old /shop/ URL now redirects to (next.config.ts lists the same redirects).
+ */
+export const REMOVED_PRODUCTS: Record<string, string> = {
+  // "Hazelaar hekwerk 90cm (7/9cm)", sold in Sale; Oct 2026.
+  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": "/project/hazelaarrasterwerk/",
+};
+
 /** The shop collection whose page section lists the promotions. */
 export const PROMO_COLLECTION = "promos";
 
@@ -27,7 +36,6 @@ const ENDED: Record<string, string | null> = {
   "kastanje-hekwerk-100cm-4-5cm": SALE_COLLECTION,
   "kastanje-hekwerk-100cm-7-9cm": SALE_COLLECTION,
   "kastanje-hekwerk-1-50m": null,
-  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": SALE_COLLECTION,
   "kastanje-kaderpoort": SALE_COLLECTION,
   "hazelaar-vlechtscherm-80cm-hoog-x-150cm-breed": null,
 };

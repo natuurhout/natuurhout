@@ -57,7 +57,11 @@ const nextConfig: NextConfig = {
       ["/homepage-natuurhout-kastanje-afsluiting-kastanjehouten-hekwerk-2", "/project/rasterwerk-kastanjehout/"],
       ["/homepage-natuurhout-kastanje-afsluiting-kastanjehouten-hekwerk", "/project/rasterwerk-kastanjehout/"],
     ];
-    return [...live301s, ...migrationSeoRedirects].map(([source, destination]) => ({
+    // Products taken off the website (src/lib/promotions.ts REMOVED_PRODUCTS).
+    const removedProducts: Array<[string, string]> = [
+      ["/shop/kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte", "/project/hazelaarrasterwerk/"],
+    ];
+    return [...live301s, ...migrationSeoRedirects, ...removedProducts].map(([source, destination]) => ({
       source,
       destination,
       permanent: true,

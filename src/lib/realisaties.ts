@@ -269,7 +269,6 @@ const BY_HANDLE: Record<string, Kind> = {
   "eiken-palen": "eiken",
   "halfronde-palen": "halfrond",
   "hazelaar-hekwerk": "hazelaar",
-  "kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte": "hazelaar", // "Hazelaar hekwerk 90cm" despite its handle
 };
 
 // Card titles where the WordPress title is generic or used twice.
