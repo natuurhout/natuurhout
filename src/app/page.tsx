@@ -3,13 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Calculator, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
 import CategoryCarousel from "@/components/CategoryCarousel";
+import Faq, { type FaqItem } from "@/components/Faq";
 import JsonLd from "@/components/JsonLd";
+import { PLACES, withPageMeta } from "@/components/LandingParts";
 import ProductSlider from "@/components/ProductSlider";
-import { getProduct, isListed, products, type Product } from "@/lib/catalog";
+import { formatPrice, getProduct, isListed, pricePerMeterFrom, products, type Product } from "@/lib/catalog";
 import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
 import { categories } from "@/lib/categories";
 import { SALE } from "@/lib/promotions";
-import { MOBILE, PHONE } from "@/lib/contact";
+import { ADDRESS, EMAIL, MOBILE, PHONE } from "@/lib/contact";
+import { HOURS } from "@/lib/opening-hours";
+import { siteUrl } from "@/lib/site";
 import { getLegacyPageByPath } from "@/lib/legacy";
 
 /*
@@ -24,18 +28,152 @@ import { getLegacyPageByPath } from "@/lib/legacy";
 
 const page = getLegacyPageByPath("/");
 
+// Approved SEO title, description and h1 (Xander, Oct 2026: the main goal is
+// selling kastanje, robinia and hazelaar hekwerk and their gates), recorded
+// in migration/handbuilt-routes.json.
+const TITLE = "Kastanje, robinia & hazelaar hekwerk en poorten | Natuurhout";
+const DESCRIPTION =
+  "Hekwerk en houten poorten in kastanje, robinia en hazelaar, rechtstreeks van de specialist in Zele. Ook palen, vlechtschermen en moestuinbakken. Levering in heel Vlaanderen.";
+const HEADING = "Hekwerk en poorten in kastanje, robinia en hazelaar";
+
 export const metadata: Metadata = {
-  title: page?.title,
-  description: page?.description || undefined,
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
   alternates: { canonical: page?.canonical || "https://www.natuurhout.be/" },
   openGraph: {
-    title: page?.title,
-    description: page?.description || undefined,
+    title: TITLE,
+    description: DESCRIPTION,
     url: page?.canonical || "https://www.natuurhout.be/",
     locale: "nl_BE",
     type: "website",
+    images: [{ url: CALCULATOR_HEKWERK_PHOTO }],
   },
 };
+
+// Local business data for Google (Maps, local results) and AI assistants.
+const DAY_CODES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const hhmm = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+const localBusiness = {
+  "@context": "https://schema.org",
+  "@type": "HomeAndConstructionBusiness",
+  "@id": `${siteUrl}/#localbusiness`,
+  name: "Natuurhout",
+  description: DESCRIPTION,
+  url: `${siteUrl}/`,
+  telephone: "+3252558858",
+  email: EMAIL.label,
+  image: `${siteUrl}${CALCULATOR_HEKWERK_PHOTO}`,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: ADDRESS.street,
+    postalCode: ADDRESS.city.split(" ")[0],
+    addressLocality: ADDRESS.city.split(" ").slice(1).join(" "),
+    addressRegion: "Oost-Vlaanderen",
+    addressCountry: "BE",
+  },
+  areaServed: [
+    { "@type": "AdministrativeArea", name: "Vlaanderen" },
+    { "@type": "Country", name: "België" },
+  ],
+  openingHoursSpecification: HOURS.flatMap((hours, day) =>
+    hours ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: DAY_CODES[day], opens: hhmm(hours.open), closes: hhmm(hours.close) }] : [],
+  ),
+  knowsAbout: [
+    "kastanje hekwerk", "robinia hekwerk", "hazelaar hekwerk", "houten tuinpoorten", "kastanje palen",
+    "robinia palen", "hazelaar vlechtschermen", "moestuinbakken", "Post & Rail", "schapengaas",
+  ],
+  parentOrganization: { "@id": `${siteUrl}/#organization` },
+};
+
+/** Lowest current webshop price of a product ("€175,00"). */
+const priceFrom = (handle: string) => {
+  const price = getProduct(handle)?.priceFrom;
+  return price ? formatPrice(price) : null;
+};
+
+// Main goal (Xander): hekwerk in kastanje, robinia and hazelaar, and their gates.
+const mainProducts = [
+  {
+    title: "Kastanje hekwerk",
+    href: "/project/rasterwerk-kastanjehout/",
+    src: CALCULATOR_HEKWERK_PHOTO,
+    text: "De klassieke landelijke afsluiting, van 60 cm tot 1,80 m hoog.",
+    price: pricePerMeterFrom("kastanje-rasterwerk", undefined, true),
+    unit: "/m",
+  },
+  {
+    title: "Robinia hekwerk",
+    href: "/project/robinia-rasterwerk/",
+    src: "/fotos/robinia-hekwerk-hoofdfoto.jpg",
+    text: "De duurzaamste Europese houtsoort, van 1 m tot 1,50 m hoog.",
+    price: pricePerMeterFrom("robinia-hekwerk"),
+    unit: "/m",
+  },
+  {
+    title: "Hazelaar hekwerk",
+    href: "/project/hazelaarrasterwerk/",
+    src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp",
+    text: "Licht en landelijk, mooi rond borders en moestuinen.",
+    price: pricePerMeterFrom("hazelaar-hekwerk"),
+    unit: "/m",
+  },
+  {
+    title: "Houten poorten",
+    href: "/houten-tuinpoorten/",
+    src: "/fotos/kastanje-premium-poort-hekwerk.jpg",
+    text: "Kastanje, robinia en hazelaar poorten, ook op maat, met palen en beslag.",
+    price: priceFrom("hazelaar-poort"),
+    unit: "",
+  },
+];
+
+// Secondary goal: posts, screens and planters.
+const secondaryProducts = [
+  { title: "Kastanje palen", href: "/project/kastanjepalen/", src: "/fotos/kastanje-palen.jpg", price: priceFrom("palen") },
+  { title: "Robinia palen", href: "/project/robinia-palen/", src: "/wp-content/uploads/2026/04/Copy-of-Copy-of-Robinia-Hekwerk-1.20m-4cm.png", price: priceFrom("robinia-palen") },
+  { title: "Hazelaar vlechtschermen", href: "/project/hazelaar-vlechtscherm-hasseltre/", src: CALCULATOR_VLECHTSCHERM_PHOTO, price: priceFrom("hazelaar-scherm-trepanel") },
+  { title: "Moestuinbakken", href: "/project/moestuinbak/", src: "/wp-content/uploads/2016/01/IMG_7994-scaled.jpg", price: priceFrom("tuinbakken-hazelaar") },
+];
+
+// Category carousel in the order of what matters most to sell.
+const CAROUSEL_ORDER = [
+  "/project/rasterwerk-kastanjehout/", "/project/robinia-rasterwerk/", "/project/hazelaarrasterwerk/",
+  "/project/franse-poorten/", "/project/maatwerk-poorten/", "/project/kastanje-poorten-geschroefd/", "/shop/robinia-poort/",
+  "/project/hazelaar-poorten/", "/project/kastanjepalen/", "/project/robinia-palen/", "/shop/vierkant-gezaagde-robinia-palen/",
+  "/project/hazelaar-vlechtscherm-hasseltre/", "/project/hazelaarvlechtschermen/", "/project/moestuinbak/",
+  "/project/post-rail-2/", "/project/cleft-field-veldpoorten/", "/project/eiken-palen/", "/project/postsaver-voor-palen/",
+];
+const carouselRank = (href: string) => (CAROUSEL_ORDER.includes(href) ? CAROUSEL_ORDER.indexOf(href) : CAROUSEL_ORDER.length);
+// The kaderpoort is a unique Sale item now; it is listed under Sale.
+const carouselTiles = categories
+  .filter((tile) => tile.href !== "/project/raamwerkpoort/")
+  .sort((a, b) => carouselRank(a.href) - carouselRank(b.href));
+
+function homeFaqs(): FaqItem[] {
+  const kastanje = pricePerMeterFrom("kastanje-rasterwerk", 100);
+  return [
+    {
+      q: "Welk hekwerk kies ik: kastanje, robinia of hazelaar?",
+      text: "Kastanje is de klassieker: duurzaam zonder behandeling (ongeveer 15 tot 25 jaar) en in de meeste hoogtes. Robinia is de duurzaamste Europese houtsoort (ongeveer 25 tot 40 jaar) en heel stevig. Hazelaar is lichter en speelser van uitzicht en past mooi rond borders en moestuinen (ongeveer 8 tot 15 jaar).",
+    },
+    {
+      q: "Wat kost kastanje hekwerk per meter?",
+      text: `${kastanje ? `Kastanje hekwerk van 1 m hoog kost bij Natuurhout vanaf ${kastanje} per lopende meter, incl. btw. ` : ""}Reken daarbij een paal om de ±1,80 m. Met de calculator berekent u meteen de richtprijs van hekwerk, palen en poort samen.`,
+    },
+    {
+      q: "Verkopen jullie ook houten poorten bij het hekwerk?",
+      text: "Ja. Bij kastanje hekwerk horen de kastanje premium poorten, geschroefde poorten en poorten op maat; daarnaast zijn er robinia en hazelaar poorten en Cleft & Field veldpoorten voor weides. De meeste poorten worden geleverd met poortpalen en hang- en sluitwerk.",
+    },
+    {
+      q: "Leveren jullie in heel Vlaanderen?",
+      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen en België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+    },
+    {
+      q: "Moet kastanjehout behandeld worden?",
+      text: "Nee. Tamme kastanje zit vol looizuren en is daardoor van nature bestand tegen weer en wind, zonder verf of chemische behandeling. Het hout vergrijst mooi na verloop van tijd.",
+    },
+  ];
+}
 
 const usps = [
   { icon: Leaf, title: "Duurzame producten", text: "Onbehandeld hout dat tegen ons klimaat kan." },
@@ -69,9 +207,9 @@ const principles = [
   },
 ];
 
-// Homepage order is Xander's, not the shop's collection order: fencing first
-// (kastanje, robinia, hazelaar), then gates, then posts, with the rest of the
-// range and mesh last. Within each rail the same species order holds.
+// Homepage order is Xander's priority, not the shop's collection order:
+// fencing first (kastanje, robinia, hazelaar), then gates, then posts, screens
+// and planters, then Post & Rail and mesh, the rest last. Within each rail the same species order holds.
 // Handles are verbatim shop data. Anything the shop adds later that is not
 // listed here lands in the "meer" rail, so a new product never disappears
 // from the homepage; a handle the shop drops is simply skipped.
@@ -114,29 +252,26 @@ const homeSections: HomeSection[] = [
     ],
   },
   {
-    title: "Tuinschermen, tuinbakken & meer",
-    href: "/shop/",
-    catchAll: true,
+    title: "Vlechtschermen & moestuinbakken",
+    href: "/shop/#vlechtschermen",
     handles: [
       "hazelaar-vlechtscherm-hasseltre",
       "hazelaar-scherm-trepanel",
-      "post-rail-omheining",
       "tuinbakken-hazelaar",
       "plantenbak-cortenstaal",
-      "lariks-planken-delen",
     ],
   },
   {
-    title: "Plaatsingsmateriaal",
-    href: "/shop/#plaatsing-materiaal",
+    title: "Post & Rail en schapengaas",
+    href: "/shop/#post-rail",
     handles: [
-      "houtschroeven",
-      "snelbeton",
-      "hekwerk-draadverbinders",
-      "beslag-hang-sluitwerk",
-      "grondboor",
-      "grondboor-kopie",
-      "tuin-voorhamer",
+      "post-rail-omheining",
+      "schapengaas-nexum-basic",
+      "schapengaas-nexum-licht",
+      "schapengaas-nexum-zwaar",
+      "nexum-x",
+      "schapengaas-fx",
+      "kippengaas",
     ],
   },
   {
@@ -145,15 +280,18 @@ const homeSections: HomeSection[] = [
     handles: SALE,
   },
   {
-    title: "Gaas",
-    href: "/shop/#gaas",
+    title: "Plaatsingsmateriaal & meer",
+    href: "/shop/#plaatsing-materiaal",
+    catchAll: true,
     handles: [
-      "schapengaas-nexum-basic",
-      "schapengaas-nexum-licht",
-      "schapengaas-nexum-zwaar",
-      "nexum-x",
-      "schapengaas-fx",
-      "kippengaas",
+      "houtschroeven",
+      "snelbeton",
+      "hekwerk-draadverbinders",
+      "beslag-hang-sluitwerk",
+      "grondboor",
+      "grondboor-kopie",
+      "tuin-voorhamer",
+      "lariks-planken-delen",
     ],
   },
 ];
@@ -176,13 +314,14 @@ const rails = homeSections
 export default function HomePage() {
   return (
     <>
-      {page?.structuredData && <JsonLd data={page.structuredData} />}
+      {page?.structuredData && <JsonLd data={withPageMeta(page.structuredData, TITLE, DESCRIPTION)} />}
+      <JsonLd data={localBusiness} />
 
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-brand-dark">
         <Image
           src="/wp-content/uploads/2016/01/Frans-Rasterwerk-1.20m-scaled-e1601390421420.jpg"
-          alt="Frans kastanje rasterwerk van 1,20 meter langs een oprit"
+          alt="Kastanje hekwerk van 1,20 meter langs een oprit"
           fill
           sizes="100vw"
           priority
@@ -196,22 +335,21 @@ export default function HomePage() {
         <div className="relative mx-auto grid w-full max-w-[80rem] items-center gap-x-12 gap-y-6 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-10 lg:py-24">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent-bright">
-              Natuurhout — Zele, België
+              Natuurhout — specialist in kastanjehout, Zele
             </p>
             <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Specialist in Kastanjehout
+              {HEADING}
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">
-              Duurzaam hekwerk, poorten, palen en tuinschermen uit onbehandeld
-              kastanje-, hazelaar-, robinia-, lariks- en eikenhout. Al meer dan
-              vijftien jaar, rechtstreeks uit eigen voorraad.
+              Onbehandeld hekwerk op rol en bijpassende houten tuinpoorten, rechtstreeks uit eigen voorraad in Zele. Ook
+              palen, vlechtschermen en moestuinbakken. Al meer dan vijftien jaar, met levering in heel Vlaanderen.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/producten/"
                 className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep"
               >
-                Bekijk ons assortiment
+                Bekijk hekwerk &amp; poorten
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -293,7 +431,66 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
+      <div className="mx-auto w-full max-w-[80rem] overflow-x-clip px-4 sm:px-6 lg:px-10">
+        {/* Main goal: hekwerk in kastanje, robinia and hazelaar, and their gates. */}
+        <section className="pt-14" aria-labelledby="hekwerk-poorten">
+          <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+            <span aria-hidden className="h-px w-8 bg-accent" />
+            Onze specialiteit
+          </p>
+          <h2 id="hekwerk-poorten" className="mt-3 font-display text-3xl font-bold tracking-tight">
+            Kies uw hekwerk en bijpassende poort
+          </h2>
+          <p className="mt-3 max-w-3xl leading-relaxed text-ink/70">
+            Hekwerk op rol in drie houtsoorten, met de poorten die erbij horen. Alle prijzen zijn incl. btw; bekijk per
+            product de hoogtes, latafstanden en de actuele prijzen.
+          </p>
+          <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+            {mainProducts.map((product) => (
+              <li key={product.href}>
+                <Link
+                  href={product.href}
+                  className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-ink/10"
+                >
+                  <span className="relative block aspect-[4/3] overflow-hidden bg-brand-soft/50">
+                    <Image src={product.src} alt={product.title} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                  </span>
+                  <span className="flex flex-1 flex-col p-4">
+                    <span className="font-display text-lg font-semibold leading-tight text-ink group-hover:text-accent-deep">{product.title}</span>
+                    <span className="mt-1 text-sm leading-snug text-ink/65">{product.text}</span>
+                    {product.price && (
+                      <span className="mt-auto pt-3 text-sm text-ink/60">
+                        vanaf <strong className="text-base text-ink">{product.price}</strong>
+                        {product.unit === "/m" && " per meter"}
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Secondary goal: posts, screens and planters. */}
+        <section className="pt-12" aria-labelledby="palen-schermen">
+          <h2 id="palen-schermen" className="font-display text-2xl font-bold tracking-tight">Palen, vlechtschermen en moestuinbakken</h2>
+          <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {secondaryProducts.map((product) => (
+              <li key={product.href}>
+                <Link href={product.href} className="group flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 transition-colors hover:border-accent">
+                  <span className="relative h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-brand-soft/60">
+                    <Image src={product.src} alt="" fill sizes="64px" className="object-cover" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold leading-snug text-ink group-hover:text-accent-deep">{product.title}</span>
+                    {product.price && <span className="block text-xs text-ink/60">vanaf {product.price}</span>}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {/* Categories */}
         <section className="pt-14">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -302,14 +499,14 @@ export default function HomePage() {
                 <span aria-hidden className="h-px w-8 bg-accent" />
                 Assortiment
               </p>
-              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">Onze producten</h2>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight">Alle productgroepen</h2>
             </div>
             <Link href="/producten/" className="text-sm font-medium text-accent hover:text-accent-deep">
               Alle productgroepen →
             </Link>
           </div>
           <div className="mt-6">
-            <CategoryCarousel tiles={categories} />
+            <CategoryCarousel tiles={carouselTiles} />
           </div>
         </section>
 
@@ -325,9 +522,9 @@ export default function HomePage() {
                 Direct leverbaar uit voorraad
               </h2>
               <p className="mt-3 max-w-2xl leading-relaxed text-ink/70">
-                Ons volledige webshopassortiment: eerst hekwerk, dan poorten en
-                palen. Prijzen zijn incl. btw; bestellen en betalen gebeurt op
-                natuurhout.shop.
+                Ons volledige webshopassortiment: eerst hekwerk, dan poorten,
+                palen, vlechtschermen en moestuinbakken. Prijzen zijn incl. btw;
+                bestellen en betalen gebeurt op natuurhout.shop.
               </p>
             </div>
             <Link href="/shop/" className="text-sm font-medium text-accent hover:text-accent-deep">
@@ -360,9 +557,14 @@ export default function HomePage() {
             <div className="max-w-3xl space-y-4 leading-7 text-ink/80">
               <p>
                 Natuurhout is de specialist in onbehandeld kastanjehout in Zele.
-                Wij leveren duurzaam hekwerk en sfeervolle tuinproducten aan
+                Wij leveren{" "}
+                <Link href="/project/rasterwerk-kastanjehout/" className="font-medium text-accent underline underline-offset-2">kastanje hekwerk</Link>,{" "}
+                <Link href="/project/robinia-rasterwerk/" className="font-medium text-accent underline underline-offset-2">robinia hekwerk</Link> en{" "}
+                <Link href="/project/hazelaarrasterwerk/" className="font-medium text-accent underline underline-offset-2">hazelaar hekwerk</Link>, met
+                de bijpassende{" "}
+                <Link href="/houten-tuinpoorten/" className="font-medium text-accent underline underline-offset-2">houten poorten</Link>, aan
                 particulieren, overheden en bedrijven in heel Vlaanderen — van
-                één rol rasterwerk voor een voortuin tot de volledige omheining
+                één rol hekwerk voor een voortuin tot de volledige omheining
                 van een paardenweide.
               </p>
               <p>
@@ -415,6 +617,33 @@ export default function HomePage() {
                 groenten en kruiden. Elk product is vervaardigd uit duurzame
                 houtsoorten, waardoor een lange levensduur en minimale
                 onderhoudsbehoefte gegarandeerd zijn.
+              </p>
+
+              <h3 className="pt-4 font-display text-xl font-semibold text-ink">
+                Palen, vlechtschermen, Post &amp; Rail en schapengaas
+              </h3>
+              <p>
+                Een goede afsluiting staat op goede palen:{" "}
+                <Link href="/project/kastanjepalen/" className="font-medium text-accent underline underline-offset-2">kastanje palen</Link> en{" "}
+                <Link href="/project/robinia-palen/" className="font-medium text-accent underline underline-offset-2">robinia palen</Link>, geschild
+                en aan één kant gepunt, eventueel met een postsaver voor een langere levensduur. Wie privacy zoekt, kiest{" "}
+                <Link href="/project/hazelaar-vlechtscherm-hasseltre/" className="font-medium text-accent underline underline-offset-2">hazelaar vlechtschermen</Link>.
+                Voor paarden en vee is er{" "}
+                <Link href="/project/post-rail-2/" className="font-medium text-accent underline underline-offset-2">Post &amp; Rail</Link> in kastanje,
+                en <Link href="/shop/#gaas" className="font-medium text-accent underline underline-offset-2">schapengaas</Link> om kleinere dieren
+                binnen te houden.
+              </p>
+
+              <h3 className="pt-4 font-display text-xl font-semibold text-ink">
+                Geleverd en geplaatst in heel Vlaanderen
+              </h3>
+              <p>
+                Vanuit Zele leveren we in heel Vlaanderen en België, of u haalt af in onze opslag. We plaatsten al
+                afsluitingen en poorten in onder meer {PLACES.slice(0, 12).join(", ")} en {PLACES[12]}. Bekijk onze{" "}
+                <Link href="/onze-realisaties/" className="font-medium text-accent underline underline-offset-2">realisaties</Link>{" "}
+                of lees in de{" "}
+                <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className="font-medium text-accent underline underline-offset-2">handleiding</Link>{" "}
+                hoe u zelf hekwerk en een poort plaatst.
               </p>
 
               <h3 className="pt-4 font-display text-xl font-semibold text-ink">
@@ -481,6 +710,8 @@ export default function HomePage() {
             </aside>
           </div>
         </section>
+
+        <Faq items={homeFaqs()} title="Veelgestelde vragen over hekwerk en poorten" />
       </div>
 
       {/* Closing CTA */}

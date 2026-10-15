@@ -6,7 +6,7 @@ import JsonLd from "@/components/JsonLd";
 import Faq, { type FaqItem } from "@/components/Faq";
 import { P, PLACES, ProductItem, Section, textLink, withPageMeta } from "@/components/LandingParts";
 import Realisaties from "@/components/Realisaties";
-import { formatPrice, getProduct } from "@/lib/catalog";
+import { formatPrice, getProduct, pricePerMeterFrom } from "@/lib/catalog";
 import { ADDRESS } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
@@ -35,14 +35,7 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION, url: page?.canonical, locale: "nl_BE", type: "website", images: [{ url: "/fotos/realisaties/lievegem-robinia-1.jpg" }] },
 };
 
-/** Lowest price per running metre of a fence at one height ("100cm / … (10m rol)"), current at build time. */
-function perMeter(handle: string, height: number): string | null {
-  const prices = (getProduct(handle)?.variants ?? []).flatMap((variant) => {
-    const m = variant.title.match(/^(\d+)cm\s*\/.*\((\d+)m rol\)/);
-    return m && Number(m[1]) === height && !variant.promo ? [parseFloat(variant.price) / Number(m[2])] : [];
-  });
-  return prices.length ? formatPrice(Math.min(...prices)) : null;
-}
+const perMeter = pricePerMeterFrom;
 
 function faqs(): FaqItem[] {
   const kastanje = perMeter("kastanje-rasterwerk", 100);

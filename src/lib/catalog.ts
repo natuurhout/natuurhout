@@ -157,6 +157,19 @@ export function productDiscountPercent(product: Product): number | null {
   return percentages.length ? Math.max(...percentages) : null;
 }
 
+/**
+ * Lowest price per running metre of a fence roll ("100cm / … (10m rol)"),
+ * optionally at one height in cm. Promo variants are left out by default.
+ */
+export function pricePerMeterFrom(handle: string, height?: number, withPromo = false): string | null {
+  const prices = (getProduct(handle)?.variants ?? []).flatMap((variant) => {
+    const m = variant.title.match(/^(\d+)cm\s*\/.*\((\d+)m rol\)/);
+    if (!m || (height !== undefined && Number(m[1]) !== height) || (!withPromo && variant.promo)) return [];
+    return [parseFloat(variant.price) / Number(m[2])];
+  });
+  return prices.length ? formatPrice(Math.min(...prices)) : null;
+}
+
 export function formatPrice(p: string | number): string {
   const n = typeof p === "number" ? p : parseFloat(p);
   return `€${n.toFixed(2).replace(".", ",")}`;

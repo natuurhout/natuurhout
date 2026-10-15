@@ -4,7 +4,10 @@
     {
       "pathname": "/",
       "approvedBy": "Xander",
-      "reason": "Homepage rebuilt as a storefront: category tiles (now an auto-playing carousel of every product group), per-collection product rails, a calculator shortcut in the hero, company/SEO copy and the Natuurhout mascots. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go.",
+      "reason": "Homepage rebuilt as a storefront: category tiles (now an auto-playing carousel of every product group), per-collection product rails, a calculator shortcut in the hero, company/SEO copy and the Natuurhout mascots. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go. Oct 2026 (Xander): the page is refocused on the main goal, selling kastanje, robinia and hazelaar hekwerk and their gates: new title, description and h1 (approvedTitle, approvedDescription, approvedHeading), featured hekwerk and gate cards with prices, posts, screens and planters next, rails and carousel in that priority, local-business structured data and a FAQ.",
+      "approvedTitle": "Kastanje, robinia & hazelaar hekwerk en poorten | Natuurhout",
+      "approvedDescription": "Hekwerk en houten poorten in kastanje, robinia en hazelaar, rechtstreeks van de specialist in Zele. Ook palen, vlechtschermen en moestuinbakken. Levering in heel Vlaanderen.",
+      "approvedHeading": "Hekwerk en poorten in kastanje, robinia en hazelaar",
       "retargetedLinks": {
         "/project/robiniarasterwerk/": {
           "to": "/project/hazelaarrasterwerk/",
