@@ -410,6 +410,18 @@
         "/project/robiniarasterwerk/": { "to": "/project/robinia-rasterwerk/", "reason": "Old URL; redirects to /project/robinia-rasterwerk/ (next.config)." },
         "/project/hardhout-poorten/": { "to": "/project/cleft-field-veldpoorten/", "reason": "Old URL; redirects to /project/cleft-field-veldpoorten/ (next.config)." }
       }
+    },
+    {
+      "pathname": "/landelijke-afsluiting/",
+      "approvedBy": "Xander",
+      "reason": "Landelijke afsluitingen landing page rewritten on Xander's request (Oct 2026) for 'tuinafsluiting in Vlaanderen': Natuurhout's own project photo, the snapshot's three quality points, the fences, screens, lariks, Post & Rail, gates and posts actually sold, with links to their pages and a small photo on hover, the choice of wood, delivery and placement, a quote block and realisations. Title, description and h1 are replaced (approvedTitle, approvedDescription, approvedHeading). Canonical and structured data are the snapshot's; every internal link stays, two retargeted to the page their old URL redirects to.",
+      "approvedTitle": "Landelijke tuinafsluiting in Vlaanderen | Natuurhout",
+      "approvedDescription": "Landelijke tuinafsluitingen in kastanje, robinia en hazelaar: hekwerk, vlechtschermen, lariks en Post & Rail. Levering en plaatsing in heel Vlaanderen vanuit Zele.",
+      "approvedHeading": "Landelijke afsluitingen in Vlaanderen",
+      "retargetedLinks": {
+        "/project/robiniarasterwerk/": { "to": "/project/robinia-rasterwerk/", "reason": "Old URL; redirects to /project/robinia-rasterwerk/ (next.config)." },
+        "/project/hardhout-poorten/": { "to": "/project/cleft-field-veldpoorten/", "reason": "Old URL; redirects to /project/cleft-field-veldpoorten/ (next.config)." }
+      }
     }
   ]
 }

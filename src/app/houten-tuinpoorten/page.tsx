@@ -3,9 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
+import { ProductItem, Section, tilePhoto } from "@/components/LandingParts";
 import PreviewLink from "@/components/PreviewLink";
 import Realisaties from "@/components/Realisaties";
-import { categories } from "@/lib/categories";
 import { getLegacyPageByPath } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
 import { realisatiesFor } from "@/lib/realisaties";
@@ -32,25 +32,8 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION, url: page?.canonical, locale: "nl_BE", type: "website", images: [{ url: "/fotos/kastanje-premium-poort-hekwerk.jpg" }] },
 };
 
-const photo = (href: string) => categories.find((tile) => tile.href === href)?.src;
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-12">
-      <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h2>
-      <div className="mt-4 space-y-4 leading-7 text-ink/75">{children}</div>
-    </section>
-  );
-}
-
-function Gate({ href, name, children }: { href: string; name: string; children: React.ReactNode }) {
-  return (
-    <li className="rounded-xl border border-line bg-white p-4">
-      <PreviewLink href={href} image={photo(href)}>{name}</PreviewLink>
-      <p className="mt-1 text-[15px] leading-6 text-ink/70">{children}</p>
-    </li>
-  );
-}
+const photo = tilePhoto;
+const Gate = ProductItem;
 
 export default function HoutenTuinpoortenPage() {
   if (!page) throw new Error("The WordPress /houten-tuinpoorten/ snapshot is missing.");

@@ -18,7 +18,7 @@ import { siteIndexingEnabled } from "@/lib/site";
 type Props = { params: Promise<{ slug: string[] }> };
 
 export function generateStaticParams() {
-  const explicit = new Set(["/", "/producten/", "/aanbiedingen-2/", "/contact/", "/offerte-aanvragen/", "/over-ons/", "/houten-tuinpoorten/"]);
+  const explicit = new Set(["/", "/producten/", "/aanbiedingen-2/", "/contact/", "/offerte-aanvragen/", "/over-ons/", "/houten-tuinpoorten/", "/landelijke-afsluiting/"]);
   return legacyPages
     .filter((page) => !explicit.has(page.pathname))
     .map((page) => ({ slug: page.pathname.split("/").filter(Boolean) }));
