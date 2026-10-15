@@ -207,7 +207,10 @@ export function postsaverKey(diameter: string): string | null {
 }
 
 /** Recommended post length for a fence height: the first stocked length at least 30 cm longer. */
+/** Round fence posts: Natuurhout always advises ø 8-10 cm (ø 6-8 cm serves as a strut). */
+const ADVISED_ROUND_DIAMETER = /^8-10/;
+
 export function recommendedPole(poles: PoleOpt[], fenceHeightCm: number): PoleOpt | undefined {
   const fit = poles.filter((p) => p.available && p.length >= fenceHeightCm + 30).sort((a, b) => a.length - b.length || a.price - b.price);
-  return fit[0] ?? poles.find((p) => p.available) ?? poles[0];
+  return fit.find((p) => ADVISED_ROUND_DIAMETER.test(p.diameter)) ?? fit[0] ?? poles.find((p) => p.available) ?? poles[0];
 }

@@ -203,14 +203,15 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
   palen: {
     plus: [
       ["Geschild en gepunt", "rond, aan één kant gepunt: makkelijk in de grond te kloppen."],
-      ["Zo’n 10 à 15 jaar in de grond", "afhankelijk van de dikte en de grond: hoe dikker de paal, hoe langer hij meegaat."],
+      ["Onze aanrader: ø 8-10 cm", "stevig genoeg voor elk hekwerk. De ø 6-8 cm doen goed dienst als schoorpaal."],
+      ["Zo’n 10 jaar in de grond", "voor een paal van ø 8-10 cm, afhankelijk van de grond en de omstandigheden."],
+      ["Langer mee met een postsaver", "wij raden hem altijd aan: hij beschermt de paal op de overgang tussen lucht en grond, waar hij het eerst rot."],
       ["Onbehandeld kastanjehout", "het looizuur beschermt tegen rot en schimmel, zonder chemische behandeling."],
-      ["Veel maten", "van 100 tot 300 cm lang, ø 6-8, 8-10 of 10-12 cm."],
-      ["Zelfde hout als het hekwerk", "past perfect bij kastanje rasterwerk en poorten."],
-      ["Ook met postsaver", "die beschermt de paal op de overgang tussen lucht en grond, waar hij het eerst rot."],
+      ["Veel maten", "van 100 tot 300 cm lang, ø 6-8, 8-10 of 10-12 cm; zelfde hout als het kastanje hekwerk."],
     ],
     uses: [
-      "Palen voor kastanje of hazelaar hekwerk",
+      "Palen voor kastanje of hazelaar hekwerk (ø 8-10 cm)",
+      "Schoorpalen om hoek- en eindpalen te steunen (ø 6-8 cm)",
       "Weideafrastering voor schapen, geiten of kippen",
       "Poortpalen (de dikkere maten)",
       "Palenwand als afsluiting of eyecatcher",

@@ -346,7 +346,8 @@ export function PalenStep({ data, state, update }: StepProps) {
         {state.types.includes("hekwerk") && (
           <p className="mt-1">
             Hekwerk: een paal om de ±1,80 m, bij hekwerk vanaf 1,50 m hoog om de ±1,50 m, plus een eindpaal. Op zachte grond zet u
-            de palen dichter bij elkaar; nooit meer dan 2 m tussen twee palen.
+            de palen dichter bij elkaar; nooit meer dan 2 m tussen twee palen. Wij raden ronde palen van ø 8-10 cm aan, met een
+            postsaver; ø 6-8 cm is goed als schoorpaal.
           </p>
         )}
         {chosen !== recommended && (
