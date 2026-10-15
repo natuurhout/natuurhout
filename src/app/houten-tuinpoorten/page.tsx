@@ -105,7 +105,7 @@ export default function HoutenTuinpoortenPage() {
           </p>
           <ul className="grid gap-3 sm:grid-cols-3">
             <Gate href="/project/franse-poorten/" name="Kastanje premium poorten">
-              Onze stevigste kastanje poort, met kader en schoor, inclusief twee poortpalen en hang- en sluitwerk.
+              Een stevige kastanje poort, ambachtelijk gemaakt met pen-en-gatverbindingen, inclusief twee poortpalen en hang- en sluitwerk.
             </Gate>
             <Gate href="/project/kastanje-poorten-geschroefd/" name="Kastanje poorten geschroefd">
               Een eenvoudigere, voordelige kastanje poort met geschroefde latten, ook met poortpalen en beslag.
