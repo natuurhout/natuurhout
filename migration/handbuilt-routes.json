@@ -398,6 +398,18 @@
       "approvedBy": "Xander",
       "reason": "Tips & Ideeën stays the blog overview: the articles Natuurhout writes on the new site (src/lib/artikels.ts, pages at /tipsenideeen/<slug>/) are added as the first cards of the snapshot's blog grid, newest first. The snapshot's own posts, heading, title, description and links render unchanged below them.",
       "preserveContent": true
+    },
+    {
+      "pathname": "/houten-tuinpoorten/",
+      "approvedBy": "Xander",
+      "reason": "Houten tuinpoorten landing page rewritten on Xander's request (Oct 2026) for 'tuinpoorten in Vlaanderen': Natuurhout's own gate photo, the gates actually sold (kastanje premium, geschroefd and maatwerk, robinia, hazelaar, Cleft & Field) with links to their pages and a small photo on hover, advantages, placement and delivery, a quote block and realisations. Title, description and h1 are replaced (approvedTitle, approvedDescription, approvedHeading; the old description also ended in a stray '}'). Canonical and structured data are the snapshot's; every internal link stays, two retargeted to the page their old URL redirects to.",
+      "approvedTitle": "Houten tuinpoorten in Vlaanderen | Natuurhout",
+      "approvedDescription": "Houten tuinpoorten in kastanje, robinia en hazelaar: premium, geschroefd of op maat, en Cleft & Field veldpoorten. Levering in heel Vlaanderen vanuit Zele.",
+      "approvedHeading": "Houten tuinpoorten in Vlaanderen",
+      "retargetedLinks": {
+        "/project/robiniarasterwerk/": { "to": "/project/robinia-rasterwerk/", "reason": "Old URL; redirects to /project/robinia-rasterwerk/ (next.config)." },
+        "/project/hardhout-poorten/": { "to": "/project/cleft-field-veldpoorten/", "reason": "Old URL; redirects to /project/cleft-field-veldpoorten/ (next.config)." }
+      }
     }
   ]
 }

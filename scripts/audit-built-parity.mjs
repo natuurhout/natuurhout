@@ -53,8 +53,10 @@ function auditHandBuilt(page, route, built$) {
     failures.push(`${where}: title changed (${builtTitle} != ${expectedTitle})`);
   }
 
+  // An approved description (approvedDescription, reason recorded) replaces the snapshot's.
+  const expectedDescription = route.approvedDescription ?? page.description;
   const builtDescription = attr(built$, 'meta[name="description"]', "content");
-  if (page.description && normalizeText(builtDescription ?? "") !== normalizeText(page.description)) {
+  if (expectedDescription && normalizeText(builtDescription ?? "") !== normalizeText(expectedDescription)) {
     failures.push(`${where}: meta description changed`);
   }
 
