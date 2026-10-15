@@ -1,7 +1,8 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Clock, Minus, Plus } from "lucide-react";
 import { useId } from "react";
+import { orderTerm } from "@/lib/made-to-order";
 
 export function Chip({
   active,
@@ -191,4 +192,23 @@ export function MetersInput({
       </label>
     </div>
   );
+}
+
+/** Under a sold-out choice: it can still be requested, with the delivery term. */
+export function OrderNote({ handle }: { handle: string }) {
+  const term = orderTerm(handle);
+  return (
+    <p className="mt-3 flex gap-2 rounded-xl border border-accent/25 bg-accent/5 px-3.5 py-2.5 text-sm leading-6 text-ink/80">
+      <Clock aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent-deep" />
+      <span>
+        <strong className="text-ink">{term.badge}:</strong> {term.note} Neem het gewoon mee in uw aanvraag: u krijgt er een
+        prijs en levertermijn voor in uw offerte.
+      </span>
+    </p>
+  );
+}
+
+/** "€97,00/rol · uitverkocht, op bestelling" */
+export function soldOutSuffix(available: boolean): string {
+  return available ? "" : " · uitverkocht, op bestelling";
 }

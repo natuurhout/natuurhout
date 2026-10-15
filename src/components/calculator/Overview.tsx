@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, Copy, Loader2, Mail } from "lucide-react";
+import { Check, Clock, Copy, Loader2, Mail, Truck } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
-import { contactErrors, quoteText, total, type Line, type State } from "@/components/calculator/model";
+import { contactErrors, lineDetail, quoteText, total, type Line, type State } from "@/components/calculator/model";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
 import type { StepProps } from "@/components/calculator/Steps";
 
@@ -42,6 +42,11 @@ export function MaterialTable({ lines }: { lines: Line[] }) {
                     ) : (
                       <span className="font-medium text-ink">{l.label}</span>
                     )}
+                    {l.order && (
+                      <span className="ml-2 inline-block rounded-full bg-accent/10 px-2 py-0.5 align-middle text-[11px] font-semibold text-accent-deep">
+                        {l.order.badge === "Uitverkocht" ? "Uitverkocht · op bestelling" : l.order.badge}
+                      </span>
+                    )}
                     {l.detail && <span className="block text-xs text-ink/55">{l.detail}</span>}
                     <span className="mt-0.5 block text-xs text-ink/70 sm:hidden">
                       {l.unit === null ? `${l.qty} ×` : `${l.qty} × ${formatPrice(l.unit)}`}
@@ -73,6 +78,37 @@ export function MaterialTable({ lines }: { lines: Line[] }) {
   );
 }
 
+/** When it arrives: stock within the week, sold-out and made-to-order items as their term says. */
+function DeliveryTerms({ lines }: { lines: Line[] }) {
+  const notes = [...new Set(lines.flatMap((l) => (l.order ? [l.order.note] : [])))];
+  return (
+    <div className="mt-4 space-y-2.5 rounded-xl border border-line bg-white p-4 text-sm leading-6 text-ink/75">
+      <p className="font-semibold text-ink">Levertermijn</p>
+      <p className="flex gap-2">
+        <Truck aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
+        <span>
+          <strong className="text-ink">Op voorraad:</strong> binnen de week geleverd (vaak sneller als het dringend is), of af te halen in
+          Zele.
+        </span>
+      </p>
+      {notes.length > 0 && (
+        <div className="flex gap-2">
+          <Clock aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent-deep" />
+          <div>
+            <strong className="text-ink">Uitverkocht of op bestelling:</strong> u vraagt deze artikelen gewoon mee aan; prijs en
+            levertermijn bevestigen we in uw offerte.
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-ink/65">
+              {notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function OverviewStep({ state, update, lines }: StepProps & { lines: Line[] }) {
   const [attempted, setAttempted] = useState(false);
   // sent = delivered to our inbox; mailto = handed to the customer's mail program
@@ -90,7 +126,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
   const shown: Record<string, string | undefined> = attempted ? errors : {};
   const set = (patch: Partial<State["contact"]>) => update((s) => ({ ...s, contact: { ...s.contact, ...patch } }));
   const text = quoteText(state, lines);
-  const subject = `Offerteaanvraag afsluiting – ${c.name.trim() || "natuurhout.be"}`;
+  const subject = `Offerteaanvraag afsluiting – ${c.name.trim() || c.email.trim() || "natuurhout.be"}`;
 
   function openMailProgram() {
     window.location.href = `mailto:${QUOTE_ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
@@ -117,7 +153,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           postcode: c.postcode,
           city: c.city,
           remarks: c.remarks,
-          lines: lines.map(({ group, label, detail, qty, unit }) => ({ group, label, detail: detail ?? "", qty, unit })),
+          lines: lines.map((l) => ({ group: l.group, label: l.label, detail: lineDetail(l), qty: l.qty, unit: l.unit })),
           total: total(lines),
           text,
           website: honeypot,
@@ -159,12 +195,16 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           Indicatieve richtprijs op basis van de actuele webshopprijzen — geen offerte. Voorraad, maatwerk en levering
           bevestigen we in uw offerte.
         </p>
+        <DeliveryTerms lines={lines} />
       </div>
 
       <div ref={formRef} className="relative space-y-7 border-t border-line pt-8">
         <div>
           <h2 className="font-display text-2xl font-semibold">Offerte aanvragen</h2>
-          <p className="mt-1 text-sm text-ink/65">We sturen u een offerte op maat met deze materiaallijst.</p>
+          <p className="mt-1 text-sm text-ink/65">
+            We sturen u een offerte op maat met deze materiaallijst. Voor een offerte volstaat uw e-mailadres; wilt u levering, dan
+            vragen we ook uw naam, telefoonnummer en adres.
+          </p>
         </div>
 
         <Question title="Opmerkingen" hint="Bijvoorbeeld de ondergrond, plaatsing, of iets wat u in de calculator niet vond.">
@@ -193,19 +233,26 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
               <Field label="Gemeente" required error={shown.city}>
                 {(p) => <input {...p} className={inputClass} autoComplete="address-level2" value={c.city} onChange={(e) => set({ city: e.target.value })} />}
               </Field>
-              <p className="text-xs text-ink/60 sm:col-span-3">De leveringskosten bekijken we op basis van uw postcode en laten we u per mail weten.</p>
+              <p className="text-xs text-ink/60 sm:col-span-3">
+                De leveringskosten bekijken we op basis van uw postcode en laten we u per mail weten. We bellen u om de levering af te spreken.
+              </p>
             </div>
           )}
         </Question>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Naam" required error={shown.name}>
+          <Field label="Naam" required={c.delivery} error={shown.name}>
             {(p) => <input {...p} className={inputClass} autoComplete="name" value={c.name} onChange={(e) => set({ name: e.target.value })} />}
           </Field>
           <Field label="E-mailadres" required error={shown.email} hint="Hierop sturen we uw offerte.">
             {(p) => <input {...p} type="email" className={inputClass} autoComplete="email" value={c.email} onChange={(e) => set({ email: e.target.value })} />}
           </Field>
-          <Field label="Telefoon of gsm" error={shown.phone} hint="Handig als we iets willen nagaan.">
+          <Field
+            label="Telefoon of gsm"
+            required={c.delivery}
+            error={shown.phone}
+            hint={c.delivery ? "Nodig om de levering met u af te spreken." : "Handig als we iets willen nagaan."}
+          >
             {(p) => <input {...p} type="tel" className={inputClass} autoComplete="tel" value={c.phone} onChange={(e) => set({ phone: e.target.value })} />}
           </Field>
         </div>
@@ -242,7 +289,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
               <Check className="h-4 w-4 text-emerald-700" /> Uw aanvraag is verstuurd.
             </p>
             <p className="mt-1">
-              Bedankt, {c.name.trim().split(" ")[0]}. We bekijken uw aanvraag en antwoorden zo snel mogelijk op{" "}
+              Bedankt{c.name.trim() ? `, ${c.name.trim().split(" ")[0]}` : ""}. We bekijken uw aanvraag en antwoorden zo snel mogelijk op{" "}
               <strong>{c.email.trim()}</strong>.
             </p>
             {confirmed && (

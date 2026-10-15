@@ -50,7 +50,7 @@ import {
   type State,
 } from "@/components/calculator/model";
 import GateSwing from "@/components/calculator/GateSwing";
-import { Chip, MetersInput, OptionCard, Question, Stepper } from "@/components/calculator/ui";
+import { Chip, MetersInput, OptionCard, OrderNote, Question, Stepper, soldOutSuffix } from "@/components/calculator/ui";
 
 export type StepProps = {
   data: CalculatorData;
@@ -181,13 +181,13 @@ export function HekwerkStep({ data, state, update }: StepProps) {
                       <OptionCard
                         key={r.variantId}
                         active={r.variantId === resolved.roll.variantId}
-                        disabled={!r.available}
                         onClick={() => setLine(line.id, { variantId: r.variantId, rolls: null })}
                         title={`${r.spacing} — rol van ${r.rollLength} m`}
-                        note={`${formatPrice(r.price)}/rol${r.available ? "" : " · uitverkocht"}`}
+                        note={`${formatPrice(r.price)}/rol${soldOutSuffix(r.available)}`}
                       />
                     ))}
                   </div>
+                  {!resolved.roll.available && <OrderNote handle={resolved.fence.handle} />}
                 </Question>
               )}
 
@@ -256,13 +256,13 @@ export function SchermenStep({ data, state, update }: StepProps) {
             <OptionCard
               key={z.variantId}
               active={z.variantId === s.size.variantId}
-              disabled={!z.available}
               onClick={() => set({ variantId: z.variantId })}
               title={`${z.height} × ${z.width} cm`}
-              note={`${formatPrice(z.price)}/scherm${z.available ? "" : " · uitverkocht"}`}
+              note={`${formatPrice(z.price)}/scherm${soldOutSuffix(z.available)}`}
             />
           ))}
         </div>
+        {!s.size.available && <OrderNote handle={s.option.handle} />}
       </Question>
       <Question title="Hoeveel schermen?" hint={`Tussen de schermen en aan beide uiteinden komt een paal van ±${SCREEN_POST_CM} cm. De palen kiest u in de volgende stap.`}>
         <Stepper label="Aantal schermen" value={s.count} min={1} onChange={(v) => set({ count: v })} />
@@ -394,13 +394,13 @@ export function PalenStep({ data, state, update }: StepProps) {
                     <OptionCard
                       key={x.variantId}
                       active={x.variantId === p?.pole.variantId}
-                      disabled={!x.available}
                       onClick={() => setLine(line.id, { variantId: x.variantId })}
                       title={`${x.length} cm · ${poleSize(product.kind, x.diameter)}`}
-                      note={`${formatPrice(x.price)}/stuk${x.available ? "" : " · uitverkocht"}`}
+                      note={`${formatPrice(x.price)}/stuk${soldOutSuffix(x.available)}`}
                     />
                   ))}
                 </div>
+                {p && !p.pole.available && <OrderNote handle={product.handle} />}
               </Question>
               <Question title="Aantal">
                 <Stepper label="Aantal palen" value={p?.count ?? 0} onChange={(v) => setLine(line.id, { count: v })} />
@@ -607,7 +607,6 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                           <Chip
                             key={h}
                             active={h === activeHeight}
-                            disabled={!option.sizes.some((s) => s.height === h && s.available)}
                             onClick={() => set({ height: h, variantId: null })}
                           >
                             {h} cm
@@ -623,13 +622,13 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                           <OptionCard
                             key={s.variantId}
                             active={s.variantId === gate.variantId}
-                            disabled={!s.available}
                             onClick={() => set({ variantId: s.variantId })}
                             title={`${s.width} cm breed`}
-                            note={`${formatPrice(s.price)}${s.available ? "" : " · uitverkocht"}`}
+                            note={`${formatPrice(s.price)}${soldOutSuffix(s.available)}`}
                           />
                         ))}
                       </div>
+                      {size && !size.available && gate.handle && <OrderNote handle={gate.handle} />}
                     </Question>
                   )}
                 </>
@@ -732,13 +731,13 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                         <OptionCard
                           key={x.variantId}
                           active={x.variantId === pole.pole.variantId}
-                          disabled={!x.available}
                           onClick={() => set({ poleVariantId: x.variantId })}
                           title={`${x.length} cm · ${poleSize(pole.product.kind, x.diameter)}`}
-                          note={`${formatPrice(x.price)}/stuk${x.available ? "" : " · uitverkocht"}`}
+                          note={`${formatPrice(x.price)}/stuk${soldOutSuffix(x.available)}`}
                         />
                       ))}
                     </div>
+                    {!pole.pole.available && <OrderNote handle={pole.product.handle} />}
                     {poleSaver && hasSaverOptions(poleSaver) && (
                       <div>
                         <p className="text-sm font-medium text-ink/80">Poortpalen voorzien van een postsaver?</p>
@@ -769,8 +768,8 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                       <p className="text-sm font-medium text-ink/80">Sluiting</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {hw.latches.map((l) => (
-                          <Chip key={l.variantId} active={latch?.variantId === l.variantId} disabled={!l.available} onClick={() => set({ latch: l.variantId })}>
-                            {l.title} ({formatPrice(l.price)})
+                          <Chip key={l.variantId} active={latch?.variantId === l.variantId} onClick={() => set({ latch: l.variantId })}>
+                            {l.title} ({formatPrice(l.price)}{l.available ? "" : ", uitverkocht"})
                           </Chip>
                         ))}
                         <Chip active={gate.latch === "none"} onClick={() => set({ latch: "none" })}>Geen sluiting</Chip>
@@ -877,20 +876,17 @@ export function PlantenbakkenStep({ data, state, update }: StepProps) {
               <div key={z.variantId} className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{z.title}</p>
-                  <p className="text-xs text-ink/60">{formatPrice(z.price)}/stuk{z.available ? "" : " · uitverkocht"}</p>
+                  <p className="text-xs text-ink/60">{formatPrice(z.price)}/stuk{soldOutSuffix(z.available)}</p>
                 </div>
-                {z.available ? (
-                  <Stepper
-                    label={`${p.title} ${z.title}`}
-                    value={state.planters[z.variantId] ?? 0}
-                    onChange={(v) => update((s) => ({ ...s, planters: { ...s.planters, [z.variantId]: v } }))}
-                  />
-                ) : (
-                  <span className="text-xs text-ink/50">niet leverbaar</span>
-                )}
+                <Stepper
+                  label={`${p.title} ${z.title}`}
+                  value={state.planters[z.variantId] ?? 0}
+                  onChange={(v) => update((s) => ({ ...s, planters: { ...s.planters, [z.variantId]: v } }))}
+                />
               </div>
             ))}
           </div>
+          {p.sizes.some((z) => !z.available && (state.planters[z.variantId] ?? 0) > 0) && <OrderNote handle={p.handle} />}
         </Question>
       ))}
     </div>

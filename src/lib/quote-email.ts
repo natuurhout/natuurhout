@@ -70,10 +70,18 @@ function euro(n: number): string {
 
 /** Validated quote, or the reason it is refused. */
 export function parseQuote(body: Record<string, unknown>): Quote | { error: string } {
+  const kind = body.kind === "bestelling" || body.kind === "vraag" ? body.kind : "calculator";
   const name = str(body.name, 200);
   const email = str(body.email, 200);
+  const phone = str(body.phone, 40);
+  const delivery = body.delivery === true;
   const text = str(body.text, 20_000);
-  if (!name || !EMAIL.test(email) || !text) return { error: "Naam, een geldig e-mailadres en de aanvraag zijn verplicht." };
+  if (!EMAIL.test(email) || !text) return { error: "Een geldig e-mailadres en de aanvraag zijn verplicht." };
+  // The calculator's quote needs only an e-mail address; a delivery also a name and phone number.
+  // The other forms always ask for a name.
+  if (kind === "calculator" ? delivery && (!name || !phone) : !name) {
+    return { error: kind === "calculator" ? "Voor een levering zijn naam en telefoonnummer verplicht." : "Naam en een geldig e-mailadres zijn verplicht." };
+  }
 
   const rawLines = Array.isArray(body.lines) ? body.lines.slice(0, 100) : [];
   const lines: QuoteLine[] = [];
@@ -88,12 +96,12 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
 
   const page = str(body.page, 200);
   return {
-    kind: body.kind === "bestelling" || body.kind === "vraag" ? body.kind : "calculator",
+    kind,
     page: page.startsWith("/") ? page : "",
     name,
     email,
-    phone: str(body.phone, 40),
-    delivery: body.delivery === true,
+    phone,
+    delivery,
     street: str(body.street, 200),
     postcode: str(body.postcode, 10),
     city: str(body.city, 100),
@@ -177,7 +185,7 @@ function detailsTable(q: Quote, linkContact: boolean): string {
     ? `Leveren aan ${escapeHtml([q.street, `${q.postcode} ${q.city}`.trim()].filter(Boolean).join(", "))}`
     : "Afhalen in Zele";
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${[
-    row("Naam", escapeHtml(q.name)),
+    q.name ? row("Naam", escapeHtml(q.name)) : "",
     row("E-mail", email),
     phone ? row("Telefoon", phone) : "",
     row("Levering", delivery),
@@ -216,6 +224,9 @@ Ma–vr 09:00–18:00 · za 09:00–12:00</td></tr>
 /* The two mails                                                       */
 /* ------------------------------------------------------------------ */
 
+/** Who sent it: the name, or the e-mail address when a quote came without one. */
+const who = (q: Quote) => q.name || q.email;
+
 export function internalMail(q: Quote, photos: MailAttachment[] = []): Mail {
   const order = q.kind === "bestelling";
   const photoNote = photos.length
@@ -226,25 +237,25 @@ export function internalMail(q: Quote, photos: MailAttachment[] = []): Mail {
   }</p>
 <p style="margin:0 0 18px;${FONT};font-size:14px;color:${C.soft}">${
     order
-      ? `Deze artikelen zijn niet (allemaal) op voorraad. Laat ${escapeHtml(q.name)} de levertermijn weten door deze mail te beantwoorden.${
+      ? `Deze artikelen zijn niet (allemaal) op voorraad. Laat ${escapeHtml(who(q))} de levertermijn weten door deze mail te beantwoorden.${
           q.page ? ` Besteld via ${escapeHtml(q.page)}.` : ""
         }`
-      : `Beantwoord deze mail om ${escapeHtml(q.name)} rechtstreeks te antwoorden.${photoNote}`
+      : `Beantwoord deze mail om ${escapeHtml(who(q))} rechtstreeks te antwoorden.${photoNote}`
   }</p>
 ${detailsTable(q, true)}
 <div style="margin-top:22px">${q.lines.length ? linesTable(q) : plainOverview(q)}</div>
 ${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : ""}
 ${remarksBlock(q)}`;
   const subject = order
-    ? `Aanvraag op bestelling – ${q.name}`
+    ? `Aanvraag op bestelling – ${who(q)}`
     : q.kind === "vraag"
-      ? `Offerteaanvraag – ${q.name}`
-      : `Offerteaanvraag afsluiting – ${q.name}`;
+      ? `Offerteaanvraag – ${who(q)}`
+      : `Offerteaanvraag afsluiting – ${who(q)}`;
   return { subject, html: frame(inner), text: q.text, attachments: [...inlineAttachments(), ...photos] };
 }
 
 export function confirmationMail(q: Quote): Mail {
-  const first = q.name.split(/\s+/)[0] || q.name;
+  const first = q.name.split(/\s+/)[0] || q.name || "klant";
   const order = q.kind === "bestelling";
   const thanks = order
     ? "Bedankt voor uw aanvraag. We hebben ze goed ontvangen en bekijken ze zo snel mogelijk. U krijgt per mail de levertermijn en het verdere verloop van uw bestelling."

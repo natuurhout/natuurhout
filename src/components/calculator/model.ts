@@ -1,4 +1,5 @@
 import { formatPrice } from "@/lib/catalog";
+import { orderTerm } from "@/lib/made-to-order";
 import {
   BLACK_HARDWARE_SURCHARGE,
   OAK_WITH_POSTSAVER,
@@ -323,7 +324,19 @@ export type Line = {
   qty: number;
   unit: number | null; // null = price on request
   url?: string;
+  /** Not in stock: still requested, "Uitverkocht"/"Op bestelling" with the delivery term (src/lib/made-to-order.ts). */
+  order?: { badge: string; note: string };
 };
+
+/** Sold-out choices stay in the list as "op bestelling": the quote confirms price and delivery term. */
+function onOrder(handle: string, available: boolean): Pick<Line, "order"> {
+  return available ? {} : { order: orderTerm(handle) };
+}
+
+/** Line detail including the order term, for the mails and the plain-text request. */
+export function lineDetail(line: Line): string {
+  return [line.detail, line.order && `${line.order.badge}: ${line.order.note}`].filter(Boolean).join(" — ");
+}
 
 /** "ø6-8cm" for round posts, "7x7cm" for square ones. */
 export function poleSize(kind: PoleOption["kind"], diameter: string): string {
@@ -422,6 +435,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty,
         unit: r.roll.price,
         url: `${r.fence.shopUrl}?variant=${r.roll.variantId}`,
+        ...onOrder(r.fence.handle, r.roll.available),
       });
     }
   }
@@ -436,6 +450,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty: s.count,
         unit: s.size.price,
         url: `${s.option.shopUrl}?variant=${s.size.variantId}`,
+        ...onOrder(s.option.handle, s.size.available),
       });
     }
   }
@@ -450,6 +465,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty: p.count,
         unit: p.pole.price,
         url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
+        ...onOrder(p.product.handle, p.pole.available),
       });
       lines.push(...saverLines("Palen", line.saver, postSaverFor(data, p.product.kind, p.pole), p.count, p.product.title.toLowerCase()));
     });
@@ -499,6 +515,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty: gate.leaves,
         unit: size.price,
         url: gate.handle === CUSTOM_GATE ? undefined : option?.shopUrl,
+        ...onOrder(gate.handle, size.available),
       });
 
       if (postsIncluded(data, gate)) {
@@ -512,6 +529,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             qty: POSTS_PER_GATE,
             unit: p.pole.price,
             url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
+            ...onOrder(p.product.handle, p.pole.available),
           });
           lines.push(...saverLines(group, gate.saver, postSaverFor(data, p.product.kind, p.pole), POSTS_PER_GATE, "poortpaal"));
         }
@@ -525,7 +543,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
           lines.push({ group, label: `Beslag: ${hw.hinges.title}`, detail: "per vleugel", qty: gate.leaves, unit: hw.hinges.price, url: `${hw.shopUrl}?variant=${hw.hinges.variantId}` });
         }
         const latch = fieldGateLatch(data, gate);
-        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: `${hw.shopUrl}?variant=${latch.variantId}` });
+        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: `${hw.shopUrl}?variant=${latch.variantId}`, ...onOrder("beslag-hang-sluitwerk", latch.available) });
         if (hw.groundPin && gate.groundPins > 0) {
           lines.push({ group, label: `Beslag: ${hw.groundPin.title}`, qty: gate.groundPins, unit: hw.groundPin.price, url: `${hw.shopUrl}?variant=${hw.groundPin.variantId}` });
         }
@@ -547,6 +565,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             qty,
             unit: size.price,
             url: `${planter.shopUrl}?variant=${size.variantId}`,
+            ...onOrder(planter.handle, size.available),
           });
         }
       }
@@ -565,10 +584,12 @@ export function total(lines: Line[]): number {
 export function contactErrors(state: State): Record<string, string> {
   const c = state.contact;
   const errors: Record<string, string> = {};
-  if (!c.name.trim()) errors.name = "Vul uw naam in.";
+  // A quote only needs an e-mail address; a delivery also a name and a phone number to arrange it.
+  if (c.delivery && !c.name.trim()) errors.name = "Vul uw naam in voor de levering.";
   if (!c.email.trim()) errors.email = "Een e-mailadres is verplicht.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email.trim())) errors.email = "Dit e-mailadres lijkt niet te kloppen.";
   if (c.phone.trim() && !/^[+()\d\s./-]{6,}$/.test(c.phone.trim())) errors.phone = "Dit telefoonnummer lijkt niet te kloppen.";
+  else if (c.delivery && !c.phone.trim()) errors.phone = "Vul uw telefoonnummer in, dan spreken we de levering met u af.";
   if (c.delivery) {
     if (!c.street.trim()) errors.street = "Vul het leveringsadres in.";
     if (!/^\d{4}$/.test(c.postcode.trim())) errors.postcode = "Een Belgische postcode heeft 4 cijfers.";
@@ -581,7 +602,8 @@ export function quoteText(state: State, lines: Line[]): string {
   const c = state.contact;
   const out: string[] = [];
   out.push("Offerteaanvraag via de afsluitingscalculator op natuurhout.be", "");
-  out.push(`Naam: ${c.name.trim()}`, `E-mail: ${c.email.trim()}`);
+  if (c.name.trim()) out.push(`Naam: ${c.name.trim()}`);
+  out.push(`E-mail: ${c.email.trim()}`);
   if (c.phone.trim()) out.push(`Telefoon: ${c.phone.trim()}`);
   out.push(
     c.delivery
@@ -598,7 +620,8 @@ export function quoteText(state: State, lines: Line[]): string {
     }
     const price = l.unit === null ? "prijs op aanvraag" : `${l.qty} × ${formatPrice(l.unit)} = ${formatPrice(l.qty * l.unit)}`;
     out.push(`- ${l.label}: ${price}`);
-    if (l.detail) out.push(`  (${l.detail})`);
+    const detail = lineDetail(l);
+    if (detail) out.push(`  (${detail})`);
   }
   out.push("", `Richtprijs materiaal: ${formatPrice(total(lines))}`);
   if (lines.some((l) => l.unit === null)) out.push("+ posten op aanvraag");
