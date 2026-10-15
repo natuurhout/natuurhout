@@ -13,7 +13,7 @@ import { searchIndex } from "@/lib/search";
 // stock and quick delivery, deliveries done by themselves, help loading and
 // advice. All rotate on small screens; side by side, the third shows from
 // 1280px and the fourth from 1440px, where they fit next to the opening hours.
-const usps = ["Familiebedrijf · 15 jaar ervaring", "Grote voorraad, snel geleverd", "Eigen levering in heel België", "Hulp bij inladen en advies"];
+const usps = ["Familiebedrijf · 15 jaar ervaring", "Op voorraad: binnen de week geleverd", "Eigen levering in heel België", "Hulp bij inladen en advies"];
 
 const box = "flex items-center gap-3 rounded-xl border border-line bg-white p-1.5 transition-colors";
 const iconCircle = "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg";

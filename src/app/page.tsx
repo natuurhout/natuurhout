@@ -166,7 +166,7 @@ function homeFaqs(): FaqItem[] {
     },
     {
       q: "Leveren jullie in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen, en ook in de rest van België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we zelf in heel Vlaanderen, de rest van België en delen van Nederland. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. Op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
     {
       q: "Moet kastanjehout behandeld worden?",
@@ -177,8 +177,8 @@ function homeFaqs(): FaqItem[] {
 
 const usps = [
   { icon: ShieldCheck, title: "Familiebedrijf, 15 jaar ervaring", text: "Advies van mensen die het hout kennen." },
-  { icon: Store, title: "Grote voorraad", text: "Veel uit voorraad leverbaar, dus snel bij u." },
-  { icon: Truck, title: "Eigen levering", text: "Wij leveren zelf in heel België, of u haalt af in Zele." },
+  { icon: Store, title: "Grote voorraad", text: "Wat op voorraad is, leveren we binnen de week, of sneller als het moet." },
+  { icon: Truck, title: "Eigen levering", text: "Wij leveren zelf in heel België en delen van Nederland, of u haalt af in Zele." },
   { icon: Handshake, title: "Hulp bij inladen", text: "Afhalen in Zele? We helpen u inladen en geven advies." },
 ];
 

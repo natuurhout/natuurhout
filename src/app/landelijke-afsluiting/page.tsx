@@ -100,7 +100,7 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Leveren en plaatsen jullie afsluitingen in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen, en ook in de rest van België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      text: `Ja. Vanuit Zele leveren we zelf in heel Vlaanderen, de rest van België en delen van Nederland. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. Op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
   ];
 }

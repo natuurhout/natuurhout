@@ -177,7 +177,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           />
         </Question>
 
-        <Question title="Levering" hint="Leveren doen we in heel België.">
+        <Question title="Levering" hint="We leveren zelf in heel België en delen van Nederland; wat op voorraad is binnen de week.">
           <div className="flex flex-wrap gap-2">
             <Chip active={!c.delivery} onClick={() => set({ delivery: false })}>Ik haal af in Zele</Chip>
             <Chip active={c.delivery} onClick={() => set({ delivery: true })}>Graag leveren</Chip>
