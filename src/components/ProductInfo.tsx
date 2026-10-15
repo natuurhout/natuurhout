@@ -184,7 +184,7 @@ export function productInfoTabs({
       ) : (
         <Html
           html={`<h3>Waarom bij Natuurhout?</h3><ul>
-<li><strong>Ruim 15 jaar ervaring</strong> met natuurlijke tuinafsluitingen in kastanje, robinia en hazelaar.</li>
+<li><strong>Zo’n 15 jaar ervaring</strong> met natuurlijke tuinafsluitingen in kastanje, robinia en hazelaar.</li>
 <li><strong>Persoonlijk advies</strong> — bel of mail ons, we denken graag mee over uw project.</li>
 <li><strong>Afhalen in Zele</strong> of <strong>levering</strong>: de kosten hangen af van de locatie, grotere bestellingen leveren we aan een gereduceerd tarief.</li>
 </ul>`}

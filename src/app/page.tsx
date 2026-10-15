@@ -166,7 +166,7 @@ function homeFaqs(): FaqItem[] {
     },
     {
       q: "Leveren jullie in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen en België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen, en ook in de rest van België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
     {
       q: "Moet kastanjehout behandeld worden?",
@@ -342,7 +342,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">
               Onbehandeld hekwerk op rol en bijpassende houten tuinpoorten, rechtstreeks uit eigen voorraad in Zele. Ook
-              palen, vlechtschermen en moestuinbakken. Al meer dan vijftien jaar, met levering in heel Vlaanderen.
+              palen, vlechtschermen en moestuinbakken. Al zo’n vijftien jaar, met levering in heel Vlaanderen.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -638,7 +638,7 @@ export default function HomePage() {
                 Geleverd en geplaatst in heel Vlaanderen
               </h3>
               <p>
-                Vanuit Zele leveren we in heel Vlaanderen en België, of u haalt af in onze opslag. We plaatsten al
+                Vanuit Zele leveren we in heel Vlaanderen, en ook in de rest van België, of u haalt af in onze opslag. We plaatsten al
                 afsluitingen en poorten in onder meer {PLACES.slice(0, 12).join(", ")} en {PLACES[12]}. Bekijk onze{" "}
                 <Link href="/onze-realisaties/" className="font-medium text-accent underline underline-offset-2">realisaties</Link>{" "}
                 of lees in de{" "}

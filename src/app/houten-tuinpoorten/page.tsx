@@ -96,7 +96,7 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Leveren en plaatsen jullie tuinpoorten in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen en België, en op aanvraag plaatsen we uw poort en afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen, en ook in de rest van België, en op aanvraag plaatsen we uw poort en afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
     {
       q: "Kan ik een houten tuinpoort zelf plaatsen?",
@@ -132,7 +132,7 @@ export default function HoutenTuinpoortenPage() {
               landelijke uitstraling. Natuurhout in Zele maakt en levert houten tuinpoorten in <strong className="text-ink">kastanje</strong>,{" "}
               <strong className="text-ink">robinia</strong> en <strong className="text-ink">hazelaar</strong>, uit voorraad of op maat.
             </p>
-            <p>We leveren in heel Vlaanderen en België, of u haalt uw poort af in Zele.</p>
+            <p>We leveren in heel Vlaanderen, en ook in de rest van België, of u haalt uw poort af in Zele.</p>
             <p className="flex flex-wrap gap-3 pt-1 text-base">
               <Link href="/producten/" className="inline-flex items-center gap-2 rounded-full border border-accent-deep px-5 py-2.5 font-semibold text-accent-deep hover:bg-accent-deep hover:text-white">
                 Bekijk onze producten
@@ -214,7 +214,7 @@ export default function HoutenTuinpoortenPage() {
 
         <Section title="Plaatsing en levering in Vlaanderen">
           <p>
-            Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen en België; afhalen kan ook. Liever niet zelf
+            Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen, en ook in de rest van België; afhalen kan ook. Liever niet zelf
             plaatsen? Wij plaatsen uw tuinpoort en afsluiting. Zelf aan de slag? Lees onze{" "}
             <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className="font-semibold text-accent-deep underline decoration-accent/40 underline-offset-2 hover:text-ink">handleiding hekwerk en poort plaatsen</Link>.
           </p>
@@ -227,7 +227,7 @@ export default function HoutenTuinpoortenPage() {
 
         <Section title="Houten tuinpoorten in heel Vlaanderen">
           <p>
-            Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft meer dan 15 jaar ervaring met kastanjehout. We plaatsten al tuinpoorten en afsluitingen in onder meer {PLACES.slice(0, -1).join(", ")} en{" "}
+            Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft al zo’n 15 jaar ervaring met kastanje afsluitingen. We plaatsten al tuinpoorten en afsluitingen in onder meer {PLACES.slice(0, -1).join(", ")} en{" "}
             {PLACES[PLACES.length - 1]}. Bekijk onze <Link href="/onze-realisaties/" className={textLink}>realisaties</Link>, of
             kom langs in Zele.
           </p>

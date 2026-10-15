@@ -100,7 +100,7 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Leveren en plaatsen jullie afsluitingen in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen en België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen, en ook in de rest van België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
   ];
 }
@@ -129,7 +129,7 @@ export default function LandelijkeAfsluitingPage() {
               <strong className="text-ink">kastanje</strong>, <strong className="text-ink">robinia</strong> en{" "}
               <strong className="text-ink">hazelaar</strong>: van hekwerk op rol tot vlechtschermen, lariks en Post &amp; Rail.
             </p>
-            <p>We leveren in heel Vlaanderen en België, en plaatsen uw afsluiting ook voor u.</p>
+            <p>We leveren in heel Vlaanderen, en ook in de rest van België, en plaatsen uw afsluiting ook voor u.</p>
             <ul className="space-y-1.5 text-base">
               {USPS.map((usp) => (
                 <li key={usp} className="flex items-center gap-2 font-medium text-ink">
@@ -233,7 +233,7 @@ export default function LandelijkeAfsluitingPage() {
 
         <Section title="Levering en plaatsing in heel Vlaanderen">
           <p>
-            Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen en België; afhalen kan ook. Wij plaatsen uw
+            Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen, en ook in de rest van België; afhalen kan ook. Wij plaatsen uw
             afsluiting graag voor u, of u doet het zelf met onze{" "}
             <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className={textLink}>handleiding hekwerk en poort plaatsen</Link>.
             Met de <Link href="/calculator/?keuze=hekwerk" className={textLink}>calculator</Link> berekent u meteen hoeveel rollen,
@@ -244,7 +244,7 @@ export default function LandelijkeAfsluitingPage() {
 
         <Section title="Tuinafsluitingen geplaatst in heel Vlaanderen">
           <p>
-            Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft meer dan 15 jaar ervaring met kastanjehout. We
+            Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft al zo’n 15 jaar ervaring met kastanje afsluitingen. We
             plaatsten al landelijke afsluitingen in onder meer {PLACES.slice(0, -1).join(", ")} en {PLACES[PLACES.length - 1]}.
             Bekijk onze <Link href="/onze-realisaties/" className={textLink}>realisaties</Link> of kom langs in Zele.
           </p>
