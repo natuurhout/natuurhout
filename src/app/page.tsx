@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Calculator, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Calculator, Handshake, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
 import CategoryCarousel from "@/components/CategoryCarousel";
 import Faq, { type FaqItem } from "@/components/Faq";
 import JsonLd from "@/components/JsonLd";
@@ -179,7 +179,7 @@ const usps = [
   { icon: ShieldCheck, title: "Familiebedrijf, 15 jaar ervaring", text: "Advies van mensen die het hout kennen." },
   { icon: Store, title: "Grote voorraad", text: "Veel uit voorraad leverbaar, dus snel bij u." },
   { icon: Truck, title: "Eigen levering", text: "Wij leveren zelf in heel België, of u haalt af in Zele." },
-  { icon: Leaf, title: "Hulp bij inladen", text: "Afhalen in Zele? We helpen u inladen en geven advies." },
+  { icon: Handshake, title: "Hulp bij inladen", text: "Afhalen in Zele? We helpen u inladen en geven advies." },
 ];
 
 // Shortcuts into the calculator, each opening with that product chosen.
