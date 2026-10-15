@@ -3,9 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
-import { ProductItem, Section, tilePhoto } from "@/components/LandingParts";
+import Faq, { type FaqItem } from "@/components/Faq";
+import { PLACES, ProductItem, Section, textLink, tilePhoto, withPageMeta } from "@/components/LandingParts";
 import PreviewLink from "@/components/PreviewLink";
 import Realisaties from "@/components/Realisaties";
+import { CUSTOM_GATE_TABLE } from "@/lib/calculator-pricing";
+import { formatPrice, getProduct } from "@/lib/catalog";
+import { ADDRESS } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
 import { realisatiesFor } from "@/lib/realisaties";
@@ -35,13 +39,85 @@ export const metadata: Metadata = {
 const photo = tilePhoto;
 const Gate = ProductItem;
 
+/** "€175,00": a webshop product's lowest price, current at build time. */
+const from = (handle: string) => {
+  const price = getProduct(handle)?.priceFrom;
+  return price ? formatPrice(price) : null;
+};
+
+function faqs(): FaqItem[] {
+  const maatwerk = formatPrice(Math.min(...CUSTOM_GATE_TABLE.map((row) => row.prices[0])));
+  const prices = [
+    ["een hazelaar poort", from("hazelaar-poort")],
+    ["een kastanje poort geschroefd", from("kastanje-poort-geschroefd")],
+    ["een kastanje premium poort", from("kastanje-poorten")],
+    ["een kastanje poort op maat", maatwerk],
+    ["een robinia poort", from("robinia-poort")],
+    ["een Cleft & Field veldpoort", from("cleft-field-poorten")],
+  ].filter(([, price]) => price) as [string, string][];
+  const priceText = `Bij Natuurhout kost ${prices.map(([name, price]) => `${name} vanaf ${price}`).join(", ")}. Alle prijzen zijn incl. btw, voor de kleinste maat per vleugel. Met de calculator berekent u meteen de richtprijs van poort, palen en beslag samen.`;
+  return [
+    {
+      q: "Wat kost een houten tuinpoort?",
+      text: priceText,
+      body: (
+        <>
+          {priceText.replace(" Met de calculator berekent u meteen de richtprijs van poort, palen en beslag samen.", "")} Met de{" "}
+          <Link href="/calculator/?keuze=poorten" className={textLink}>calculator</Link> berekent u meteen de richtprijs van poort, palen en beslag samen.
+        </>
+      ),
+    },
+    {
+      q: "Welke houtsoort is het duurzaamst voor een tuinpoort?",
+      text: "Robinia gaat het langst mee: duurzaamheidsklasse I–II, ongeveer 25 tot 40 jaar. Kastanje zit in klasse II–III en gaat zonder behandeling ongeveer 15 tot 25 jaar mee. Hazelaar is lichter en gaat ongeveer 8 tot 15 jaar mee.",
+      body: (
+        <>
+          Robinia gaat het langst mee: duurzaamheidsklasse I–II, ongeveer 25 tot 40 jaar. Kastanje zit in klasse II–III en gaat zonder
+          behandeling ongeveer 15 tot 25 jaar mee. Hazelaar is lichter en gaat ongeveer 8 tot 15 jaar mee. Lees ook{" "}
+          <Link href="/kastanje-hazelaar-of-robinia-hekwerk-wat-is-het-verschil/" className={textLink}>het verschil tussen kastanje, hazelaar en robinia</Link>.
+        </>
+      ),
+    },
+    {
+      q: "Moet ik een houten tuinpoort behandelen?",
+      text: "Nee. Kastanje en robinia zijn van nature duurzaam en worden zonder chemische behandeling geleverd; het hout vergrijst mooi na verloop van tijd. Een postsaver op de poortpalen beschermt de voet van de paal extra tegen rot.",
+    },
+    {
+      q: "Kan ik een houten poort op maat laten maken?",
+      text: "Ja. De kastanje premium maatwerk poorten maken we op uw maten, tot 2,10 m breed en 1,80 m hoog per vleugel, als enkele of dubbele poort, inclusief poortpalen en hang- en sluitwerk.",
+    },
+    {
+      q: "Zijn de poortpalen en het beslag inbegrepen?",
+      text: "Bij de kastanje premium poorten, de geschroefde poorten, de maatwerk poorten en de hazelaar poort zijn twee poortpalen en het hang- en sluitwerk inbegrepen. Bij de robinia poort is het beslag inbegrepen en kiest u de palen apart. Cleft & Field veldpoorten worden zonder palen en beslag geleverd.",
+    },
+    {
+      q: "Draait een tuinpoort naar binnen of naar buiten open?",
+      text: "Standaard draait een poort naar binnen open, weg van de straat: zo zitten de scharnieren en de sluiting. Moet uw poort naar buiten opendraaien, dan bespreken we dat graag per mail of telefoon.",
+    },
+    {
+      q: "Leveren en plaatsen jullie tuinpoorten in heel Vlaanderen?",
+      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen en België, en op aanvraag plaatsen we uw poort en afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+    },
+    {
+      q: "Kan ik een houten tuinpoort zelf plaatsen?",
+      text: "Ja. Zet eerst de hangpaal, hang daarna de poort op en zet pas dan de sluitpaal op de exacte maat. Onze handleiding legt het stap voor stap uit, met schetsen.",
+      body: (
+        <>
+          Ja. Zet eerst de hangpaal, hang daarna de poort op en zet pas dan de sluitpaal op de exacte maat. Onze{" "}
+          <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className={textLink}>handleiding</Link> legt het stap voor stap uit, met schetsen.
+        </>
+      ),
+    },
+  ];
+}
+
 export default function HoutenTuinpoortenPage() {
   if (!page) throw new Error("The WordPress /houten-tuinpoorten/ snapshot is missing.");
   const projects = realisatiesFor({ pathname: "/project/maatwerk-poorten/" });
 
   return (
     <>
-      {page.structuredData && <JsonLd data={page.structuredData} />}
+      {page.structuredData && <JsonLd data={withPageMeta(page.structuredData, TITLE, DESCRIPTION)} />}
       <article className="mx-auto w-full max-w-[64rem] overflow-x-clip px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
         <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent-deep">
           <span aria-hidden className="h-px w-8 bg-accent" />
@@ -148,6 +224,16 @@ export default function HoutenTuinpoortenPage() {
             <PreviewLink href="/project/postsaver-voor-palen/" image={photo("/project/postsaver-voor-palen/")}>postsaver</PreviewLink> voor een langere levensduur.
           </p>
         </Section>
+
+        <Section title="Houten tuinpoorten in heel Vlaanderen">
+          <p>
+            Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft meer dan 15 jaar ervaring met kastanjehout. We plaatsten al tuinpoorten en afsluitingen in onder meer {PLACES.slice(0, -1).join(", ")} en{" "}
+            {PLACES[PLACES.length - 1]}. Bekijk onze <Link href="/onze-realisaties/" className={textLink}>realisaties</Link>, of
+            kom langs in Zele.
+          </p>
+        </Section>
+
+        <Faq items={faqs()} title="Veelgestelde vragen over houten tuinpoorten" />
 
         <section className="mt-12 rounded-card bg-brand-soft p-6 sm:p-8">
           <h3 className="font-display text-2xl font-bold text-ink">Vraag een offerte aan voor uw houten tuinpoort</h3>

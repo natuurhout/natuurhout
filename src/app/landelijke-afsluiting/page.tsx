@@ -3,8 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
-import { P, ProductItem, Section, textLink } from "@/components/LandingParts";
+import Faq, { type FaqItem } from "@/components/Faq";
+import { P, PLACES, ProductItem, Section, textLink, withPageMeta } from "@/components/LandingParts";
 import Realisaties from "@/components/Realisaties";
+import { formatPrice, getProduct } from "@/lib/catalog";
+import { ADDRESS } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
 import { realisatiesFor } from "@/lib/realisaties";
@@ -32,6 +35,83 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION, url: page?.canonical, locale: "nl_BE", type: "website", images: [{ url: "/fotos/realisaties/lievegem-robinia-1.jpg" }] },
 };
 
+/** Lowest price per running metre of a fence at one height ("100cm / … (10m rol)"), current at build time. */
+function perMeter(handle: string, height: number): string | null {
+  const prices = (getProduct(handle)?.variants ?? []).flatMap((variant) => {
+    const m = variant.title.match(/^(\d+)cm\s*\/.*\((\d+)m rol\)/);
+    return m && Number(m[1]) === height && !variant.promo ? [parseFloat(variant.price) / Number(m[2])] : [];
+  });
+  return prices.length ? formatPrice(Math.min(...prices)) : null;
+}
+
+function faqs(): FaqItem[] {
+  const kastanje = perMeter("kastanje-rasterwerk", 100);
+  const robinia = perMeter("robinia-hekwerk", 100);
+  const hazelaar = perMeter("hazelaar-hekwerk", 90);
+  const palen = getProduct("palen")?.priceFrom;
+  const cost = [
+    kastanje && `kastanje hekwerk van 1 m hoog vanaf ${kastanje}`,
+    robinia && `robinia hekwerk van 1 m hoog vanaf ${robinia}`,
+    hazelaar && `hazelaar hekwerk van 90 cm hoog vanaf ${hazelaar}`,
+  ].filter(Boolean).join(", ");
+  const costText = `Bij Natuurhout kost ${cost} per lopende meter (incl. btw). Reken daarbij één paal per 2 meter${palen ? `; kastanje palen kosten vanaf ${formatPrice(palen)} per stuk` : ""}. Met de calculator berekent u meteen de richtprijs van uw volledige afsluiting.`;
+  return [
+    {
+      q: "Wat kost een landelijke afsluiting per meter?",
+      text: costText,
+      body: (
+        <>
+          {costText.replace(" Met de calculator berekent u meteen de richtprijs van uw volledige afsluiting.", "")} Met de{" "}
+          <Link href="/calculator/?keuze=hekwerk" className={textLink}>calculator</Link> berekent u meteen de richtprijs van uw volledige afsluiting.
+        </>
+      ),
+    },
+    {
+      q: "Hoeveel palen heb ik nodig voor hekwerk?",
+      text: "Reken één paal per 2 meter hekwerk, plus een eindpaal. Voor 20 meter hekwerk zijn dat dus 11 palen. Bij vlechtschermen heeft u altijd één paal meer dan schermen: een begin- en eindpaal en één tussen elke twee schermen.",
+    },
+    {
+      q: "Hoe diep moeten de palen in de grond?",
+      text: "Zet de palen ongeveer een derde van hun lengte in de grond. Voor hekwerk van 1 m hoog kiest u dus palen van 1,50 m. Zet eerst de hoek- en eindpalen, span een touw en plaats daarna de tussenpalen.",
+    },
+    {
+      q: "Welke hoogte kies ik voor mijn tuinafsluiting?",
+      text: "Hekwerk van 60 tot 90 cm is mooi om een border, moestuin of voortuin af te bakenen. Van 1 m tot 1,20 m is de klassieke tuinafsluiting, die ook kinderen of een hond binnenhoudt. Wilt u meer privacy, kies dan hekwerk of vlechtschermen van 1,50 tot 1,80 m hoog.",
+    },
+    {
+      q: "Hoe lang gaat een houten afsluiting mee?",
+      text: "Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15 jaar. Een postsaver rond de voet van de palen verlengt de levensduur van de palen.",
+      body: (
+        <>
+          Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15
+          jaar. Een <Link href="/project/postsaver-voor-palen/" className={textLink}>postsaver</Link> rond de voet van de palen verlengt de
+          levensduur van de palen. Lees ook{" "}
+          <Link href="/kastanje-hazelaar-of-robinia-hekwerk-wat-is-het-verschil/" className={textLink}>het verschil tussen kastanje, hazelaar en robinia</Link>.
+        </>
+      ),
+    },
+    {
+      q: "Moet ik een houten afsluiting behandelen?",
+      text: "Nee. Kastanje en robinia zijn van nature duurzaam en worden zonder chemische behandeling geleverd. Het hout vergrijst na verloop van tijd tot een mooie zilvergrijze kleur.",
+    },
+    {
+      q: "Kan ik een landelijke afsluiting zelf plaatsen?",
+      text: "Ja. Met een grondboor, een slaghamer, houtschroeven en een spantouw plaatst u hekwerk zelf. Natuurhout verhuurt een slaghamer of handboor voor €10, met €50 borg. Onze handleiding legt het stap voor stap uit.",
+      body: (
+        <>
+          Ja. Met een grondboor, een slaghamer, houtschroeven en een spantouw plaatst u hekwerk zelf. Natuurhout verhuurt een slaghamer of
+          handboor voor €10, met €50 borg. Onze{" "}
+          <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className={textLink}>handleiding</Link> legt het stap voor stap uit.
+        </>
+      ),
+    },
+    {
+      q: "Leveren en plaatsen jullie afsluitingen in heel Vlaanderen?",
+      text: `Ja. Vanuit Zele leveren we in heel Vlaanderen en België, en op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+    },
+  ];
+}
+
 const USPS = ["FSC®- en PEFC-gecertificeerd hout", "Hout vrij van chemische behandelingen", "Handgemaakte producten"];
 
 export default function LandelijkeAfsluitingPage() {
@@ -40,7 +120,7 @@ export default function LandelijkeAfsluitingPage() {
 
   return (
     <>
-      {page.structuredData && <JsonLd data={page.structuredData} />}
+      {page.structuredData && <JsonLd data={withPageMeta(page.structuredData, TITLE, DESCRIPTION)} />}
       <article className="mx-auto w-full max-w-[64rem] overflow-x-clip px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
         <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent-deep">
           <span aria-hidden className="h-px w-8 bg-accent" />
@@ -166,6 +246,16 @@ export default function LandelijkeAfsluitingPage() {
             <Link href="/onze-realisaties/" className={textLink}>realisaties</Link>.
           </p>
         </Section>
+
+        <Section title="Tuinafsluitingen geplaatst in heel Vlaanderen">
+          <p>
+            Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft meer dan 15 jaar ervaring met kastanjehout. We
+            plaatsten al landelijke afsluitingen in onder meer {PLACES.slice(0, -1).join(", ")} en {PLACES[PLACES.length - 1]}.
+            Bekijk onze <Link href="/onze-realisaties/" className={textLink}>realisaties</Link> of kom langs in Zele.
+          </p>
+        </Section>
+
+        <Faq items={faqs()} title="Veelgestelde vragen over landelijke afsluitingen" />
 
         <section className="mt-12 rounded-card bg-brand-soft p-6 sm:p-8">
           <h3 className="font-display text-2xl font-bold text-ink">Kies een landelijke afsluiting volgens uw wensen</h3>

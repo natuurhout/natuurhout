@@ -34,3 +34,23 @@ export function P({ href, children }: { href: string; children: React.ReactNode 
 }
 
 export const textLink = "font-semibold text-accent-deep underline decoration-accent/40 underline-offset-2 hover:text-ink";
+
+/**
+ * The snapshot's structured data with the page's current name and
+ * description, so it matches the approved title and meta description.
+ */
+export function withPageMeta(data: Record<string, unknown>, name: string, description: string): Record<string, unknown> {
+  const graph = Array.isArray(data["@graph"]) ? (data["@graph"] as Record<string, unknown>[]) : null;
+  if (!graph) return data;
+  return {
+    ...data,
+    "@graph": graph.map((node) => (node["@type"] === "WebPage" ? { ...node, name, description } : node)),
+  };
+}
+
+/** Places where Natuurhout delivered and placed fences and gates (the realisations). */
+export const PLACES = [
+  "Zele", "Berlare", "Overmere", "Dendermonde", "Grembergen", "Lebbeke", "Hamme", "Waasmunster", "Sint-Niklaas",
+  "Sint-Gillis-Waas", "Lochristi", "Destelbergen", "Merelbeke", "Lievegem", "Zulte", "Ronse", "Denderleeuw",
+  "Brugge", "Moerkerke", "Menen", "Keerbergen",
+];
