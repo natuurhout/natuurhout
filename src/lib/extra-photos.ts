@@ -40,6 +40,20 @@ const POST_RAIL: ExtraPhoto[] = [
   { src: "/fotos/post-rail-pony.jpg", alt: "Pony achter een Post & Rail afsluiting met gekloven kastanje liggers in eiken palen", caption: "Post & Rail van dichtbij" },
 ];
 
+/**
+ * Webshop photos Natuurhout replaced with a new version, by product handle and
+ * the old photo's file name (as in the shop's image URL).
+ */
+export const REPLACED_SHOP_PHOTOS: Record<string, Record<string, { src: string; alt: string }>> = {
+  "kastanje-rasterwerk": {
+    // The height chart (Xander, Oct 2026): every height to scale next to a person of 1,80 m.
+    "kastanje-hekwerk-5764189.webp": {
+      src: "/fotos/kastanje-hekwerk-hoogtes.jpg",
+      alt: "Kastanjehekwerk: welke hoogte past bij jou? Alle hoogtes (0,60, 1,00, 1,20, 1,50 en 1,80 m) op schaal naast een persoon van 1,80 m, latafstand 4/5 cm",
+    },
+  },
+};
+
 /** By webshop product handle (/shop/…). */
 export const SHOP_EXTRA_PHOTOS: Record<string, ExtraPhoto[]> = {
   "kastanje-rasterwerk": KASTANJE_HEKWERK,

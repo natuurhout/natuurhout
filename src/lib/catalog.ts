@@ -3,6 +3,7 @@ import collectionsData from "@/data/collections.json";
 import { PROMO_COLLECTION, promotionCards, REMOVED_PRODUCTS, SALE, UNLISTED, withPromotionCollections, withPromotions } from "@/lib/promotions";
 import { withPriceUpdates } from "@/lib/price-updates";
 import { renameDeep } from "@/lib/renames.mjs";
+import { REPLACED_SHOP_PHOTOS } from "@/lib/extra-photos";
 import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
@@ -80,6 +81,11 @@ export const products = withPromotions(
     [...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
       ...product,
       bodyHtml: localShopLinks(product.bodyHtml),
+      images: product.images.map((image) => {
+        const file = image.src.split("?")[0].split("/").pop() ?? "";
+        const replaced = REPLACED_SHOP_PHOTOS[product.handle]?.[file];
+        return replaced ? { ...image, ...replaced, width: 1600, height: 1600 } : image;
+      }),
     })),
   ),
 ).filter((product) => !(product.handle in REMOVED_PRODUCTS));
