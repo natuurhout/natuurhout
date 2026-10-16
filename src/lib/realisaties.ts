@@ -64,8 +64,36 @@ const denderleeuw = (n: number, alt: string, large = false): ProjectPhoto => ({
   height: large ? 1200 : 1125,
 });
 
+const mariakerke = (n: number, alt: string, large = false): ProjectPhoto => ({
+  src: `/fotos/realisaties/mariakerke-${n}.jpg`,
+  alt,
+  width: large ? 1600 : 1500,
+  height: large ? 1200 : 1125,
+});
+
 // Newest first.
 export const NEW_PROJECTS: NewProject[] = [
+  {
+    slug: "mariakerke-kastanje-hekwerk-maatwerk-poortjes",
+    title: "Project Mariakerke – Kastanje hekwerk & maatwerk poortjes",
+    summary: "Laag kastanje hekwerk en kastanje premium maatwerkpoortjes van 60 cm hoog in Mariakerke, zodat de kleine honden niet meer in de borders spelen.",
+    description: [
+      "In deze tuin in Mariakerke plaatsten we kastanje hekwerk rond de borders, met kastanje premium maatwerkpoortjes van 60 cm hoog. Zo lopen de kleine honden van de klant nog vrij over het gazon, maar spelen ze niet meer in de bloemen en planten.",
+      "Het hekwerk volgt de bochten van de borders en het graspad ertussen. De poortjes zijn op maat gemaakt, met pen-en-gatverbindingen en een schoor, en hangen met verzinkte scharnieren aan stevige kastanje poortpalen. Zo blijven de borders makkelijk bereikbaar om te onderhouden.",
+    ],
+    products: [
+      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+      { href: "/project/maatwerk-poorten/", label: "Kastanje premium maatwerkpoorten" },
+      { href: "/project/kastanjepalen/", label: "Kastanje palen" },
+    ],
+    photos: [
+      mariakerke(1, "Kastanje premium maatwerkpoortje van 60 cm hoog tussen twee kastanje poortpalen in Mariakerke", true),
+      mariakerke(2, "Tuin in Mariakerke met laag kastanje hekwerk rond de borders langs het gazon"),
+      mariakerke(3, "Het poortje met pen-en-gatverbindingen en een schoor, aan verzinkte scharnieren"),
+      mariakerke(4, "Graspad tussen twee borders, afgezet met kastanje hekwerk dat de bochten volgt"),
+      mariakerke(5, "Kastanje hekwerk van dichtbij langs het gazon, met de borders erachter"),
+    ],
+  },
   {
     slug: "menen-kastanje-poort-hekwerk",
     title: "Project Menen – Kastanje poort & hekwerk",
@@ -183,6 +211,7 @@ export const getNewProject = (slug: string) => NEW_PROJECTS.find((project) => pr
 const PROJECTS: Record<Kind, string[]> = {
   hekwerk: [
     "/project/project-zele/",
+    "/realisaties/mariakerke-kastanje-hekwerk-maatwerk-poortjes/",
     "/realisaties/menen-kastanje-poort-hekwerk/",
     "/realisaties/overmere-maatwerk-poorten-hekwerk/",
     "/realisaties/denderleeuw-kastanje-hekwerk-vlechtschermen/",
@@ -205,6 +234,7 @@ const PROJECTS: Record<Kind, string[]> = {
     "/project/project-destelbergen/",
   ],
   "maatwerk-poort": [
+    "/realisaties/mariakerke-kastanje-hekwerk-maatwerk-poortjes/",
     "/realisaties/overmere-maatwerk-poorten-hekwerk/",
     "/project/project-sint-niklaas-maatwerk-poort-rasterwerk-1-80m/",
     "/project/project-lebbeke/",
@@ -213,6 +243,7 @@ const PROJECTS: Record<Kind, string[]> = {
   ],
   "premium-poort": [
     "/realisaties/menen-kastanje-poort-hekwerk/",
+    "/realisaties/mariakerke-kastanje-hekwerk-maatwerk-poortjes/",
     "/realisaties/zele-hazelaar-hekwerk/",
     "/project/project-lochristi-rasterwerk-poort-1-20m/",
     "/project/rasterwerk120cm-moerkerke/",
