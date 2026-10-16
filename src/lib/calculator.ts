@@ -1,4 +1,4 @@
-import { getProduct, type Product, type ProductVariant } from "@/lib/catalog";
+import { getProduct, productPage, type Product, type ProductVariant } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
 import type {
   CalculatorData,
@@ -42,7 +42,7 @@ function fenceOptions(): FenceOption[] {
     const product = getProduct(handle);
     if (!product) return [];
     const rolls = product.variants.map(parseRoll).filter((r): r is RollOpt => r !== null);
-    return rolls.length ? [{ handle, title: product.title, shopUrl: product.shopUrl, rolls }] : [];
+    return rolls.length ? [{ handle, title: product.title, shopUrl: productPage(product), rolls }] : [];
   });
 }
 
@@ -78,7 +78,7 @@ function poleOptions(kinds: PoleKind[]): PoleOption[] {
       .map((v) => parsePole(v, product.options))
       .filter((p): p is PoleOpt => p !== null)
       .sort((a, b) => a.length - b.length || a.price - b.price);
-    return poles.length ? [{ handle, title: product.title, shopUrl: product.shopUrl, kind, poles }] : [];
+    return poles.length ? [{ handle, title: product.title, shopUrl: productPage(product), kind, poles }] : [];
   });
 }
 
@@ -130,7 +130,7 @@ function gateOptions(): GateOption[] {
     return [{
       handle,
       title: product.title,
-      shopUrl: product.shopUrl,
+      shopUrl: productPage(product),
       image: CARD_PHOTOS[handle] ?? product.images[0]?.src,
       postsIncluded,
       fieldGate,
@@ -154,7 +154,7 @@ function screenOptions(): ScreenOption[] {
       const m = v.title.match(/^(\d+)cm\s*x\s*(\d+)cm$/i);
       return m ? [{ ...opt(v), height: parseInt(m[1], 10), width: parseInt(m[2], 10) }] : [];
     });
-    return sizes.length ? [{ handle, title: product.title, label, shopUrl: product.shopUrl, sizes }] : [];
+    return sizes.length ? [{ handle, title: product.title, label, shopUrl: productPage(product), sizes }] : [];
   });
 }
 
@@ -166,7 +166,7 @@ function postRailPrices(): CalculatorData["postRail"] {
   const post3 = find(/post 3/i);
   const rail = find(/rail/i);
   if (!post2 || !post3 || !rail) return null;
-  return { post2: opt(post2), post3: opt(post3), rail: opt(rail), shopUrl: product.shopUrl };
+  return { post2: opt(post2), post3: opt(post3), rail: opt(rail), shopUrl: productPage(product) };
 }
 
 const PLANTER_HANDLES = ["tuinbakken-hazelaar", "plantenbak-cortenstaal"];
@@ -175,7 +175,7 @@ function planterOptions(): PlanterOption[] {
   return PLANTER_HANDLES.flatMap((handle) => {
     const product = getProduct(handle);
     if (!product) return [];
-    return [{ handle, title: product.title, shopUrl: product.shopUrl, sizes: product.variants.map(opt) }];
+    return [{ handle, title: product.title, shopUrl: productPage(product), sizes: product.variants.map(opt) }];
   });
 }
 
@@ -191,7 +191,7 @@ function fieldGateHardware(): CalculatorData["fieldGateHardware"] {
     hinges: opt(hinges),
     latches: latches.map(opt),
     groundPin: groundPin ? opt(groundPin) : null,
-    shopUrl: product.shopUrl,
+    shopUrl: productPage(product),
   };
 }
 
@@ -204,7 +204,7 @@ function loosePostsavers(): CalculatorData["loosePostsavers"] {
     const m = v.title.match(/ø\s*(\d+-\d+)\s*cm/i);
     if (m) byKey[`${m[1]}cm`] = opt(v);
   }
-  return Object.keys(byKey).length ? { byKey, shopUrl: product.shopUrl } : null;
+  return Object.keys(byKey).length ? { byKey, shopUrl: productPage(product) } : null;
 }
 
 export function calculatorData(): CalculatorData {

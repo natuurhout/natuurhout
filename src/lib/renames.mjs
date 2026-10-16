@@ -11,7 +11,9 @@
 export const RENAMES_APPROVAL = {
   approvedBy: "Xander",
   reason:
-    "'Kastanje premium poorten' wordt in Vlaanderen meer gezocht dan 'Franse poorten'; de URL's blijven ongewijzigd.",
+    "'Kastanje premium poorten' wordt in Vlaanderen meer gezocht dan 'Franse poorten'; de URL's blijven ongewijzigd. " +
+    "Oct 2026: deze website vervangt natuurhout.shop, dus de link 'www.natuurhout.shop – voor rechtstreekse bestelling' " +
+    "wijst naar de shop op deze site (natuurhout.be/shop).",
 };
 
 // Longest phrases first: each rule only sees what earlier rules left over.
@@ -33,10 +35,19 @@ const RULES = [
   ["Franse poorten", "kastanje premium poorten"],
 ];
 
+// This site replaces natuurhout.shop: the blog's link to it opens the shop here.
+const SHOP_RULES = [
+  ['href="https://www.natuurhout.shop/"', 'href="/shop/"'],
+  [">www.natuurhout.shop</a>", ">natuurhout.be/shop</a>"],
+];
+
 const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** @param {string} value */
 export function applyRenames(value) {
+  if (value && value.includes("natuurhout.shop")) {
+    for (const [from, to] of SHOP_RULES) value = value.split(from).join(to);
+  }
   if (!value || !value.includes("Franse")) return value;
   let out = value;
   for (const [from, to] of RULES) {

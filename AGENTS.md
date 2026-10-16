@@ -18,8 +18,9 @@ metadata, images, or configuration. Heed deprecation notices.
 - `src/data/legacy-pages.json` is generated. Update it only through
   `npm run migration:extract`.
 - Product/catalogue data is in `src/data/products.json` and
-  `src/data/collections.json`; catalogue routes live below `/shop/`, while
-  purchases still complete on `natuurhout.shop` until checkout is migrated.
+  `src/data/collections.json`; catalogue routes live below `/shop/`. This site
+  replaces `natuurhout.shop` (Oct 2026): never link to it; orders are sent from
+  the price lists as order requests (`OrderRequestForm`).
 - Legacy media is mirrored at its original path below
   `public/wp-content/uploads/`. Never reintroduce WordPress hotlinks.
 

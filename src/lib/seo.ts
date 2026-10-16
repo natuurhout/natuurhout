@@ -65,7 +65,7 @@ export function productStructuredData(product: Product): Record<string, unknown>
     priceCurrency: "EUR",
     availability: `https://schema.org/${variant.available ? "InStock" : "OutOfStock"}`,
     itemCondition: "https://schema.org/NewCondition",
-    url: `${product.shopUrl}?variant=${variant.id}`,
+    url: canonical,
     seller: { "@id": `${siteUrl}/#organization` },
   }));
 

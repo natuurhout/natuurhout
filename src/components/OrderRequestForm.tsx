@@ -5,11 +5,13 @@ import { useRef, useState } from "react";
 import { formatPrice } from "@/lib/catalog";
 
 /*
- * Order for products that are not in stock ("op bestelling"). Instead of a
- * dead "Uitverkocht", the customer sends the chosen lines with their details;
- * the request lands in Natuurhout's inbox through /api/offerte (Reply-To is
- * the customer) and the customer gets a confirmation with the overview.
- * Natuurhout then mails the delivery term.
+ * An order from a price list. The site has no online checkout (it replaced
+ * natuurhout.shop): the customer sends the chosen lines with their details;
+ * the order lands in Natuurhout's inbox through /api/offerte (Reply-To is the
+ * customer) and the customer gets a confirmation with the overview.
+ * Natuurhout confirms by mail with payment details and the pick-up or
+ * delivery arrangement, and for products not in stock ("op bestelling") the
+ * delivery term.
  */
 
 export type RequestLine = { group: string; label: string; detail: string; qty: number; unit: number };
@@ -29,7 +31,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
+export default function OrderRequestForm({ lines, onOrder }: { lines: RequestLine[]; /** Some lines are not in stock. */ onOrder: boolean }) {
   const [f, setF] = useState({ name: "", email: "", phone: "", delivery: false, street: "", postcode: "", city: "", remarks: "" });
   const [agreed, setAgreed] = useState(false);
   const [honeypot, setHoneypot] = useState("");
@@ -42,7 +44,12 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
   const errors: Record<string, string> = {};
   if (!f.name.trim()) errors.name = "Vul uw naam in.";
   if (!EMAIL.test(f.email.trim())) errors.email = "Vul een geldig e-mailadres in.";
-  if (f.delivery && !f.postcode.trim()) errors.postcode = "Vul de postcode in voor de levering.";
+  if (f.delivery) {
+    if (!f.phone.trim()) errors.phone = "Vul uw telefoonnummer in, dan spreken we de levering met u af.";
+    if (!f.street.trim()) errors.street = "Vul het leveringsadres in.";
+    if (!f.postcode.trim()) errors.postcode = "Vul de postcode in voor de levering.";
+    if (!f.city.trim()) errors.city = "Vul de gemeente in.";
+  }
   if (!agreed) errors.agree = "Vink dit aan om uw aanvraag te versturen.";
   const shown: Record<string, string | undefined> = attempted ? errors : {};
 
@@ -51,7 +58,7 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
 
   function text(page: string) {
     return [
-      "Aanvraag op bestelling",
+      onOrder ? "Aanvraag op bestelling" : "Bestelling",
       `Pagina: ${page}`,
       "",
       ...groups.flatMap((g) => [
@@ -90,6 +97,7 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kind: "bestelling",
+          inStock: !onOrder,
           page,
           ...f,
           lines,
@@ -105,7 +113,7 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
         setStatus("sent");
       } else if (response.status === 503) {
         // Sending not set up on this deployment: hand over to the mail program.
-        const subject = `Aanvraag op bestelling – ${f.name.trim()}`;
+        const subject = `${onOrder ? "Aanvraag op bestelling" : "Bestelling"} – ${f.name.trim()}`;
         window.location.href = `mailto:${ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text(page))}`;
         setStatus("mailto");
       } else setStatus("error");
@@ -117,10 +125,12 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
   if (status === "sent") {
     return (
       <div role="status" className="rounded-card border border-emerald-600/30 bg-emerald-50 p-5 text-sm leading-6 text-ink">
-        <p className="font-display text-lg font-semibold">Bedankt, uw aanvraag is verstuurd!</p>
+        <p className="font-display text-lg font-semibold">Bedankt, uw {onOrder ? "aanvraag" : "bestelling"} is verstuurd!</p>
         <p className="mt-1 text-ink/75">
           {confirmed ? "U ontvangt zo dadelijk een bevestiging met het overzicht per mail. " : ""}
-          We bekijken uw aanvraag zo snel mogelijk en laten u de levertermijn per mail weten.
+          {onOrder
+            ? "We bekijken uw aanvraag zo snel mogelijk en laten u de levertermijn per mail weten."
+            : "We bevestigen uw bestelling zo snel mogelijk per mail, met de afspraak voor levering of afhalen en hoe u betaalt."}
         </p>
       </div>
     );
@@ -129,9 +139,11 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
   return (
     <form ref={formRef} onSubmit={submit} noValidate className="relative space-y-4 rounded-card border border-line bg-white p-4 sm:p-5">
       <div>
-        <h3 className="font-display text-lg font-semibold">Aanvragen op bestelling</h3>
+        <h3 className="font-display text-lg font-semibold">{onOrder ? "Aanvragen op bestelling" : "Bestelling plaatsen"}</h3>
         <p className="mt-1 text-sm text-ink/65">
-          We bekijken uw aanvraag en mailen u de levertermijn en hoe het verder gaat.
+          {onOrder
+            ? "We bekijken uw aanvraag en mailen u de levertermijn en hoe het verder gaat."
+            : "Geen online betaling: wij bevestigen uw bestelling per mail, met de afspraak voor levering of afhalen en hoe u betaalt. Wat op voorraad is, leveren we binnen de week."}
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -141,8 +153,8 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
         <Field label="E-mailadres *" error={shown.email}>
           <input type="email" className={input} autoComplete="email" value={f.email} aria-invalid={Boolean(shown.email)} onChange={(e) => set({ email: e.target.value })} />
         </Field>
-        <Field label="Telefoon of gsm">
-          <input type="tel" className={input} autoComplete="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} />
+        <Field label={f.delivery ? "Telefoon of gsm *" : "Telefoon of gsm"} error={shown.phone}>
+          <input type="tel" className={input} autoComplete="tel" value={f.phone} aria-invalid={Boolean(shown.phone)} onChange={(e) => set({ phone: e.target.value })} />
         </Field>
         <div className="text-sm">
           <span className="mb-1 block font-medium text-ink">Levering</span>
@@ -168,14 +180,14 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
       </div>
       {f.delivery && (
         <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)]">
-          <Field label="Straat en nummer">
-            <input className={input} autoComplete="street-address" value={f.street} onChange={(e) => set({ street: e.target.value })} />
+          <Field label="Straat en nummer *" error={shown.street}>
+            <input className={input} autoComplete="street-address" value={f.street} aria-invalid={Boolean(shown.street)} onChange={(e) => set({ street: e.target.value })} />
           </Field>
           <Field label="Postcode *" error={shown.postcode}>
             <input className={input} inputMode="numeric" autoComplete="postal-code" value={f.postcode} aria-invalid={Boolean(shown.postcode)} onChange={(e) => set({ postcode: e.target.value })} />
           </Field>
-          <Field label="Gemeente">
-            <input className={input} autoComplete="address-level2" value={f.city} onChange={(e) => set({ city: e.target.value })} />
+          <Field label="Gemeente *" error={shown.city}>
+            <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
           </Field>
           <p className="text-xs text-ink/55 sm:col-span-3">De leveringskosten hangen af van de locatie; we laten ze u weten.</p>
         </div>
@@ -227,7 +239,7 @@ export default function OrderRequestForm({ lines }: { lines: RequestLine[] }) {
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep disabled:opacity-60 sm:w-auto"
       >
         <Send className="h-4 w-4" />
-        {status === "sending" ? "Bezig met versturen…" : `Aanvraag versturen (${formatPrice(total)})`}
+        {status === "sending" ? "Bezig met versturen…" : `${onOrder ? "Aanvraag" : "Bestelling"} versturen (${formatPrice(total)})`}
       </button>
     </form>
   );

@@ -69,7 +69,7 @@ const MAATWERK_POORT: Product = {
   priceTo: null,
   available: false,
   tags: [],
-  shopUrl: "https://natuurhout.shop/",
+  shopUrl: "/project/maatwerk-poorten/",
   publishedAt: null,
 };
 

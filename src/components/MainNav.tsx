@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { ArrowRight, ChevronDown, Mail, Menu, Phone, Search, ShoppingCart, Smartphone, X } from "lucide-react";
 import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
-import { EMAIL, MOBILE, PHONE, SHOP_URL, WHATSAPP } from "@/lib/contact";
+import { EMAIL, MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import { groupHref, pageLinks, productMenu, PROMO_HREF, QUOTE_HREF } from "@/lib/navigation";
 import type { SearchItem } from "@/lib/search";
@@ -191,15 +191,15 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
             <Link href={QUOTE_HREF} className={`${primaryButton} h-10 px-3.5 text-[14px] xl:px-5`}>
               Offerte aanvragen
             </Link>
-            <a
-              href={SHOP_URL}
+            <Link
+              href="/shop/"
               className="inline-flex h-10 items-center gap-2 rounded-sm border border-white/45 px-3.5 text-[14px] font-bold text-white transition-colors hover:border-white hover:bg-white hover:text-brand-dark xl:px-5"
             >
               <ShoppingCart aria-hidden className="h-4 w-4" />
               {/* Below 1280px the compact bar also holds the logo: the label shortens to fit. */}
               <span className={stuck ? "hidden xl:inline" : undefined}>Naar de shop</span>
               {stuck && <span className="xl:hidden">Shop</span>}
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -397,10 +397,10 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
               <Link href={QUOTE_HREF} onClick={() => closeMobile()} className={`${primaryButton} h-12 px-5 text-[15px]`}>
                 Offerte aanvragen
               </Link>
-              <a href={SHOP_URL} className="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-brand-dark px-5 text-[15px] font-bold text-brand-dark hover:bg-brand-dark hover:text-white">
+              <Link href="/shop/" onClick={() => closeMobile()} className="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-brand-dark px-5 text-[15px] font-bold text-brand-dark hover:bg-brand-dark hover:text-white">
                 <ShoppingCart aria-hidden className="h-4 w-4" />
                 Naar de shop
-              </a>
+              </Link>
             </div>
 
             <div className="mt-6 space-y-3 rounded-sm bg-ground p-4 text-sm">

@@ -7,8 +7,10 @@ import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-pro
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
 // from natuurhout.shop (Shopify products.json, fetched 2026-08-17) per
-// Xander's instruction. The shop itself is never modified — every buy action
-// links out to natuurhout.shop (migration rule 8).
+// Xander's instruction. The shop itself is never modified. This site replaces
+// it (Xander, Oct 2026): links in the descriptions point at the product pages
+// here, and orders are sent from the price lists (OrderRequestForm). `shopUrl`
+// is kept as shop data only; nothing on the site links to it.
 
 export type ProductVariant = {
   id: number;
@@ -52,9 +54,34 @@ export type Collection = {
   products: string[];
 };
 
+/** A product's page on this site. */
+export const productPage = (product: { handle: string }) => `/shop/${product.handle}/`;
+
+// natuurhout.shop links inside the shop copy: a product link opens that
+// product's page here, anything else the shop overview.
+const SHOP_LINK = /https?:\/\/(?:www\.)?natuurhout\.shop(\/[^"'\s<>]*)?/g;
+// Old shop handles still linked from the copy.
+const OLD_HANDLES: Record<string, string> = { "kastanje-hekwerk-copy": "robinia-hekwerk" };
+const KNOWN_HANDLES = new Set([...(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => product.handle));
+function localShopLinks(html: string): string {
+  return html
+    .replace(SHOP_LINK, (_, path: string | undefined) => {
+      const linked = /^\/products\/([\w-]+)/.exec(path ?? "")?.[1];
+      const handle = linked ? (OLD_HANDLES[linked] ?? linked) : undefined;
+      return handle && KNOWN_HANDLES.has(handle) ? `/shop/${handle}/` : "/shop/";
+    })
+    // Pages on this site open in the same tab.
+    .replace(/(href="\/shop\/[^"]*")\s+target="_blank"(\s+rel="noopener")?/g, "$1");
+}
+
 // Website promotions (src/lib/promotions.ts) are applied on top of the shop data.
 export const products = withPromotions(
-  withPriceUpdates([...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS]),
+  withPriceUpdates(
+    [...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
+      ...product,
+      bodyHtml: localShopLinks(product.bodyHtml),
+    })),
+  ),
 ).filter((product) => !(product.handle in REMOVED_PRODUCTS));
 export const collections = withPromotionCollections(collectionsData as Collection[]).map((collection) => {
   const added = Object.entries(WEBSITE_PRODUCT_COLLECTIONS).filter(([, target]) => target === collection.handle).map(([handle]) => handle);
@@ -175,32 +202,6 @@ export function pricePerMeterFrom(handle: string, height?: number, withPromo = f
 export function formatPrice(p: string | number): string {
   const n = typeof p === "number" ? p : parseFloat(p);
   return `€${n.toFixed(2).replace(".", ",")}`;
-}
-
-/**
- * Adds a variant to the customer's cart on natuurhout.shop and opens the cart.
- * Shopify's GET /cart/add keeps whatever is already in the cart, unlike the
- * /cart/{id}:{qty} permalink, which replaces it and jumps to checkout.
- */
-export function shopCartAddUrl(product: Product, variant: ProductVariant, quantity: number): string {
-  const origin = new URL(product.shopUrl).origin;
-  const qty = Math.max(1, Math.floor(quantity));
-  return `${origin}/cart/add?id=${variant.id}&quantity=${qty}`;
-}
-
-/** Deep link that preselects a variant in the webshop. */
-export function shopVariantUrl(product: Product, variant?: ProductVariant): string {
-  return variant ? `${product.shopUrl}?variant=${variant.id}` : product.shopUrl;
-}
-
-/**
- * Several variants at once: Shopify's cart permalink builds a checkout with
- * exactly these lines (it does not merge with an existing cart).
- */
-export function shopCartPermalink(product: Product, lines: { variant: ProductVariant; quantity: number }[]): string {
-  const origin = new URL(product.shopUrl).origin;
-  const items = lines.map(({ variant, quantity }) => `${variant.id}:${Math.max(1, Math.floor(quantity))}`);
-  return `${origin}/cart/${items.join(",")}`;
 }
 
 const ROLL = /\s*\((\d+(?:[.,]\d+)?)\s*m\s*rol\)\s*/i;

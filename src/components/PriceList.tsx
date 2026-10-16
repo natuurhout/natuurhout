@@ -1,13 +1,11 @@
 "use client";
 
-import { ArrowUpRight, Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
+import { Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
 import {
   compareAtPrice,
   formatPrice,
-  shopCartAddUrl,
-  shopCartPermalink,
   splitRoll,
   type Product,
   type ProductVariant,
@@ -21,13 +19,11 @@ import { oakWithPostsaver } from "@/lib/price-updates";
  * and prices are verbatim shop data. Several products (e.g. loose postsavers
  * and posts with a postsaver) share one total.
  *
- * There is no cart on this site: one chosen line is added to the
- * natuurhout.shop cart (keeping what is already there); several lines open
- * the shop's checkout with exactly those lines (Shopify cart permalink).
- *
- * Sold-out variants stay orderable "op bestelling": as soon as one is in the
- * selection, the box sends an order request (OrderRequestForm) instead, with
- * every chosen line, and Natuurhout mails the delivery term.
+ * This site replaced natuurhout.shop (Xander, Oct 2026) and has no online
+ * checkout: the chosen lines are sent as an order (OrderRequestForm) and
+ * Natuurhout confirms it by mail, with payment details and the pick-up or
+ * delivery arrangement. Sold-out variants stay orderable "op bestelling":
+ * Natuurhout then also mails the delivery term.
  */
 
 type Row = {
@@ -240,12 +236,6 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
     const was = compareAtPrice(l.variant);
     return was === null ? sum : sum + (was - parseFloat(l.variant.price)) * l.quantity;
   }, 0);
-  const shopHref =
-    inStock.length === 1
-      ? shopCartAddUrl(inStock[0].product, inStock[0].variant, inStock[0].quantity)
-      : inStock.length > 1
-        ? shopCartPermalink(inStock[0].product, inStock)
-        : null;
   const requestLines: RequestLine[] = lines.map((l) => ({
     group: l.product.title,
     label: rowLabel(l.row),
@@ -253,7 +243,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
     qty: l.quantity,
     unit: parseFloat(l.variant.price),
   }));
-  const showForm = requesting && onOrder.length > 0;
+  const showForm = requesting && lines.length > 0;
 
   function openForm() {
     setRequesting(true);
@@ -315,17 +305,11 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
             <span className="block text-xs text-ink/60">Totaal incl. btw</span>
             <span className="text-2xl font-semibold tabular-nums">{formatPrice(total)}</span>
           </p>
-          {onOrder.length > 0 ? (
+          {lines.length > 0 ? (
             <button type="button" onClick={openForm} className={`${button} bg-accent text-white hover:bg-accent-deep`}>
               <Send className="h-4 w-4" />
-              Aanvragen
+              {onOrder.length > 0 ? "Aanvragen" : "Bestellen"}
             </button>
-          ) : shopHref ? (
-            <a href={shopHref} target="_blank" rel="noopener" className={`${button} bg-accent text-white hover:bg-accent-deep`}>
-              <ShoppingCart className="h-4 w-4" />
-              {inStock.length > 1 ? "Bestellen" : "In winkelmand"}
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
           ) : (
             <span className={`${button} bg-ink/10 text-ink/50`}>
               <ShoppingCart className="h-4 w-4" />
@@ -338,20 +322,9 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
         {onOrder.length > 0 ? (
           <>
             Uw keuze bevat artikelen op bestelling: u vraagt ze aan en wij mailen u de levertermijn.
-            {shopHref && (
-              <>
-                {" "}Liever enkel wat op voorraad is meteen bestellen?{" "}
-                <a href={shopHref} target="_blank" rel="noopener" className="font-medium text-accent underline hover:text-accent-deep">
-                  Naar de webshop
-                </a>
-                .
-              </>
-            )}
           </>
-        ) : inStock.length > 1 ? (
-          "Opent de kassa van natuurhout.shop met deze artikelen — daar kiest u levering of afhalen en rekent u af."
-        ) : inStock.length === 1 ? (
-          "Opent natuurhout.shop met dit artikel in uw winkelmand — daar rekent u af."
+        ) : inStock.length > 0 ? (
+          "U stuurt ons uw bestelling; wij bevestigen ze per mail, met de afspraak voor levering of afhalen en hoe u betaalt."
         ) : (
           "Kies hierboven per uitvoering hoeveel u wilt — u kunt meerdere uitvoeringen tegelijk bestellen, ook wat op bestelling is."
         )}{" "}
@@ -360,7 +333,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
 
       {showForm && (
         <div ref={formRef} className="mt-4 scroll-mt-6">
-          <OrderRequestForm lines={requestLines} />
+          <OrderRequestForm lines={requestLines} onOrder={onOrder.length > 0} />
         </div>
       )}
     </div>

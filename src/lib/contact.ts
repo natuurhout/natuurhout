@@ -16,8 +16,6 @@ export const ADDRESS = {
   maps: "https://maps.google.com/?q=A.+Van+Der+Moerenstraat+39,+9240+Zele",
 };
 
-export const SHOP_URL = "https://natuurhout.shop";
-
 export const SOCIALS = [
   { label: "Facebook", href: "https://www.facebook.com/natuurhout/" },
   { label: "Instagram", href: "https://www.instagram.com/natuurhout/" },

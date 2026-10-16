@@ -535,7 +535,7 @@ export default function HomePage() {
               <p className="mt-3 max-w-2xl leading-relaxed text-ink/70">
                 Ons volledige webshopassortiment: eerst hekwerk, dan poorten,
                 palen, vlechtschermen en moestuinbakken. Prijzen zijn incl. btw;
-                bestellen en betalen gebeurt op natuurhout.shop.
+                u bestelt rechtstreeks via de prijslijst op elke productpagina.
               </p>
             </div>
             <Link href="/shop/" className="text-sm font-medium text-accent hover:text-accent-deep">
@@ -753,15 +753,13 @@ export default function HomePage() {
               Naar de calculator
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <a
-              href="https://natuurhout.shop/"
-              target="_blank"
-              rel="noopener"
+            <Link
+              href="/shop/"
               className="inline-flex items-center gap-2 rounded-full border border-white/30 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:border-white/70 hover:bg-white/10"
             >
               Naar de webshop
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>

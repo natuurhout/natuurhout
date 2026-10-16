@@ -17,6 +17,8 @@ export type Quote = {
   kind: "calculator" | "vraag" | "bestelling";
   /** Page the order was placed from (bestelling only). */
   page: string;
+  /** A bestelling of products all in stock: an order to confirm, not a request for a delivery term. */
+  inStock: boolean;
   name: string;
   email: string;
   phone: string;
@@ -82,6 +84,7 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
   if (kind === "calculator" ? delivery && (!name || !phone) : !name) {
     return { error: kind === "calculator" ? "Voor een levering zijn naam en telefoonnummer verplicht." : "Naam en een geldig e-mailadres zijn verplicht." };
   }
+  if (kind === "bestelling" && delivery && !phone) return { error: "Voor een levering is een telefoonnummer verplicht." };
 
   const rawLines = Array.isArray(body.lines) ? body.lines.slice(0, 100) : [];
   const lines: QuoteLine[] = [];
@@ -98,6 +101,7 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
   return {
     kind,
     page: page.startsWith("/") ? page : "",
+    inStock: kind === "bestelling" && body.inStock === true,
     name,
     email,
     phone,
@@ -233,13 +237,15 @@ export function internalMail(q: Quote, photos: MailAttachment[] = []): Mail {
     ? ` ${photos.length === 1 ? "De klant stuurde 1 foto mee" : `De klant stuurde ${photos.length} foto's mee`} (in bijlage).`
     : "";
   const inner = `<p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">${
-    order ? "Nieuwe aanvraag op bestelling" : "Nieuwe offerteaanvraag"
+    order ? (q.inStock ? "Nieuwe bestelling" : "Nieuwe aanvraag op bestelling") : "Nieuwe offerteaanvraag"
   }</p>
 <p style="margin:0 0 18px;${FONT};font-size:14px;color:${C.soft}">${
     order
-      ? `Deze artikelen zijn niet (allemaal) op voorraad. Laat ${escapeHtml(who(q))} de levertermijn weten door deze mail te beantwoorden.${
-          q.page ? ` Besteld via ${escapeHtml(q.page)}.` : ""
-        }`
+      ? `${
+          q.inStock
+            ? `Alles op voorraad. Bevestig de bestelling aan ${escapeHtml(who(q))} met de afspraak voor levering of afhalen en hoe u betaalt door deze mail te beantwoorden.`
+            : `Deze artikelen zijn niet (allemaal) op voorraad. Laat ${escapeHtml(who(q))} de levertermijn weten door deze mail te beantwoorden.`
+        }${q.page ? ` Besteld via ${escapeHtml(q.page)}.` : ""}`
       : `Beantwoord deze mail om ${escapeHtml(who(q))} rechtstreeks te antwoorden.${photoNote}`
   }</p>
 ${detailsTable(q, true)}
@@ -247,7 +253,7 @@ ${detailsTable(q, true)}
 ${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : ""}
 ${remarksBlock(q)}`;
   const subject = order
-    ? `Aanvraag op bestelling – ${who(q)}`
+    ? `${q.inStock ? "Bestelling" : "Aanvraag op bestelling"} – ${who(q)}`
     : q.kind === "vraag"
       ? `Offerteaanvraag – ${who(q)}`
       : `Offerteaanvraag afsluiting – ${who(q)}`;
@@ -258,7 +264,9 @@ export function confirmationMail(q: Quote): Mail {
   const first = q.name.split(/\s+/)[0] || q.name || "klant";
   const order = q.kind === "bestelling";
   const thanks = order
-    ? "Bedankt voor uw aanvraag. We hebben ze goed ontvangen en bekijken ze zo snel mogelijk. U krijgt per mail de levertermijn en het verdere verloop van uw bestelling."
+    ? q.inStock
+      ? "Bedankt voor uw bestelling. We hebben ze goed ontvangen en bevestigen ze zo snel mogelijk per mail, met de afspraak voor levering of afhalen en hoe u betaalt."
+      : "Bedankt voor uw aanvraag. We hebben ze goed ontvangen en bekijken ze zo snel mogelijk. U krijgt per mail de levertermijn en het verdere verloop van uw bestelling."
     : q.kind === "vraag"
       ? "Bedankt voor uw offerteaanvraag. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres."
       : "Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.";
@@ -267,7 +275,7 @@ export function confirmationMail(q: Quote): Mail {
       ? "De leveringskosten (op basis van uw postcode) nemen we op in uw offerte."
       : ""
     : order
-    ? `Prijzen incl. btw volgens onze webshop. De levertermijn${
+    ? `Prijzen incl. btw. ${q.inStock ? "De afspraak voor levering of afhalen" : "De levertermijn"}${
         q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
       } bevestigen we per mail.`
     : `Dit zijn richtprijzen incl. btw op basis van onze actuele webshopprijzen. Voorraad, maatwerk${
@@ -297,6 +305,10 @@ ${remarksBlock(q)}
     "Het team van Natuurhout",
     "Adolf Van Der Moerenstraat 39, 9240 Zele · 052 55 88 58 · gsm 0473 74 09 26 · info@natuurhout.be",
   ].join("\n");
-  const subject = order ? "Bedankt voor uw aanvraag – Natuurhout" : "Bedankt voor uw offerteaanvraag – Natuurhout";
+  const subject = order
+    ? q.inStock
+      ? "Bedankt voor uw bestelling – Natuurhout"
+      : "Bedankt voor uw aanvraag – Natuurhout"
+    : "Bedankt voor uw offerteaanvraag – Natuurhout";
   return { subject, html: frame(inner), text, attachments: inlineAttachments() };
 }

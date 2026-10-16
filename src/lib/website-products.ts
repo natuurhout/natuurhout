@@ -31,7 +31,7 @@ export const WEBSITE_PRODUCTS: Product[] = [
     priceTo: "13.00",
     available: false,
     tags: ["Plaatsing materiaal"],
-    shopUrl: "https://natuurhout.shop",
+    shopUrl: "/shop/snelbeton/",
     publishedAt: "2026-10-13T00:00:00Z",
   },
 ];

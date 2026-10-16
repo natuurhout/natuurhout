@@ -346,7 +346,7 @@ export function poleSize(kind: PoleOption["kind"], diameter: string): string {
 export function looseSaver(data: CalculatorData, diameter: string) {
   const key = postsaverKey(diameter);
   const opt = key ? data.loosePostsavers?.byKey[key] : undefined;
-  return key && opt ? { key, opt, url: `${data.loosePostsavers!.shopUrl}?variant=${opt.variantId}` } : null;
+  return key && opt ? { key, opt, url: data.loosePostsavers!.shopUrl } : null;
 }
 
 /** A sleeve fitted by Natuurhout: the loose sleeve plus the fitting. */
@@ -434,7 +434,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         detail: `${qty} × rol van ${r.roll.rollLength} m = ${qty * r.roll.rollLength} m (nodig: ${line.meters} m)`,
         qty,
         unit: r.roll.price,
-        url: `${r.fence.shopUrl}?variant=${r.roll.variantId}`,
+        url: r.fence.shopUrl,
         ...onOrder(r.fence.handle, r.roll.available),
       });
     }
@@ -449,7 +449,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         detail: `${s.count} schermen: samen ca. ${formatMeters(s.lengthCm)} lang, met een paal van ±${SCREEN_POST_CM} cm tussen de schermen en aan beide uiteinden`,
         qty: s.count,
         unit: s.size.price,
-        url: `${s.option.shopUrl}?variant=${s.size.variantId}`,
+        url: s.option.shopUrl,
         ...onOrder(s.option.handle, s.size.available),
       });
     }
@@ -464,7 +464,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         label: `${p.product.title} ${p.pole.length} cm, ${poleSize(p.product.kind, p.pole.diameter)}`,
         qty: p.count,
         unit: p.pole.price,
-        url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
+        url: p.product.shopUrl,
         ...onOrder(p.product.handle, p.pole.available),
       });
       lines.push(...saverLines("Palen", line.saver, postSaverFor(data, p.product.kind, p.pole), p.count, p.product.title.toLowerCase()));
@@ -484,7 +484,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         detail: `${state.postRail.meters} m met ${state.postRail.corners} ${state.postRail.corners === 1 ? "hoek" : "hoeken"}: ${q.sections} vakken`,
         qty: q.posts,
         unit: post.price + extra,
-        url: `${pr.shopUrl}?variant=${post.variantId}`,
+        url: pr.shopUrl,
       });
       lines.push({
         group: "Post & Rail",
@@ -492,7 +492,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         detail: `${state.postRail.rails} liggers per vak`,
         qty: q.rails,
         unit: pr.rail.price + extra,
-        url: `${pr.shopUrl}?variant=${pr.rail.variantId}`,
+        url: pr.shopUrl,
       });
     }
   }
@@ -528,7 +528,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             label: `Poortpaal: ${p.product.title} ${p.pole.length} cm, ${poleSize(p.product.kind, p.pole.diameter)}`,
             qty: POSTS_PER_GATE,
             unit: p.pole.price,
-            url: `${p.product.shopUrl}?variant=${p.pole.variantId}`,
+            url: p.product.shopUrl,
             ...onOrder(p.product.handle, p.pole.available),
           });
           lines.push(...saverLines(group, gate.saver, postSaverFor(data, p.product.kind, p.pole), POSTS_PER_GATE, "poortpaal"));
@@ -540,12 +540,12 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         const hw = data.fieldGateHardware;
         if (gate.hinges) {
           hardware = true;
-          lines.push({ group, label: `Beslag: ${hw.hinges.title}`, detail: "per vleugel", qty: gate.leaves, unit: hw.hinges.price, url: `${hw.shopUrl}?variant=${hw.hinges.variantId}` });
+          lines.push({ group, label: `Beslag: ${hw.hinges.title}`, detail: "per vleugel", qty: gate.leaves, unit: hw.hinges.price, url: hw.shopUrl });
         }
         const latch = fieldGateLatch(data, gate);
-        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: `${hw.shopUrl}?variant=${latch.variantId}`, ...onOrder("beslag-hang-sluitwerk", latch.available) });
+        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: hw.shopUrl, ...onOrder("beslag-hang-sluitwerk", latch.available) });
         if (hw.groundPin && gate.groundPins > 0) {
-          lines.push({ group, label: `Beslag: ${hw.groundPin.title}`, qty: gate.groundPins, unit: hw.groundPin.price, url: `${hw.shopUrl}?variant=${hw.groundPin.variantId}` });
+          lines.push({ group, label: `Beslag: ${hw.groundPin.title}`, qty: gate.groundPins, unit: hw.groundPin.price, url: hw.shopUrl });
         }
       }
       if (gate.black && hardware) {
@@ -564,7 +564,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             label: `${planter.title} ${size.title}`,
             qty,
             unit: size.price,
-            url: `${planter.shopUrl}?variant=${size.variantId}`,
+            url: planter.shopUrl,
             ...onOrder(planter.handle, size.available),
           });
         }
