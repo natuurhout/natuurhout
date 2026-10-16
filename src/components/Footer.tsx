@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Clock, Mail, MapPin, Phone, Smartphone } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Clock, Mail, MapPin, Phone, Smartphone } from "lucide-react";
 import { SOCIALS, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 
@@ -25,7 +25,7 @@ export default function Footer() {
               className="mt-6 inline-flex items-center gap-2 rounded-sm bg-accent px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-deep"
             >
               Naar de shop
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
             <p className="mt-8 text-xs font-semibold uppercase tracking-[0.22em] text-accent-bright">
               Volg ons

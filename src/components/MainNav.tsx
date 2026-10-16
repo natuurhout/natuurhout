@@ -4,9 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowRight, ChevronDown, Mail, Menu, Phone, Search, ShoppingCart, Smartphone, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Mail, Menu, Phone, Search, ShoppingCart, Smartphone, Store, X } from "lucide-react";
 import OpeningStatus from "@/components/OpeningStatus";
 import SearchBox from "@/components/SearchBox";
+import { cartCount, useCart } from "@/lib/cart";
 import { EMAIL, MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
 import { groupHref, pageLinks, productMenu, PROMO_HREF, QUOTE_HREF } from "@/lib/navigation";
@@ -18,6 +19,21 @@ import type { SearchItem } from "@/lib/search";
  * the trust strip and the logo row scroll away while this bar stays: no
  * height changes, no layout jump. Once it sticks, a small logo slides in.
  */
+
+/** The winkelmandje, with the number of pieces in it. */
+function CartLink({ className }: { className: string }) {
+  const count = cartCount(useCart());
+  return (
+    <Link href="/winkelmandje/" aria-label={count ? `Winkelmandje: ${count} ${count === 1 ? "stuk" : "stuks"}` : "Winkelmandje"} className={`relative ${className}`}>
+      <ShoppingCart aria-hidden className="h-[18px] w-[18px]" />
+      {count > 0 && (
+        <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-bold leading-none text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 const productPaths = productMenu.flatMap((group) => [groupHref(group), ...group.links.map((link) => link.href)]);
 
@@ -195,11 +211,12 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
               href="/shop/"
               className="inline-flex h-10 items-center gap-2 rounded-sm border border-white/45 px-3.5 text-[14px] font-bold text-white transition-colors hover:border-white hover:bg-white hover:text-brand-dark xl:px-5"
             >
-              <ShoppingCart aria-hidden className="h-4 w-4" />
+              <Store aria-hidden className="h-4 w-4" />
               {/* Below 1280px the compact bar also holds the logo: the label shortens to fit. */}
               <span className={stuck ? "hidden xl:inline" : undefined}>Naar de shop</span>
               {stuck && <span className="xl:hidden">Shop</span>}
             </Link>
+            <CartLink className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-white/45 text-white transition-colors hover:border-white hover:bg-white hover:text-brand-dark" />
           </div>
         </div>
 
@@ -276,8 +293,8 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
         ref={mobileBarRef}
         className={`relative border-b border-line bg-white transition-shadow duration-300 desk:hidden ${stuck || mobileOpen ? "shadow-[0_8px_20px_-14px_rgba(0,0,0,0.45)]" : ""}`}
       >
-        {/* Five items in a row: on 360px phones the logo and gaps shrink a bit;
-            below 360px the call button goes (the numbers are in the menu). */}
+        {/* Six items in a row: on small phones the logo and gaps shrink a bit;
+            below 400px the call button goes (the numbers are in the menu). */}
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-1.5 px-4 min-[380px]:gap-2 sm:px-6">
           <Link href="/" aria-label="Natuurhout home" className="mr-auto shrink-0">
             <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[108px] min-[380px]:w-[128px] min-[400px]:w-[150px] sm:w-[190px]" priority />
@@ -295,10 +312,11 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
           >
             {mobileSearch ? <X aria-hidden className="h-[18px] w-[18px]" /> : <Search aria-hidden className="h-[18px] w-[18px]" />}
           </button>
+          <CartLink className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-line text-ink/70 transition-colors hover:border-accent hover:text-accent-deep" />
           <a
             href={PHONE.href}
             aria-label={`Bel ons: ${PHONE.label}`}
-            className="hidden h-10 w-10 shrink-0 min-[360px]:inline-flex items-center justify-center rounded-sm border border-line text-accent-deep transition-colors hover:border-accent hover:bg-accent-deep hover:text-white"
+            className="hidden h-10 w-10 shrink-0 min-[400px]:inline-flex items-center justify-center rounded-sm border border-line text-accent-deep transition-colors hover:border-accent hover:bg-accent-deep hover:text-white"
           >
             <Phone aria-hidden className="h-[18px] w-[18px]" />
           </a>
@@ -398,7 +416,7 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
                 Offerte aanvragen
               </Link>
               <Link href="/shop/" onClick={() => closeMobile()} className="inline-flex h-12 items-center justify-center gap-2 rounded-sm border border-brand-dark px-5 text-[15px] font-bold text-brand-dark hover:bg-brand-dark hover:text-white">
-                <ShoppingCart aria-hidden className="h-4 w-4" />
+                <Store aria-hidden className="h-4 w-4" />
                 Naar de shop
               </Link>
             </div>

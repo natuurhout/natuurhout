@@ -31,7 +31,17 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-export default function OrderRequestForm({ lines, onOrder }: { lines: RequestLine[]; /** Some lines are not in stock. */ onOrder: boolean }) {
+export default function OrderRequestForm({
+  lines,
+  onOrder,
+  onSent,
+}: {
+  lines: RequestLine[];
+  /** Some lines are not in stock. */
+  onOrder: boolean;
+  /** After the order arrived (the winkelmandje empties itself). */
+  onSent?: () => void;
+}) {
   const [f, setF] = useState({ name: "", email: "", phone: "", delivery: false, street: "", postcode: "", city: "", remarks: "" });
   const [agreed, setAgreed] = useState(false);
   const [honeypot, setHoneypot] = useState("");
@@ -111,6 +121,7 @@ export default function OrderRequestForm({ lines, onOrder }: { lines: RequestLin
         const result = (await response.json().catch(() => ({}))) as { confirmed?: boolean };
         setConfirmed(Boolean(result.confirmed));
         setStatus("sent");
+        onSent?.();
       } else if (response.status === 503) {
         // Sending not set up on this deployment: hand over to the mail program.
         const subject = `${onOrder ? "Aanvraag op bestelling" : "Bestelling"} – ${f.name.trim()}`;

@@ -1,6 +1,7 @@
 "use client";
 
-import { Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { Check, Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
 import {
@@ -10,6 +11,7 @@ import {
   type Product,
   type ProductVariant,
 } from "@/lib/catalog";
+import { addToCart, cartCount, useCart } from "@/lib/cart";
 import { orderTerm } from "@/lib/made-to-order";
 import { oakWithPostsaver } from "@/lib/price-updates";
 
@@ -20,7 +22,10 @@ import { oakWithPostsaver } from "@/lib/price-updates";
  * and posts with a postsaver) share one total.
  *
  * This site replaced natuurhout.shop (Xander, Oct 2026) and has no online
- * checkout: the chosen lines are sent as an order (OrderRequestForm) and
+ * checkout. The chosen lines go into the winkelmandje (src/lib/cart.ts, sent
+ * from /winkelmandje/ together with what was chosen on other pages), or are
+ * sent straight away from here ("Meteen bestellen"); either way as an order
+ * (OrderRequestForm) that
  * Natuurhout confirms it by mail, with payment details and the pick-up or
  * delivery arrangement. Sold-out variants stay orderable "op bestelling":
  * Natuurhout then also mails the delivery term.
@@ -221,7 +226,10 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
   });
   const setQty = (id: number, n: number) => setQtyState((q) => ({ ...q, [id]: n }));
   const [requesting, setRequesting] = useState(false);
+  const [added, setAdded] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
+  const cart = useCart();
+  const inCart = cartCount(cart);
 
   const lines = products.flatMap((product, p) =>
     lists[p].rows
@@ -245,7 +253,25 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
   }));
   const showForm = requesting && lines.length > 0;
 
+  function addLines() {
+    addToCart(
+      lines.map((l) => ({
+        id: l.variant.id,
+        handle: l.product.handle,
+        product: l.product.title,
+        label: rowLabel(l.row),
+        unit: parseFloat(l.variant.price),
+        qty: l.quantity,
+        available: l.variant.available,
+      })),
+    );
+    setAdded(pieces);
+    setRequesting(false);
+    setQtyState({});
+  }
+
   function openForm() {
+    setAdded(0);
     setRequesting(true);
     requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
@@ -306,10 +332,16 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
             <span className="text-2xl font-semibold tabular-nums">{formatPrice(total)}</span>
           </p>
           {lines.length > 0 ? (
-            <button type="button" onClick={openForm} className={`${button} bg-accent text-white hover:bg-accent-deep`}>
-              <Send className="h-4 w-4" />
-              {onOrder.length > 0 ? "Aanvragen" : "Bestellen"}
-            </button>
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+              <button type="button" onClick={addLines} className={`${button} bg-accent text-white hover:bg-accent-deep`}>
+                <ShoppingCart className="h-4 w-4" />
+                In winkelmandje
+              </button>
+              <button type="button" onClick={openForm} className={`${button} border border-brand/25 bg-white text-ink hover:border-accent hover:text-accent-deep`}>
+                <Send className="h-4 w-4" />
+                {onOrder.length > 0 ? "Meteen aanvragen" : "Meteen bestellen"}
+              </button>
+            </div>
           ) : (
             <span className={`${button} bg-ink/10 text-ink/50`}>
               <ShoppingCart className="h-4 w-4" />
@@ -317,6 +349,26 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
             </span>
           )}
         </div>
+        {added > 0 && lines.length === 0 ? (
+          <p role="status" className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-ink/80">
+            <span className="flex items-center gap-1.5 font-medium text-ink">
+              <Check className="h-4 w-4 text-emerald-700" /> {added} {added === 1 ? "stuk" : "stuks"} toegevoegd aan uw winkelmandje
+            </span>
+            <Link href="/winkelmandje/" className="font-semibold text-accent-deep underline underline-offset-2 hover:text-ink">
+              Bekijk winkelmandje ({inCart})
+            </Link>
+          </p>
+        ) : (
+          inCart > 0 &&
+          lines.length === 0 && (
+            <p className="mt-3 text-sm text-ink/65">
+              In uw winkelmandje: {inCart} {inCart === 1 ? "stuk" : "stuks"}.{" "}
+              <Link href="/winkelmandje/" className="font-semibold text-accent-deep underline underline-offset-2 hover:text-ink">
+                Bekijk en verstuur
+              </Link>
+            </p>
+          )
+        )}
       </div>
       <p className="mt-2.5 text-xs leading-5 text-ink/55">
         {onOrder.length > 0 ? (
@@ -326,7 +378,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
         ) : inStock.length > 0 ? (
           "U stuurt ons uw bestelling; wij bevestigen ze per mail, met de afspraak voor levering of afhalen en hoe u betaalt."
         ) : (
-          "Kies hierboven per uitvoering hoeveel u wilt — u kunt meerdere uitvoeringen tegelijk bestellen, ook wat op bestelling is."
+          "Kies hierboven per uitvoering hoeveel u wilt en leg het in uw winkelmandje: zo bestelt u producten van verschillende pagina's in één keer, ook wat op bestelling is."
         )}{" "}
         Levering mogelijk: de kosten hangen af van de locatie. Afhalen kan in Zele.
       </p>
