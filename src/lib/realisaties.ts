@@ -94,6 +94,7 @@ export const NEW_PROJECTS: NewProject[] = [
       mariakerke(3, "Het poortje met pen-en-gatverbindingen en een schoor, aan verzinkte scharnieren"),
       mariakerke(4, "Graspad tussen twee borders, afgezet met kastanje hekwerk dat de bochten volgt"),
       mariakerke(5, "Kastanje hekwerk van dichtbij langs het gazon, met de borders erachter"),
+      { ...mariakerke(8, "Kastanje hekwerk tussen de rozen in de border, zodat de honden er niet meer in spelen"), width: 1125, height: 1500 },
     ],
   },
   {
