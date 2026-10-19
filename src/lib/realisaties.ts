@@ -88,7 +88,9 @@ export const NEW_PROJECTS: NewProject[] = [
     ],
     photos: [
       mariakerke(1, "Kastanje premium maatwerkpoortje van 60 cm hoog tussen twee kastanje poortpalen in Mariakerke", true),
+      { ...mariakerke(6, "Het poortje in het kastanje hekwerk, met het tuinpad en de vijver erachter"), height: 994 },
       mariakerke(2, "Tuin in Mariakerke met laag kastanje hekwerk rond de borders langs het gazon"),
+      mariakerke(7, "Kastanje maatwerkpoortje van dichtbij, tussen de border en het gazon"),
       mariakerke(3, "Het poortje met pen-en-gatverbindingen en een schoor, aan verzinkte scharnieren"),
       mariakerke(4, "Graspad tussen twee borders, afgezet met kastanje hekwerk dat de bochten volgt"),
       mariakerke(5, "Kastanje hekwerk van dichtbij langs het gazon, met de borders erachter"),
