@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "postbuild": "node scripts/flatten-rsc.mjs",
+    "start": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "cf:types": "wrangler types worker/worker-configuration.d.ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p worker",
     "migration:extract": "node scripts/extract-legacy-content.mjs",
     "migration:audit": "node scripts/audit-migration.mjs",
     "migration:assets": "node scripts/fetch-legacy-assets.mjs",
@@ -29,6 +32,7 @@
     "csv-parse": "^7.0.2",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "wrangler": "^4.156.0"
   }
 }

@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Hosted on Cloudflare Workers as a static export (./out). The Worker in
+  // worker/index.ts serves /api/offerte/ and reproduces trailingSlash and the
+  // redirects() below (it imports this file), with the same 308s as Next.
+  output: "export",
   images: {
+    // No image optimisation server on a static host.
+    unoptimized: true,
     remotePatterns: [
       // Shop product images stay on the Shopify CDN (catalog is copied from
       // natuurhout.shop; the shop itself is never modified — rule 8).

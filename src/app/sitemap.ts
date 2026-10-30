@@ -6,6 +6,9 @@ import { NEW_PROJECTS, newProjectHref } from "@/lib/realisaties";
 import { ARTIKELS, artikelHref } from "@/lib/artikels";
 import { siteUrl } from "@/lib/site";
 
+// Static export (Cloudflare Workers static assets).
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const core: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/shop/`, changeFrequency: "weekly", priority: 0.9 },

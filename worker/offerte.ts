@@ -6,7 +6,8 @@
  * is sent, the customer gets a confirmation with an overview of the request,
  * whose Reply-To is Natuurhout's inbox.
  *
- * Env (Vercel → Settings → Environment Variables):
+ * Served by the Cloudflare Worker (worker/index.ts) at /api/offerte/.
+ * Env (Worker secrets/vars, `npx wrangler secret put RESEND_API_KEY`):
  *   RESEND_API_KEY  required; without it this route answers 503 and the page
  *                   falls back to opening the customer's mail program
  *   QUOTE_TO        optional, default info@natuurhout.be (comma separated)
@@ -20,15 +21,21 @@
  * customer confirmation goes out until the domain is verified.
  */
 
-import { confirmationMail, internalMail, parsePhotos, parseQuote, type Mail } from "@/lib/quote-email";
+import { confirmationMail, internalMail, parsePhotos, parseQuote, type Mail } from "../src/lib/quote-email";
 
-// Overridable only so the route can be exercised against a local stand-in.
-const RESEND_URL = process.env.RESEND_API_URL || "https://api.resend.com/emails";
+export interface OfferteEnv {
+  RESEND_API_KEY?: string;
+  QUOTE_TO?: string;
+  QUOTE_FROM?: string;
+  // Overridable only so the route can be exercised against a local stand-in.
+  RESEND_API_URL?: string;
+}
+
 const DEFAULT_FROM = "Natuurhout offerte <offerte@natuurhout.be>";
 const FALLBACK_FROM = "Natuurhout offerte <onboarding@resend.dev>";
 const MIN_FILL_MS = 3_000;
 
-// Best effort per serverless instance: enough to blunt a script hammering the form.
+// Best effort per Worker isolate: enough to blunt a script hammering the form.
 const recent = new Map<string, number[]>();
 function rateLimited(ip: string): boolean {
   const now = Date.now();
@@ -42,7 +49,8 @@ function str(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request, env: OfferteEnv) {
+  const RESEND_URL = env.RESEND_API_URL || "https://api.resend.com/emails";
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -61,18 +69,21 @@ export async function POST(request: Request) {
     return Response.json({ error: quote.error }, { status: 400 });
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown";
   if (rateLimited(ip)) {
     return Response.json({ error: "Te veel aanvragen kort na elkaar. Probeer het later opnieuw." }, { status: 429 });
   }
 
-  const key = process.env.RESEND_API_KEY;
+  const key = env.RESEND_API_KEY;
   if (!key) {
     return Response.json({ error: "not-configured" }, { status: 503 });
   }
 
-  const inbox = (process.env.QUOTE_TO || "info@natuurhout.be").split(",").map((s) => s.trim()).filter(Boolean);
-  const from = process.env.QUOTE_FROM || DEFAULT_FROM;
+  const inbox = (env.QUOTE_TO || "info@natuurhout.be").split(",").map((s) => s.trim()).filter(Boolean);
+  const from = env.QUOTE_FROM || DEFAULT_FROM;
 
   const send = (sender: string, to: string[], replyTo: string, mail: Mail) =>
     fetch(RESEND_URL, {

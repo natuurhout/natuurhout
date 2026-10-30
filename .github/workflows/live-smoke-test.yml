@@ -10,7 +10,7 @@ on:
     inputs:
       base_url:
         description: "Site to test"
-        default: "https://natuurhout-ten.vercel.app"
+        default: "https://natuurhout.tiny-fire-1523.workers.dev"
         required: true
       send_quote:
         description: "Send one test quote to the inbox"
@@ -55,7 +55,7 @@ jobs:
           echo "HTTP $code"; cat response.json; echo
           case "$code" in
             200) echo "Quote accepted and handed to Resend — check the inbox." ;;
-            503) echo "::error::RESEND_API_KEY is not active on this deployment (set it in Vercel and redeploy)."; exit 1 ;;
-            502) echo "::error::Resend refused the mail — see the function log in Vercel for Resend's reason."; exit 1 ;;
+            503) echo "::error::RESEND_API_KEY is not active on this deployment (set it with: npx wrangler secret put RESEND_API_KEY)."; exit 1 ;;
+            502) echo "::error::Resend refused the mail — see the Worker logs in Cloudflare (Workers → natuurhout → Logs) for Resend's reason."; exit 1 ;;
             *)   echo "::error::Unexpected answer from /api/offerte/"; exit 1 ;;
           esac
