@@ -35,13 +35,15 @@ export type Quote = {
 
 import { logoImage, mascotImage, type EmailImage } from "@/lib/email-assets";
 
-/** Inline images travel as attachments referenced by cid: in the HTML (Resend's attachment shape). */
-export type MailAttachment = { filename: string; content: string; content_id?: string };
+/** Attachments in the shape of Cloudflare Email Sending; inline images are referenced by cid: in the HTML. */
+export type MailAttachment =
+  | { disposition: "inline"; contentId: string; filename: string; type: string; content: string }
+  | { disposition: "attachment"; contentId?: undefined; filename: string; type: string; content: string };
 export type Mail = { subject: string; html: string; text: string; attachments: MailAttachment[] };
 
 const INLINE_IMAGES: EmailImage[] = [logoImage, mascotImage];
 const inlineAttachments = (): MailAttachment[] =>
-  INLINE_IMAGES.map((i) => ({ filename: i.filename, content: i.base64, content_id: i.cid }));
+  INLINE_IMAGES.map((i) => ({ disposition: "inline" as const, contentId: i.cid, filename: i.filename, type: "image/png", content: i.base64 }));
 
 function img(i: EmailImage, alt: string): string {
   return `<img src="cid:${i.cid}" width="${i.width}" height="${i.height}" alt="${alt}" style="display:block;border:0;outline:none;text-decoration:none;width:${i.width}px;height:${i.height}px">`;
@@ -136,7 +138,7 @@ export function parsePhotos(body: Record<string, unknown>): MailAttachment[] {
     const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
     if (!isJpeg || bytes.length > MAX_PHOTO_BYTES || total + bytes.length > MAX_PHOTOS_TOTAL) continue;
     total += bytes.length;
-    photos.push({ filename: `foto-${i + 1}.jpg`, content: data });
+    photos.push({ disposition: "attachment", filename: `foto-${i + 1}.jpg`, type: "image/jpeg", content: data });
   }
   return photos;
 }

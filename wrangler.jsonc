@@ -1,8 +1,8 @@
 {
   // Natuurhout — static Next.js export (./out) served as Workers static assets.
   // worker/index.ts runs first for every request: trailing-slash + next.config.ts redirects (308s,
-  // same as Next on Vercel) and POST /api/offerte/ (quote requests → Resend). See AGENTS.md "Hosting".
-  // Build: `npm run build`. Deploy: `npm run deploy`. Secret (never committed): RESEND_API_KEY.
+  // same as Next on Vercel) and POST /api/offerte/ (quote requests → Cloudflare Email Sending). See AGENTS.md "Hosting".
+  // Build: `npm run build`. Deploy: `npm run deploy`. No secrets.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "natuurhout",
   "main": "./worker/index.ts",
@@ -10,6 +10,9 @@
   // quote-email.ts uses Buffer for photo attachments.
   "compatibility_flags": ["nodejs_compat"],
   "upload_source_maps": true,
+  // Quote/order mails go out from offerte@natuurhout.be via Email Sending (enable the domain with
+  // `npx wrangler email sending enable natuurhout.be` once the zone is active).
+  "send_email": [{ "name": "EMAIL", "allowed_sender_addresses": ["offerte@natuurhout.be"] }],
   "assets": {
     "directory": "./out",
     "binding": "ASSETS",

@@ -49,7 +49,7 @@ historical).
   `worker/index.ts` runs first for every request and does what Next did on
   Vercel: the `trailingSlash` 308s, the `redirects()` from `next.config.ts`
   (it imports that file, so edit redirects there only), and `POST /api/offerte/`
-  (`worker/offerte.ts`, quote requests → Resend). Config: `wrangler.jsonc`.
+  (`worker/offerte.ts`, quote requests → Cloudflare Email Sending). Config: `wrangler.jsonc`.
 - **No server code in `src/app`:** route handlers, server actions, `cookies()`,
   `headers()` or on-demand pages do not work in a static export. New API
   endpoints go in the Worker. Dynamic routes need `generateStaticParams`.
@@ -63,10 +63,13 @@ historical).
   Microsoft 365 (MX/SPF/DMARC copied into the zone). The workers.dev URL
   gets `X-Robots-Tag: noindex` from the Worker; set `workers_dev: false`
   once the nameserver switch at Combell is verified.
-- **Secrets** live in the Worker, never in the repo:
-  `npx wrangler secret put RESEND_API_KEY` (optional: `QUOTE_TO`,
-  `QUOTE_FROM`). Without `RESEND_API_KEY` the quote route answers 503
-  `not-configured` and the page opens the customer's mail program.
+- **Quote mail (2026-11-09):** Cloudflare Email Sending via the `EMAIL`
+  binding (`send_email` in `wrangler.jsonc`, sender `offerte@natuurhout.be`),
+  no API key, Resend removed. The domain must be onboarded once the zone is
+  active: `npx wrangler email sending enable natuurhout.be` (adds the DKIM/SPF
+  records). Until then the binding rejects the sender, the route answers 503
+  `not-configured` and the page opens the customer's mail program. Optional
+  vars: `QUOTE_TO`, `QUOTE_FROM`.
 - **Build-time env:** `SITE_INDEXING_ENABLED` is read during the build (static
   export). `.env.production` (committed) sets it to `true`, so `npm run build`
   / `npm run deploy` produce the indexable production site; `next dev` stays
