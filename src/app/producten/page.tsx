@@ -27,7 +27,7 @@ const RENAMES: Record<string, string> = {
 const REMOVED = ["/project/boerenlandhekken/", "/project/raamwerkpoort/"];
 const PHOTOS: Record<string, string> = {
   "/project/hazelaar-vlechtscherm-hasseltre/": "/fotos/hazelaar-vlechtscherm-halve-latten.jpg",
-  "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
+  "/project/hazelaarvlechtschermen/": "/fotos/web/hazelaar-vlechtscherm-scaled.jpg",
   "/project/robinia-rasterwerk/": "/fotos/robinia-hekwerk-hoofdfoto.jpg",
   "/project/franse-poorten/": "/fotos/kastanje-premium-poort.jpg",
   "/project/kastanjepalen/": "/fotos/kastanje-palen.jpg",

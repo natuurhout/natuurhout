@@ -3,6 +3,7 @@
 import { Send } from "lucide-react";
 import { useRef, useState } from "react";
 import { formatPrice } from "@/lib/catalog";
+import { trackLead } from "@/lib/tracking";
 
 /*
  * An order from a price list. The site has no online checkout (it replaced
@@ -121,6 +122,7 @@ export default function OrderRequestForm({
         const result = (await response.json().catch(() => ({}))) as { confirmed?: boolean };
         setConfirmed(Boolean(result.confirmed));
         setStatus("sent");
+        trackLead("bestelling");
         onSent?.();
       } else if (response.status === 503) {
         // Sending not set up on this deployment: hand over to the mail program.

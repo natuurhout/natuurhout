@@ -1,7 +1,16 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Clock, Mail, MapPin, Phone, Smartphone } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Clock,
+  Mail,
+  MapPin,
+  Phone,
+  Smartphone,
+} from "lucide-react";
 import { SOCIALS, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
+import CookieSettingsLink from "@/components/CookieSettingsLink";
 
 // NAP, opening hours and link labels are VERBATIM from the live natuurhout.be
 // footer (Phase 0 snapshot) — do not reword; local SEO depends on the exact
@@ -58,19 +67,33 @@ export default function Footer() {
               </li>
               <li className="flex gap-2.5">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                <a href="tel:+3252558858" className="hover:text-white">Tel: 052 55 88 58</a>
+                <a href="tel:+3252558858" className="hover:text-white">
+                  Tel: 052 55 88 58
+                </a>
               </li>
               <li className="flex gap-2.5">
                 <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                <a href="tel:+32473740926" className="hover:text-white">Gsm: 0473 74 09 26</a>
+                <a href="tel:+32473740926" className="hover:text-white">
+                  Gsm: 0473 74 09 26
+                </a>
               </li>
               <li className="flex gap-2.5">
                 <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                <a href={WHATSAPP.href} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp: {WHATSAPP.label}</a>
+                <a
+                  href={WHATSAPP.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white"
+                >
+                  WhatsApp: {WHATSAPP.label}
+                </a>
               </li>
               <li className="flex gap-2.5">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent-bright" />
-                <a href="mailto:info@natuurhout.be" className="hover:text-white">
+                <a
+                  href="mailto:info@natuurhout.be"
+                  className="hover:text-white"
+                >
                   Email: info@natuurhout.be
                 </a>
               </li>
@@ -102,18 +125,27 @@ export default function Footer() {
                 ["/onze-realisaties/", "Onze realisaties"],
                 ["/veelgesteldevragen/", "Veelgestelde Vragen - FAQ"],
                 ["/tipsenideeen/", "Tips & Ideeën"],
-                ["/algemene-voorwaarden-van-beho-comm-v/", "Algemene voorwaarden"],
+                [
+                  "/algemene-voorwaarden-van-beho-comm-v/",
+                  "Algemene voorwaarden",
+                ],
                 ["/gebruiksvoorwaarden/", "Gebruiksvoorwaarden"],
                 ["/privacyverklaring/", "Privacyverklaring"],
                 ["/verzoek-toegang-tot-data/", "Verzoek toegang tot data"],
                 ["/cookiebeleid-eu/", "Cookiebeleid (EU)"],
               ].map(([href, label]) => (
                 <li key={href}>
-                  <Link href={href} className="text-white/75 transition-colors hover:text-white">
+                  <Link
+                    href={href}
+                    className="text-white/75 transition-colors hover:text-white"
+                  >
                     {label}
                   </Link>
                 </li>
               ))}
+              <li>
+                <CookieSettingsLink />
+              </li>
             </ul>
           </div>
         </div>

@@ -79,7 +79,7 @@ const REQUEST_ONLY: Record<string, Product[]> = {
 
 /** Snapshot photos taken off a page (approved, see handbuilt-routes.json). */
 const REMOVED_PHOTOS: Record<string, string[]> = {
-  "/project/hazelaarvlechtschermen/": ["/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg"],
+  "/project/hazelaarvlechtschermen/": ["/fotos/web/promotie-vlechtscherm.jpg"],
 };
 
 /** Marks where a replaced WordPress price table stood. */

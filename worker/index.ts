@@ -63,6 +63,19 @@ function redirect(location: string): Response {
 
 const CANONICAL_HOST = "www.natuurhout.be";
 
+// Static assets cannot set these themselves (no next.config headers() in a static export).
+function withSecurityHeaders(response: Response): Response {
+  const guarded = new Response(response.body, response);
+  guarded.headers.set("X-Content-Type-Options", "nosniff");
+  guarded.headers.set("X-Frame-Options", "SAMEORIGIN");
+  guarded.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  guarded.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()",
+  );
+  return guarded;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -73,7 +86,7 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
-    const response = await handle(request, env, url);
+    const response = withSecurityHeaders(await handle(request, env, url));
 
     // The workers.dev staging copy must never be indexed, whatever the built HTML says.
     if (url.hostname.endsWith(".workers.dev")) {

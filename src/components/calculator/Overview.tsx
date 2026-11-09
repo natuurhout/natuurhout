@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/catalog";
 import { contactErrors, lineDetail, quoteText, total, type Line, type State } from "@/components/calculator/model";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
 import type { StepProps } from "@/components/calculator/Steps";
+import { trackLead } from "@/lib/tracking";
 
 const QUOTE_ADDRESS = "info@natuurhout.be";
 
@@ -166,6 +167,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
         const result = (await response.json().catch(() => ({}))) as { confirmed?: boolean };
         setConfirmed(Boolean(result.confirmed));
         setStatus("sent");
+        trackLead("calculator");
       }
       // Sending not set up on this deployment yet: hand over to the mail program.
       else if (response.status === 503) openMailProgram();

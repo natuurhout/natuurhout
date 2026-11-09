@@ -71,5 +71,16 @@ historical).
   export). `.env.production` (committed) sets it to `true`, so `npm run build`
   / `npm run deploy` produce the indexable production site; `next dev` stays
   noindex.
+- **Tracking (2026-11-09):** opt-in consent banner (`src/components/CookieConsent.tsx`)
+  gates everything in `src/lib/tracking.ts`: GTM `GTM-PNLTC3D` + GA4
+  `G-CN9LQB6Q07` (statistics) and Meta Pixel `705295257764810` (marketing),
+  Consent Mode v2. Nothing loads before consent. Forms call `trackLead()` on a
+  successful send (`generate_lead` on dataLayer/GA4, `Lead` on the pixel).
+  No Meta Conversions API (house rule). Footer has a "Cookie-instellingen"
+  button that reopens the banner.
+- **Images on hand-built pages** use web-sized JPEG copies in `public/fotos/web/`
+  (max 1400px). The WordPress originals under `public/wp-content/uploads/` stay
+  for the legacy snapshot pages and for Google Images (all image-sitemap URLs of
+  the old site resolve). Security headers are set in `worker/index.ts`.
 - `npm run typecheck` also checks the Worker (`worker/tsconfig.json`). After
   changing `wrangler.jsonc`, run `npm run cf:types`.

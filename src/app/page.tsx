@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { ArrowRight, ArrowUpRight, Calculator, Handshake, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
 import CategoryCarousel from "@/components/CategoryCarousel";
 import Faq, { type FaqItem } from "@/components/Faq";
@@ -123,7 +124,7 @@ const mainProducts = [
   {
     title: "Hazelaar hekwerk",
     href: "/project/hazelaarrasterwerk/",
-    src: "/wp-content/uploads/2016/01/Hazelaar-afsluiting4-scaled.webp",
+    src: "/fotos/web/hazelaar-afsluiting.jpg",
     text: "Licht en landelijk, van 60 cm tot 1,50 m hoog.",
     popular: popularRoll("hazelaar-hekwerk", "120cm / 3/5cm", "3/5 cm"),
   },
@@ -139,9 +140,9 @@ const mainProducts = [
 // Secondary goal: posts, screens and planters.
 const secondaryProducts = [
   { title: "Kastanje palen", href: "/project/kastanjepalen/", src: "/fotos/kastanje-palen.jpg", price: priceFrom("palen") },
-  { title: "Robinia palen", href: "/project/robinia-palen/", src: "/wp-content/uploads/2026/04/Copy-of-Copy-of-Robinia-Hekwerk-1.20m-4cm.png", price: priceFrom("robinia-palen") },
+  { title: "Robinia palen", href: "/project/robinia-palen/", src: "/fotos/web/robinia-hekwerk-120cm-4cm.jpg", price: priceFrom("robinia-palen") },
   { title: "Hazelaar vlechtschermen", href: "/project/hazelaar-vlechtscherm-hasseltre/", src: CALCULATOR_VLECHTSCHERM_PHOTO, price: priceFrom("hazelaar-scherm-trepanel") },
-  { title: "Moestuinbakken", href: "/project/moestuinbak/", src: "/wp-content/uploads/2016/01/IMG_7994-scaled.jpg", price: priceFrom("tuinbakken-hazelaar") },
+  { title: "Moestuinbakken", href: "/project/moestuinbak/", src: "/fotos/web/moestuinbak-hazelaar.jpg", price: priceFrom("tuinbakken-hazelaar") },
 ];
 
 // Category carousel in the order of what matters most to sell.
@@ -195,7 +196,7 @@ const usps = [
 // Shortcuts into the calculator, each opening with that product chosen.
 const calculatorChoices = [
   { label: "Hekwerk", keuze: "hekwerk", src: CALCULATOR_HEKWERK_PHOTO },
-  { label: "Poorten", keuze: "poorten", src: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
+  { label: "Poorten", keuze: "poorten", src: "/fotos/web/dubbele-maatwerkpoort.jpg" },
   { label: "Vlechtschermen", keuze: "vlechtschermen", src: CALCULATOR_VLECHTSCHERM_PHOTO },
 ];
 
@@ -322,6 +323,8 @@ const rails = homeSections
   .filter((section) => section.items.length > 0);
 
 export default function HomePage() {
+  // LCP image: preload at high priority (the static export emits no preload link for priority images).
+  preload("/fotos/web/kastanje-rasterwerk-120cm.jpg", { as: "image", fetchPriority: "high" });
   return (
     <>
       {page?.structuredData && <JsonLd data={withPageMeta(page.structuredData, TITLE, DESCRIPTION)} />}
@@ -330,11 +333,12 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-brand-dark">
         <Image
-          src="/wp-content/uploads/2016/01/Frans-Rasterwerk-1.20m-scaled-e1601390421420.jpg"
+          src="/fotos/web/kastanje-rasterwerk-120cm.jpg"
           alt="Kastanje hekwerk van 1,20 meter langs een oprit"
           fill
           sizes="100vw"
           priority
+          fetchPriority="high"
           className="object-cover opacity-60"
         />
         {/* Scrim: the fence photo is bright on the left, where the copy sits. */}

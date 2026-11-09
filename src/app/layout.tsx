@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import WhatsAppFloat from "@/components/WhatsApp";
 import { siteIndexingEnabled } from "@/lib/site";
 import "./globals.css";
+import CookieConsent from "@/components/CookieConsent";
 
 // Figtree (body) and Fraunces (headings), both SIL Open Font License — see
 // public/fonts/*-LICENSE-OFL.txt. Self-hosted variable fonts (latin subset,
@@ -13,8 +14,16 @@ import "./globals.css";
 // sturdier strokes when small (mobile).
 const figtree = localFont({
   src: [
-    { path: "../../public/fonts/Figtree-Variable.woff2", weight: "300 900", style: "normal" },
-    { path: "../../public/fonts/Figtree-VariableItalic.woff2", weight: "300 900", style: "italic" },
+    {
+      path: "../../public/fonts/Figtree-Variable.woff2",
+      weight: "300 900",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Figtree-VariableItalic.woff2",
+      weight: "300 900",
+      style: "italic",
+    },
   ],
   variable: "--font-sans",
   display: "swap",
@@ -22,8 +31,16 @@ const figtree = localFont({
 
 const fraunces = localFont({
   src: [
-    { path: "../../public/fonts/Fraunces-Variable.woff2", weight: "100 900", style: "normal" },
-    { path: "../../public/fonts/Fraunces-VariableItalic.woff2", weight: "100 900", style: "italic" },
+    {
+      path: "../../public/fonts/Fraunces-Variable.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Fraunces-VariableItalic.woff2",
+      weight: "100 900",
+      style: "italic",
+    },
   ],
   variable: "--font-display",
   display: "swap",
@@ -68,6 +85,7 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <WhatsAppFloat />
+        <CookieConsent />
       </body>
     </html>
   );

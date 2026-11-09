@@ -4,6 +4,7 @@ import { Camera, CheckCircle2, Loader2, Send, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
 import { EMAIL, MOBILE, PHONE } from "@/lib/contact";
+import { trackLead } from "@/lib/tracking";
 
 /*
  * Free quote request for everything the calculator does not cover: made to
@@ -172,6 +173,7 @@ export default function FreeQuoteForm() {
         const result = (await response.json().catch(() => ({}))) as { confirmed?: boolean };
         setConfirmed(Boolean(result.confirmed));
         setStatus("sent");
+        trackLead("offerte");
         formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       } else if (response.status === 503) {
         // Sending not set up on this deployment: hand over to the mail program (without photos).

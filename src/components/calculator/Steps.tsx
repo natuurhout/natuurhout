@@ -64,11 +64,11 @@ export type StepProps = {
 
 const TYPES: { id: ProductType; title: string; text: string; image: string }[] = [
   { id: "hekwerk", title: "Hekwerk", text: "Kastanje, robinia of hazelaar rasterwerk op rol", image: CALCULATOR_HEKWERK_PHOTO },
-  { id: "poorten", title: "Poorten", text: "Tuin- en veldpoorten, ook enkel een poort", image: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg" },
+  { id: "poorten", title: "Poorten", text: "Tuin- en veldpoorten, ook enkel een poort", image: "/fotos/web/dubbele-maatwerkpoort.jpg" },
   { id: "vlechtschermen", title: "Vlechtschermen", text: "Hazelaar, gevlochten of met halve latten", image: CALCULATOR_VLECHTSCHERM_PHOTO },
   { id: "postrail", title: "Post & Rail", text: "Kastanje palen met 2 of 3 liggers", image: CALCULATOR_POSTRAIL_PHOTO },
-  { id: "cleftfield", title: "Cleft & Field poorten", text: "Robuuste veldpoorten in kastanje", image: "/wp-content/uploads/2016/01/Untitled-design-3.png" },
-  { id: "plantenbakken", title: "Plantenbakken", text: "Moestuinbakken in hazelaar of cortenstaal", image: "/wp-content/uploads/2016/01/IMG_7994-scaled.jpg" },
+  { id: "cleftfield", title: "Cleft & Field poorten", text: "Robuuste veldpoorten in kastanje", image: "/fotos/web/untitled-design-3.jpg" },
+  { id: "plantenbakken", title: "Plantenbakken", text: "Moestuinbakken in hazelaar of cortenstaal", image: "/fotos/web/moestuinbak-hazelaar.jpg" },
 ];
 
 export function KeuzeStep({ state, update }: StepProps) {
@@ -535,7 +535,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
       image: g.image,
       note: g.postsIncluded ? "incl. 2 poortpalen en beslag" : g.fieldGate ? "palen en beslag apart" : "incl. beslag, palen apart",
     })),
-    { handle: CUSTOM_GATE, title: "Kastanje premium maatwerkpoort", image: "/wp-content/uploads/2016/01/Dubbele-maatwerkpoort-scaled.jpg", note: "uw eigen maten · incl. palen en beslag" },
+    { handle: CUSTOM_GATE, title: "Kastanje premium maatwerkpoort", image: "/fotos/web/dubbele-maatwerkpoort.jpg", note: "uw eigen maten · incl. palen en beslag" },
   ];
 
   return (
