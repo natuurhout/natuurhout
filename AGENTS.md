@@ -53,10 +53,14 @@ historical).
 - **No server code in `src/app`:** route handlers, server actions, `cookies()`,
   `headers()` or on-demand pages do not work in a static export. New API
   endpoints go in the Worker. Dynamic routes need `generateStaticParams`.
-- **Deploy:** manual only — `npm run deploy` (= build + `wrangler deploy`;
-  needs `npx wrangler login`). Workers Builds (Git integration) is NOT
-  connected (checked 2026-11-09), so a push to `main` deploys nothing.
-  After a deploy, check the change on https://www.natuurhout.be.
+- **Deploy:** every push to `main` deploys through GitHub Actions
+  (`.github/workflows/deploy.yml`: typecheck → `npm run deploy`, secrets
+  `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` on the repo). So: commit,
+  push, wait for the green check on the commit, then check the change on
+  https://www.natuurhout.be. A red cross means the build or typecheck failed
+  and nothing was deployed — open the Actions tab for the error. Manual
+  deploy still works from a machine with `npx wrangler login`:
+  `npm run deploy`. Workers Builds (Cloudflare's Git integration) is not used.
 - **Domains:** `wrangler.jsonc` routes `www.natuurhout.be` + `natuurhout.be`
   as custom domains (zone natuurhout.be on the FX Media Cloudflare account,
   created 2026-11-09). The Worker 301s the apex to www. Mail stays at

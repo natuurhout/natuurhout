@@ -2,7 +2,7 @@ name: Live smoke test
 
 # Manual check of the deployed site, run from GitHub's network: the main
 # pages answer 200, and (optionally) one real test quote goes through
-# /api/offerte → Resend → the Natuurhout inbox. Start it from the Actions tab
+# /api/offerte → Cloudflare Email Sending → the Natuurhout inbox. Start it from the Actions tab
 # ("Run workflow"). The test quote is clearly marked as a test.
 
 on:
@@ -54,8 +54,8 @@ jobs:
             -H "Content-Type: application/json" -d "$body")
           echo "HTTP $code"; cat response.json; echo
           case "$code" in
-            200) echo "Quote accepted and handed to Resend — check the inbox." ;;
-            503) echo "::error::RESEND_API_KEY is not active on this deployment (set it with: npx wrangler secret put RESEND_API_KEY)."; exit 1 ;;
-            502) echo "::error::Resend refused the mail — see the Worker logs in Cloudflare (Workers → natuurhout → Logs) for Resend's reason."; exit 1 ;;
+            200) echo "Quote accepted and handed to Email Sending — check the inbox." ;;
+            503) echo "::error::Email Sending is not set up for natuurhout.be yet (npx wrangler email sending enable natuurhout.be)."; exit 1 ;;
+            502) echo "::error::Email Sending refused the mail — see the Worker logs in Cloudflare (Workers → natuurhout → Logs)."; exit 1 ;;
             *)   echo "::error::Unexpected answer from /api/offerte/"; exit 1 ;;
           esac
