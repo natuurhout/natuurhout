@@ -55,7 +55,7 @@ historical).
   endpoints go in the Worker. Dynamic routes need `generateStaticParams`.
 - **Deploy:** every push to `main` deploys through GitHub Actions
   (`.github/workflows/deploy.yml`: typecheck → `npm run deploy`, secrets
-  `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` on the repo). So: commit,
+  `CLAUDE_CLOUDFLARE` (API token) + `CLOUDFLARE_ACCOUNT_ID` on the repo). So: commit,
   push, wait for the green check on the commit, then check the change on
   https://www.natuurhout.be. A red cross means the build or typecheck failed
   and nothing was deployed — open the Actions tab for the error. Manual
