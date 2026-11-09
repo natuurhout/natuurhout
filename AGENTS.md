@@ -33,9 +33,9 @@ Before pushing, run all four:
 3. `npm run build`
 4. `npm run migration:audit:built`
 
-The WordPress site remains production until an explicit cutover. Do not enable
-indexing, add analytics, change DNS, or deploy to the production domain as part
-of ordinary development.
+Cutover to Cloudflare Workers prepared 2026-11-09 (zone, DNS, custom domains,
+indexable build deployed); it goes live when the natuurhout.be nameservers at
+Combell are changed to Cloudflare. Until then WordPress at Combell still answers.
 
 ## Hosting: Cloudflare Workers
 
@@ -53,16 +53,23 @@ historical).
 - **No server code in `src/app`:** route handlers, server actions, `cookies()`,
   `headers()` or on-demand pages do not work in a static export. New API
   endpoints go in the Worker. Dynamic routes need `generateStaticParams`.
-- **Deploy:** a push to `main` deploys automatically through Workers Builds
-  (Git integration, connected in the Cloudflare dashboard). Manual deploy:
-  `npm run deploy` (= build + `wrangler deploy`; needs `npx wrangler login`).
-  After a deploy, check the change on the workers.dev URL.
+- **Deploy:** manual only — `npm run deploy` (= build + `wrangler deploy`;
+  needs `npx wrangler login`). Workers Builds (Git integration) is NOT
+  connected (checked 2026-11-09), so a push to `main` deploys nothing.
+  After a deploy, check the change on https://www.natuurhout.be.
+- **Domains:** `wrangler.jsonc` routes `www.natuurhout.be` + `natuurhout.be`
+  as custom domains (zone natuurhout.be on the FX Media Cloudflare account,
+  created 2026-11-09). The Worker 301s the apex to www. Mail stays at
+  Microsoft 365 (MX/SPF/DMARC copied into the zone). The workers.dev URL
+  gets `X-Robots-Tag: noindex` from the Worker; set `workers_dev: false`
+  once the nameserver switch at Combell is verified.
 - **Secrets** live in the Worker, never in the repo:
   `npx wrangler secret put RESEND_API_KEY` (optional: `QUOTE_TO`,
   `QUOTE_FROM`). Without `RESEND_API_KEY` the quote route answers 503
   `not-configured` and the page opens the customer's mail program.
 - **Build-time env:** `SITE_INDEXING_ENABLED` is read during the build (static
-  export). At cutover it must be set in the Workers Builds build variables, not
-  as a Worker secret.
+  export). `.env.production` (committed) sets it to `true`, so `npm run build`
+  / `npm run deploy` produce the indexable production site; `next dev` stays
+  noindex.
 - `npm run typecheck` also checks the Worker (`worker/tsconfig.json`). After
   changing `wrangler.jsonc`, run `npm run cf:types`.

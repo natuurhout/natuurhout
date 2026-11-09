@@ -17,7 +17,13 @@
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },
-  // Staging copy until the natuurhout.be cutover (WordPress at Combell stays production).
+  // Production domains (Cloudflare zone natuurhout.be). The apex 301s to www in worker/index.ts.
+  "routes": [
+    { "pattern": "www.natuurhout.be", "custom_domain": true },
+    { "pattern": "natuurhout.be", "custom_domain": true }
+  ],
+  // Keep the workers.dev staging URL until the Combell nameserver switch is verified, then set false.
+  // The Worker sends X-Robots-Tag: noindex on *.workers.dev so the staging copy is never indexed.
   "workers_dev": true,
   "preview_urls": false,
   "observability": { "enabled": true }

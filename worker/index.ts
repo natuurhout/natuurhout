@@ -21,16 +21,23 @@ interface Env extends OfferteEnv {
 }
 
 type Redirect = { source: string; destination: string; permanent?: boolean };
-type CompiledRedirect = { pattern: RegExp; names: string[]; destination: string };
+type CompiledRedirect = {
+  pattern: RegExp;
+  names: string[];
+  destination: string;
+};
 
 // Next's own trailingSlash redirects (next/dist/lib/load-custom-routes.js).
-const FILE_WITH_SLASH = /^\/((?!\.well-known(?:\/.*)?)(?:[^/]+\/)*[^/]+\.\w+)\/$/;
+const FILE_WITH_SLASH =
+  /^\/((?!\.well-known(?:\/.*)?)(?:[^/]+\/)*[^/]+\.\w+)\/$/;
 const PAGE_WITHOUT_SLASH = /^\/((?!\.well-known(?:\/.*)?)(?:[^/]+\/)*[^/.]+)$/;
 
 let compiled: Promise<CompiledRedirect[]> | undefined;
 
 function compile(): Promise<CompiledRedirect[]> {
-  compiled ??= Promise.resolve(nextConfig.redirects ? nextConfig.redirects() : []).then((list) =>
+  compiled ??= Promise.resolve(
+    nextConfig.redirects ? nextConfig.redirects() : [],
+  ).then((list) =>
     (list as Redirect[]).map(({ source, destination }) => {
       const names: string[] = [];
       const body = source
@@ -54,39 +61,67 @@ function redirect(location: string): Response {
   return new Response(null, { status: 308, headers: { Location: location } });
 }
 
+const CANONICAL_HOST = "www.natuurhout.be";
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const path = url.pathname;
 
-    // Client-side navigation payloads of the static export (…/__next.*.txt,
-    // …/index.txt). On Vercel these were header-based requests that never
-    // went through redirects(), so serve them as-is ("/producten/:handle"
-    // would otherwise send /producten/'s payload to /shop/).
-    if (/\/(__next\.[^/]*|index)\.txt$/.test(path)) return env.ASSETS.fetch(request);
-
-    const file = FILE_WITH_SLASH.exec(path);
-    if (file) return redirect(`/${file[1]}${url.search}`);
-    if (PAGE_WITHOUT_SLASH.test(path)) return redirect(`${path}/${url.search}`);
-
-    for (const { pattern, names, destination } of await compile()) {
-      const match = pattern.exec(path);
-      if (!match) continue;
-      const target = names.reduce((dest, name, i) => dest.replace(`:${name}`, match[i + 1]), destination);
-      return redirect(`${target}${url.search}`);
+    // Apex → www (canonical host, see src/lib/site.ts).
+    if (url.hostname === "natuurhout.be") {
+      url.hostname = CANONICAL_HOST;
+      return Response.redirect(url.toString(), 301);
     }
 
-    if (path === "/api/offerte/") {
-      if (request.method !== "POST") return new Response(null, { status: 405, headers: { Allow: "POST" } });
-      return POST(request, env);
-    }
+    const response = await handle(request, env, url);
 
-    // Export artefacts that Next never served as URLs on Vercel: raw .html
-    // files and the 404 page's own folder. Answer them with the 404 page.
-    if (path.endsWith(".html") || path === "/404/") {
-      return env.ASSETS.fetch(new Request(new URL("/__not-found__/", url), request));
+    // The workers.dev staging copy must never be indexed, whatever the built HTML says.
+    if (url.hostname.endsWith(".workers.dev")) {
+      const guarded = new Response(response.body, response);
+      guarded.headers.set("X-Robots-Tag", "noindex, nofollow");
+      return guarded;
     }
-
-    return env.ASSETS.fetch(request);
+    return response;
   },
 } satisfies ExportedHandler<Env>;
+
+async function handle(request: Request, env: Env, url: URL): Promise<Response> {
+  const path = url.pathname;
+
+  // Client-side navigation payloads of the static export (…/__next.*.txt,
+  // …/index.txt). On Vercel these were header-based requests that never
+  // went through redirects(), so serve them as-is ("/producten/:handle"
+  // would otherwise send /producten/'s payload to /shop/).
+  if (/\/(__next\.[^/]*|index)\.txt$/.test(path))
+    return env.ASSETS.fetch(request);
+
+  const file = FILE_WITH_SLASH.exec(path);
+  if (file) return redirect(`/${file[1]}${url.search}`);
+  if (PAGE_WITHOUT_SLASH.test(path)) return redirect(`${path}/${url.search}`);
+
+  for (const { pattern, names, destination } of await compile()) {
+    const match = pattern.exec(path);
+    if (!match) continue;
+    const target = names.reduce(
+      (dest, name, i) => dest.replace(`:${name}`, match[i + 1]),
+      destination,
+    );
+    return redirect(`${target}${url.search}`);
+  }
+
+  if (path === "/api/offerte/") {
+    if (request.method !== "POST")
+      return new Response(null, { status: 405, headers: { Allow: "POST" } });
+    return POST(request, env);
+  }
+
+  // Export artefacts that Next never served as URLs on Vercel: raw .html
+  // files and the 404 page's own folder. Answer them with the 404 page.
+  if (path.endsWith(".html") || path === "/404/") {
+    return env.ASSETS.fetch(
+      new Request(new URL("/__not-found__/", url), request),
+    );
+  }
+
+  return env.ASSETS.fetch(request);
+}
