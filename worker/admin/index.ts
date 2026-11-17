@@ -10,6 +10,7 @@
 
 import { ensureSchema, now } from "../crm/schema";
 import { authenticate, type AuthEnv } from "./auth";
+import { APP_JS } from "./app-js";
 import { html, page } from "./html";
 import { productList } from "./catalog";
 import * as pages from "./pages";
@@ -25,7 +26,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Cache-Control": "no-store",
   "X-Robots-Tag": "noindex, nofollow",
   "Content-Security-Policy":
-    "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+    "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
   "Referrer-Policy": "same-origin",
 };
 
@@ -63,6 +64,7 @@ export async function handleAdmin(request: Request, env: AdminEnv, url: URL, bas
 }
 
 async function route(request: Request, env: AdminEnv, url: URL, base: string, local: boolean): Promise<Response> {
+  if (url.pathname === `${base}/app.js`) return new Response(APP_JS, { headers: { "content-type": "text/javascript; charset=utf-8" } });
   const auth = await authenticate(request, env, local);
   if (!auth.ok) return message(base, auth.status, "Geen toegang", auth.reason);
   if (!env.DB) return message(base, 503, "Database ontbreekt", "De CRM-database (binding DB) is niet gekoppeld aan de Worker.");
@@ -92,6 +94,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     user: { email: auth.email, name: users.get(auth.email) ?? "" },
     users,
     badges: { nieuw: nieuw?.n ?? 0, ...taken },
+    board: request.headers.get("x-board") === "1",
   };
 
   const path = (url.pathname.slice(base.length) || "/").replace(/(.)\/+$/, "$1");

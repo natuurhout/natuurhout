@@ -6,7 +6,7 @@
 
 import { now } from "../crm/schema";
 import { myOpenTasks, tasksPanel } from "./tasks";
-import { euro, html, lines, page, raw, when, type Badges, type Safe, type Section } from "./html";
+import { ago, euro, euroRound, html, icon, initials, lines, page, raw, when, type Badges, type Safe, type Section } from "./html";
 
 export type Ctx = {
   db: D1Database;
@@ -15,6 +15,8 @@ export type Ctx = {
   user: { email: string; name: string };
   users: Map<string, string>;
   badges: Badges;
+  /** A status change dragged on the pipeline board (fetch, wants 204). */
+  board: boolean;
 };
 
 export const STATUSES = [
@@ -27,6 +29,9 @@ export const STATUSES = [
 ] as const;
 export type Status = (typeof STATUSES)[number][0];
 const OPEN: Status[] = ["nieuw", "in_behandeling", "offerte_verstuurd"];
+/** Columns of the pipeline board (archived requests only show in the list). */
+const BOARD: Status[] = ["nieuw", "in_behandeling", "offerte_verstuurd", "gewonnen", "verloren"];
+const PER_COLUMN = 60;
 const statusLabel = (s: string) => STATUSES.find(([k]) => k === s)?.[1] ?? s;
 const isStatus = (s: string): s is Status => STATUSES.some(([k]) => k === s);
 
@@ -91,9 +96,9 @@ export class HttpError extends Error {
 
 export const notFound = () => new HttpError(404, "Niet gevonden.");
 
-export function respond(ctx: Ctx, title: string, section: Section | undefined, body: Safe): Response {
+export function respond(ctx: Ctx, title: string, section: Section | undefined, body: Safe, wide = false): Response {
   const flash = FLASH[ctx.url.searchParams.get("ok") ?? ""];
-  return new Response(page({ title, base: ctx.base, section, user: ctx.user, badges: ctx.badges, flash, body }), {
+  return new Response(page({ title, base: ctx.base, section, user: ctx.user, badges: ctx.badges, flash, wide, body }), {
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 }
@@ -175,19 +180,20 @@ export async function overview(ctx: Ctx): Promise<Response> {
     ctx,
     "Overzicht",
     "overzicht",
-    html`<h1>Overzicht</h1>
+    html`<div class="head"><div><h1>Overzicht</h1><p class="sub">Goeiedag${ctx.user.name ? ` ${ctx.user.name}` : ""}, dit staat er open.</p></div>
+<div class="actions"><a class="btn ghost" href="${ctx.base}/aanvragen">${icon("board")}Pipeline</a></div></div>
 <div class="stats">
 ${(["nieuw", "in_behandeling", "offerte_verstuurd", "gewonnen"] as Status[]).map(
-  (s) => html`<a class="stat" href="${ctx.base}/aanvragen?status=${s}"><b class="st-${s}">${n.get(s) ?? 0}</b><span>${statusLabel(s)}</span></a>`,
+  (s) => html`<a class="stat" href="${ctx.base}/aanvragen?weergave=lijst&status=${s}"><span><i class="dot st-${s}"></i>${statusLabel(s)}</span><b>${n.get(s) ?? 0}</b></a>`,
 )}
-<a class="stat" href="${ctx.base}/aanvragen?wie=${ctx.user.email}"><b>${mine}</b><span>Open, aan mij toegewezen</span></a>
-<a class="stat" href="${ctx.base}/taken"><b class="${ctx.badges.takenLaat ? "warn" : ""}">${ctx.badges.takenLaat}</b><span>Taken vandaag of te laat</span></a>
+<a class="stat" href="${ctx.base}/aanvragen?wie=${ctx.user.email}"><span>Open, aan mij</span><b>${mine}</b></a>
+<a class="stat" href="${ctx.base}/taken"><span>Taken vandaag of te laat</span><b class="${ctx.badges.takenLaat ? "warn" : ""}">${ctx.badges.takenLaat}</b></a>
 </div>
 <div class="grid two">
-<section class="card"><div class="head"><h2>Open aanvragen</h2><a class="btn ghost" href="${ctx.base}/aanvragen/nieuw">Nieuwe aanvraag</a></div>
+<section class="card"><div class="head" style="margin-bottom:10px"><h2>Open aanvragen</h2><a class="small" href="${ctx.base}/aanvragen?weergave=lijst">alle aanvragen</a></div>
 ${requestTable(ctx, open.results as never)}</section>
 <div>
-<section class="card"><div class="head"><h2 style="margin:0">Mijn taken</h2><a class="small" href="${ctx.base}/taken">alle taken</a></div>${tasks}</section>
+<section class="card"><div class="head" style="margin-bottom:10px"><h2>Mijn taken</h2><a class="small" href="${ctx.base}/taken">alle taken</a></div>${tasks}</section>
 <section class="card"><h2>Laatste notities</h2>${timeline(ctx, notes.results as NoteRow[], true)}</section>
 </div>
 </div>`,
@@ -196,21 +202,16 @@ ${requestTable(ctx, open.results as never)}</section>
 
 // ---------------------------------------------------------------- aanvragen
 
-export async function requestList(ctx: Ctx): Promise<Response> {
+type ListRow = RequestRow & { contact_name: string; contact_email: string | null; contact_phone?: string; contact_city?: string };
+
+/** The filters shared by the board and the list (?soort, ?wie, ?q). */
+function requestFilters(ctx: Ctx) {
   const p = ctx.url.searchParams;
-  const status = p.get("status") ?? "open";
   const kind = p.get("soort") ?? "";
   const assignee = (p.get("wie") ?? "").toLowerCase();
   const q = (p.get("q") ?? "").trim();
   const where: string[] = [];
   const args: (string | number)[] = [];
-  if (status === "open") {
-    where.push(`r.status IN (${OPEN.map(() => "?").join(",")})`);
-    args.push(...OPEN);
-  } else if (isStatus(status)) {
-    where.push("r.status = ?");
-    args.push(status);
-  }
   const group = KIND_GROUPS[kind];
   if (group) {
     where.push(`r.kind IN (${group.kinds.map(() => "?").join(",")})`);
@@ -225,28 +226,131 @@ export async function requestList(ctx: Ctx): Promise<Response> {
     args.push(assignee);
   }
   if (q) {
-    const cols = ["r.title", "r.body", "c.name", "c.email", "c.phone", "c.city"];
+    const cols = ["r.title", "r.body", "c.name", "c.email", "c.phone", "c.city", "c.company"];
     where.push(`(${cols.map((col) => `${col} LIKE ? ESCAPE '\\'`).join(" OR ")})`);
     args.push(...cols.map(() => like(q)));
   }
-  const sql = `${REQUEST_SELECT}${where.length ? ` WHERE ${where.join(" AND ")}` : ""} ORDER BY r.created_at DESC LIMIT 200`;
-  const { results } = await ctx.db.prepare(sql).bind(...args).all<RequestRow & { contact_name: string; contact_email: string | null }>();
-  const opt = (value: string, label: string, current: string) =>
-    html`<option value="${value}" ${value === current ? raw("selected") : ""}>${label}</option>`;
-  const heading = group?.label ?? "Aanvragen";
-  return respond(
-    ctx,
-    heading,
-    group?.section ?? "aanvragen",
-    html`<div class="head"><h1>${heading}</h1><a class="btn" href="${ctx.base}/aanvragen/nieuw">Nieuwe aanvraag</a></div>
-<form class="card inline" method="get" action="${ctx.base}/aanvragen">
-<label>Status<select name="status">${opt("open", "Alle open", status)}${opt("alle", "Alle", status)}${STATUSES.map(([k, l]) => opt(k, l, status))}</select></label>
-<label>Soort<select name="soort">${opt("", "Alle", kind)}${Object.entries(KIND_GROUPS).map(([k, g]) => opt(k, `Alle ${g.label.toLowerCase()}`, kind))}${Object.entries(KINDS).map(([k, l]) => opt(k, l, kind))}</select></label>
-<label>Toegewezen aan<select name="wie">${opt("", "Iedereen", assignee)}${opt("niemand", "Niemand", assignee)}${[...ctx.users].map(([e, nm]) => opt(e, nm || e, assignee))}</select></label>
-<label>Zoeken<input name="q" value="${q}" placeholder="naam, e-mail, gemeente, tekst"></label>
-<button>Filter</button></form>
-<section class="card">${requestTable(ctx, results)}${results.length === 200 ? html`<p class="muted small">De nieuwste 200 getoond; verfijn de filter.</p>` : ""}</section>`,
-  );
+  return { kind, assignee, q, group, where, args, active: Boolean(kind || assignee || q) };
+}
+
+/** Short source label on a board card. */
+const SRC: Record<string, string> = { calculator: "Calculator", vraag: "Formulier", bestelling: "Bestelling", manueel: "Manueel" };
+
+function boardCard(ctx: Ctx, r: ListRow): Safe {
+  const name = contactName({ name: r.contact_name, email: r.contact_email, phone: r.contact_phone });
+  const sub = r.contact_name && r.contact_email ? r.contact_email : r.contact_city || r.contact_phone || "";
+  const assignee = r.assigned_to ? who(ctx, r.assigned_to) : "";
+  return html`<a class="k" href="${ctx.base}/aanvragen/${r.id}" draggable="true" data-id="${r.id}" data-total="${r.total ?? 0}">
+${!r.assigned_to && OPEN.includes(r.status as Status) ? html`<span class="ping" title="Nog niet toegewezen"></span>` : ""}
+<div class="k-top"><div style="min-width:0"><div class="k-name">${name}</div>${sub ? html`<div class="k-sub">${sub}</div>` : ""}</div><span class="src ${r.kind}">${SRC[r.kind] ?? r.kind}</span></div>
+${r.title ? html`<div class="k-title">${r.title}</div>` : ""}
+<div class="k-foot">${assignee ? html`<span class="avatar sm" title="${assignee}">${initials(assignee)}</span>` : ""}<span title="${when(r.created_at)}">${ago(r.created_at)}</span>${
+    r.mail_status === "mislukt" ? html`<span class="k-flag" title="De e-mail naar de inbox is mislukt">· mail mislukt</span>` : ""
+  }${r.total ? html`<span class="amt">${euroRound(r.total)}</span>` : ""}</div></a>`;
+}
+
+export async function requestList(ctx: Ctx): Promise<Response> {
+  const p = ctx.url.searchParams;
+  const view = p.get("weergave") === "lijst" || p.has("status") ? "lijst" : "bord";
+  const f = requestFilters(ctx);
+  const heading = f.group?.label ?? "Aanvragen";
+  const section = f.group?.section ?? "aanvragen";
+  const opt = (value: string, label: string, current: string) => html`<option value="${value}" ${value === current ? raw("selected") : ""}>${label}</option>`;
+  const status = p.get("status") ?? "open";
+
+  // This page's URL with one view setting changed (the Bord/Lijst toggle, "more" links).
+  const href = (list: boolean, listStatus?: string) => {
+    const u = new URLSearchParams(p);
+    u.delete("ok");
+    u.delete("weergave");
+    u.delete("status");
+    if (list) u.set("weergave", "lijst");
+    if (listStatus) u.set("status", listStatus);
+    const s = u.toString();
+    return `${ctx.base}/aanvragen${s ? `?${s}` : ""}`;
+  };
+
+  const [{ results: counts }, all] = await Promise.all([
+    ctx.db
+      .prepare(
+        `SELECT r.status, COUNT(*) AS n, COALESCE(SUM(r.total), 0) AS sum FROM requests r JOIN contacts c ON c.id = r.contact_id${
+          f.where.length ? ` WHERE ${f.where.join(" AND ")}` : ""
+        } GROUP BY r.status`,
+      )
+      .bind(...f.args)
+      .all<{ status: string; n: number; sum: number }>(),
+    ctx.db.prepare("SELECT COUNT(*) AS n FROM requests").first<{ n: number }>(),
+  ]);
+  const byStatus = new Map(counts.map((c) => [c.status, c]));
+  const shownStatuses: string[] = view === "bord" ? BOARD : status === "open" ? OPEN : isStatus(status) ? [status] : STATUSES.map(([k]) => k);
+  const shown = shownStatuses.reduce((t, s) => t + (byStatus.get(s)?.n ?? 0), 0);
+  const openValue = OPEN.reduce((t, s) => t + (byStatus.get(s)?.sum ?? 0), 0);
+  const total = all?.n ?? 0;
+
+  const toolbar = html`<form class="toolbar" method="get" action="${ctx.base}/aanvragen">
+${view === "lijst" ? html`<input type="hidden" name="weergave" value="lijst">` : ""}
+<label class="search">${icon("search")}<input name="q" type="search" value="${f.q}" placeholder="Zoek op naam, e-mail, telefoon, gemeente…" aria-label="Zoeken"></label>
+${view === "lijst" ? html`<select name="status" aria-label="Status">${opt("open", "Alle open", status)}${opt("alle", "Alle statussen", status)}${STATUSES.map(([k, l]) => opt(k, l, status))}</select>` : ""}
+<select name="soort" aria-label="Soort">${opt("", "Alle soorten", f.kind)}${Object.entries(KIND_GROUPS).map(([k, g]) => opt(k, `Alle ${g.label.toLowerCase()}`, f.kind))}${Object.entries(KINDS).map(([k, l]) => opt(k, l, f.kind))}</select>
+<select name="wie" aria-label="Toegewezen aan">${opt("", "Iedereen", f.assignee)}${opt("niemand", "Niet toegewezen", f.assignee)}${[...ctx.users].map(([e, nm]) => opt(e, nm || e, f.assignee))}</select>
+<button class="btn ghost" type="submit">Filter</button>
+<span class="summary"><b>${shown}</b> van ${total}${openValue ? html` · <b>${euroRound(openValue)}</b> open` : ""}</span>
+</form>`;
+
+  const head = html`<div class="head"><div><h1>${heading}</h1><p class="sub">${
+    view === "bord" ? "Pipeline en opvolging. Sleep een kaart naar een andere kolom om de status te wijzigen." : "Alle aanvragen in een lijst."
+  }</p></div>
+<div class="actions"><span class="seg"><a href="${href(false)}" class="${view === "bord" ? "on" : ""}">${icon("board")}Bord</a><a href="${href(true)}" class="${
+    view === "lijst" ? "on" : ""
+  }">${icon("list")}Lijst</a></span>
+<a class="btn" href="${ctx.base}/aanvragen/nieuw">${icon("plus")}Nieuwe aanvraag</a></div></div>`;
+
+  if (view === "lijst") {
+    const where = [...f.where];
+    const args = [...f.args];
+    if (status === "open") {
+      where.push(`r.status IN (${OPEN.map(() => "?").join(",")})`);
+      args.push(...OPEN);
+    } else if (isStatus(status)) {
+      where.push("r.status = ?");
+      args.push(status);
+    }
+    const sql = `${REQUEST_SELECT}${where.length ? ` WHERE ${where.join(" AND ")}` : ""} ORDER BY r.created_at DESC LIMIT 200`;
+    const { results } = await ctx.db.prepare(sql).bind(...args).all<ListRow>();
+    return respond(
+      ctx,
+      heading,
+      section,
+      html`${head}${toolbar}<section class="card">${requestTable(ctx, results)}${
+        results.length === 200 ? html`<p class="muted small">De nieuwste 200 getoond; verfijn de filter.</p>` : ""
+      }</section>`,
+    );
+  }
+
+  // Board: the newest PER_COLUMN cards of each status column.
+  const where = [...f.where, `r.status IN (${BOARD.map(() => "?").join(",")})`];
+  const { results } = await ctx.db
+    .prepare(
+      `SELECT * FROM (SELECT r.*, c.name AS contact_name, c.email AS contact_email, c.phone AS contact_phone, c.city AS contact_city,
+         ROW_NUMBER() OVER (PARTITION BY r.status ORDER BY r.created_at DESC) AS rn
+       FROM requests r JOIN contacts c ON c.id = r.contact_id WHERE ${where.join(" AND ")}) WHERE rn <= ${PER_COLUMN} ORDER BY created_at DESC`,
+    )
+    .bind(...f.args, ...BOARD)
+    .all<ListRow>();
+  const columns = BOARD.map((s) => {
+    const cards = results.filter((r) => r.status === s);
+    const c = byStatus.get(s);
+    const more = (c?.n ?? 0) - cards.length;
+    const label = statusLabel(s);
+    return html`<section class="col st-${s}" data-status="${s}" data-label="${label}" aria-label="${label}">
+<div class="col-head"><i class="dot"></i><b>${label}</b><span class="n" data-n="${c?.n ?? 0}">${c?.n ?? 0}</span>${
+      s !== "verloren" ? html`<span class="sum" data-sum="${c?.sum ?? 0}">${c?.sum ? euroRound(c.sum) : ""}</span>` : ""
+    }<a class="add" href="${ctx.base}/aanvragen/nieuw?status=${s}" title="Nieuwe aanvraag: ${label}" aria-label="Nieuwe aanvraag: ${label}">${icon("plus")}</a></div>
+<div class="col-body">${cards.length ? cards.map((r) => boardCard(ctx, r)) : html`<div class="empty">Geen aanvragen</div>`}${
+      more > 0 ? html`<a class="more" href="${href(true, s)}">+ ${more} oudere in de lijst</a>` : ""
+    }</div></section>`;
+  });
+  return respond(ctx, heading, section, html`${head}${toolbar}<div class="board" data-board="${ctx.base}">${columns}</div>`, true);
 }
 
 type QuoteData = {
@@ -331,6 +435,16 @@ export async function requestPost(ctx: Ctx, id: number, form: FormData): Promise
     if (body) await addNote(ctx, r.contact_id, id, body);
     return seeOther(ctx, `/aanvragen/${id}`, "note");
   }
+  if (action === "status") {
+    // Dragged on the pipeline board: only the status changes.
+    const status = field(form, "status");
+    if (!isStatus(status)) throw new HttpError(400, "Onbekende status.");
+    if (status !== r.status) {
+      await ctx.db.prepare("UPDATE requests SET status = ?, updated_at = ? WHERE id = ?").bind(status, now(), id).run();
+      await addNote(ctx, r.contact_id, id, `Status: ${statusLabel(r.status)} → ${statusLabel(status)}`, "event");
+    }
+    return ctx.board ? new Response(null, { status: 204 }) : seeOther(ctx, `/aanvragen/${id}`, "saved");
+  }
   if (action === "update") {
     const status = field(form, "status");
     const assigned = field(form, "assigned_to").toLowerCase() || null;
@@ -351,6 +465,7 @@ export async function requestPost(ctx: Ctx, id: number, form: FormData): Promise
 export async function requestNew(ctx: Ctx): Promise<Response> {
   const contactId = Number(ctx.url.searchParams.get("klant"));
   const contact = contactId ? await ctx.db.prepare("SELECT * FROM contacts WHERE id = ?").bind(contactId).first<ContactRow>() : null;
+  const start = ctx.url.searchParams.get("status") ?? "nieuw";
   return respond(
     ctx,
     "Nieuwe aanvraag",
@@ -363,7 +478,8 @@ ${contact
 <div class="fields"><label>Naam<input name="name" required></label><label>E-mail<input name="email" type="email"></label><label>Telefoon<input name="phone"></label><label>Gemeente<input name="city"></label></div>`}
 <label>Titel<input name="title" required placeholder="Bv. telefonische vraag: hekwerk 40 m + poort"></label>
 <label>Omschrijving<textarea name="body"></textarea></label>
-<label>Toegewezen aan<select name="assigned_to">${userOptions(ctx, ctx.user.email)}</select></label>
+<div class="fields"><label>Status<select name="status">${STATUSES.map(([k, l]) => html`<option value="${k}" ${k === start ? raw("selected") : ""}>${l}</option>`)}</select></label>
+<label>Toegewezen aan<select name="assigned_to">${userOptions(ctx, ctx.user.email)}</select></label></div>
 <button>Aanmaken</button></form>`,
   );
 }
@@ -380,12 +496,14 @@ export async function requestCreate(ctx: Ctx, form: FormData): Promise<Response>
   if (!title) throw new HttpError(400, "Een titel is verplicht.");
   const assigned = field(form, "assigned_to").toLowerCase() || null;
   if (assigned && !ctx.users.has(assigned)) throw new HttpError(400, "Onbekende gebruiker.");
+  const status = field(form, "status") || "nieuw";
+  if (!isStatus(status)) throw new HttpError(400, "Onbekende status.");
   const row = await ctx.db
     .prepare(
       `INSERT INTO requests (contact_id, kind, status, assigned_to, title, body, created_by, created_at, updated_at)
-       VALUES (?, 'manueel', 'nieuw', ?, ?, ?, ?, ?, ?) RETURNING id`,
+       VALUES (?, 'manueel', ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
     )
-    .bind(contactId, assigned, title, field(form, "body", 20_000), ctx.user.email, at, at)
+    .bind(contactId, status, assigned, title, field(form, "body", 20_000), ctx.user.email, at, at)
     .first<{ id: number }>();
   return seeOther(ctx, `/aanvragen/${row!.id}`, "created");
 }
@@ -437,8 +555,8 @@ export async function contactList(ctx: Ctx): Promise<Response> {
     ctx,
     "Klanten",
     "klanten",
-    html`<div class="head"><h1>Klanten</h1><span><a class="btn ghost" href="${ctx.base}/klanten.csv">Export (CSV)</a> <a class="btn" href="${ctx.base}/klanten/nieuw">Nieuwe klant</a></span></div>
-<form class="card inline" method="get" action="${ctx.base}/klanten"><label>Zoeken<input name="q" value="${q}" placeholder="naam, e-mail, telefoon, gemeente"></label><button>Zoek</button></form>
+    html`<div class="head"><div><h1>Klanten</h1><p class="sub">Iedereen die een aanvraag stuurde of manueel werd toegevoegd.</p></div><div class="actions"><a class="btn ghost" href="${ctx.base}/klanten.csv">${icon("download")}Export (CSV)</a><a class="btn" href="${ctx.base}/klanten/nieuw">${icon("plus")}Nieuwe klant</a></div></div>
+<form class="toolbar" method="get" action="${ctx.base}/klanten"><label class="search">${icon("search")}<input name="q" type="search" value="${q}" placeholder="Zoek op naam, e-mail, telefoon, gemeente, bedrijf…" aria-label="Zoeken"></label><button class="btn ghost">Zoek</button><span class="summary"><b>${results.length}</b> klanten</span></form>
 <section class="card">${
       results.length
         ? html`<div class="scroll"><table><thead><tr><th>Naam</th><th>E-mail</th><th>Telefoon</th><th>Gemeente</th><th class="num">Aanvragen</th><th>Laatste</th></tr></thead><tbody>
