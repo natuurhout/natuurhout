@@ -89,3 +89,24 @@ historical).
   the old site resolve). Security headers are set in `worker/index.ts`.
 - `npm run typecheck` also checks the Worker (`worker/tsconfig.json`). After
   changing `wrangler.jsonc`, run `npm run cf:types`.
+
+## Backend: CRM at beheer.natuurhout.be (2026-11-17)
+
+- **What:** the Worker serves a small CRM on `beheer.natuurhout.be` (`worker/admin/`):
+  requests (every form sent to `/api/offerte/` is saved, plus manual ones), customers,
+  notes, status/assignment, CSV export. Server-rendered HTML with plain forms, Dutch UI.
+  `worker/index.ts` dispatches on the hostname, so the public site never reaches it.
+- **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (created by the first
+  `wrangler deploy`, no `database_id` in `wrangler.jsonc`). The Worker applies the schema
+  itself (`worker/crm/schema.ts`): to change it, append a migration, never edit a shipped one.
+  Saving a submission is best effort: it never blocks or replaces the quote e-mail.
+- **Login:** Cloudflare Access (Zero Trust) application on `beheer.natuurhout.be` with an
+  allow policy for the two owners' e-mail addresses (one-time code by e-mail). The Worker
+  verifies the Access JWT as well (`worker/admin/auth.ts`, vars `ACCESS_TEAM_DOMAIN`,
+  `ACCESS_AUD`, optional `ADMIN_EMAILS` in `wrangler.jsonc`); with those empty the admin
+  refuses everyone. POSTs must be same-origin.
+- **Locally:** put `ADMIN_DEV_EMAIL=you@example.com` in `.dev.vars` (gitignored), then
+  `npm run build && npm run dev:beheer` and open http://localhost:8787/__beheer/.
+  The dev login only works on localhost, never on a deployed Worker.
+- **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` needs **D1: Edit** besides the
+  Workers permissions, or the deploy fails.

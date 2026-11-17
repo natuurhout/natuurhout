@@ -12,5 +12,5 @@
     "types": [],
     "paths": { "@/*": ["../src/*"] }
   },
-  "include": ["./index.ts", "./offerte.ts", "./worker-configuration.d.ts"]
+  "include": ["./index.ts", "./offerte.ts", "./admin/**/*.ts", "./crm/**/*.ts", "./worker-configuration.d.ts"]
 }

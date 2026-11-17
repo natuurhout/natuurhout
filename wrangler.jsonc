@@ -2,6 +2,7 @@
   // Natuurhout — static Next.js export (./out) served as Workers static assets.
   // worker/index.ts runs first for every request: trailing-slash + next.config.ts redirects (308s,
   // same as Next on Vercel) and POST /api/offerte/ (quote requests → Cloudflare Email Sending). See AGENTS.md "Hosting".
+  // beheer.natuurhout.be: the CRM (worker/admin/, D1 database below, login via Cloudflare Access).
   // Build: `npm run build`. Deploy: `npm run deploy`. No secrets.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "natuurhout",
@@ -23,8 +24,22 @@
   // Production domains (Cloudflare zone natuurhout.be). The apex 301s to www in worker/index.ts.
   "routes": [
     { "pattern": "www.natuurhout.be", "custom_domain": true },
-    { "pattern": "natuurhout.be", "custom_domain": true }
+    { "pattern": "natuurhout.be", "custom_domain": true },
+    // The CRM (worker/admin/). Protected by a Cloudflare Access application on this hostname.
+    { "pattern": "beheer.natuurhout.be", "custom_domain": true }
   ],
+  // CRM database. No database_id: `wrangler deploy` creates "natuurhout-crm" the first time
+  // and keeps using it after that. The Worker applies the schema itself (worker/crm/schema.ts).
+  "d1_databases": [{ "binding": "DB", "database_name": "natuurhout-crm" }],
+  "vars": {
+    // Cloudflare Access for beheer.natuurhout.be (worker/admin/auth.ts). Empty = the admin refuses everyone.
+    // Team domain: Zero Trust -> Settings -> Custom Pages/Team domain, e.g. "natuurhout.cloudflareaccess.com".
+    // AUD: Zero Trust -> Access -> Applications -> beheer -> "Application Audience (AUD) Tag".
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    // Optional extra allow-list on top of the Access policy (comma separated).
+    "ADMIN_EMAILS": ""
+  },
   // Keep the workers.dev staging URL until the Combell nameserver switch is verified, then set false.
   // The Worker sends X-Robots-Tag: noindex on *.workers.dev so the staging copy is never indexed.
   "workers_dev": false,
