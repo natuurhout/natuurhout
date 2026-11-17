@@ -63,7 +63,7 @@ export default function ShopCategoryGrid({ categories }: { categories: ShopCateg
               className="invisible absolute inset-x-0 top-0 hidden min-h-full flex-col rounded-card bg-white p-3 opacity-0 shadow-2xl shadow-ink/20 ring-1 ring-line transition-[opacity,visibility] duration-150 group-focus-within:visible group-focus-within:opacity-100 [@media(hover:hover)]:flex [@media(hover:hover)]:group-hover:visible [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:delay-75"
             >
               <a href={`#${category.handle}`} className="flex items-baseline justify-between gap-2 px-1.5 pb-2 pt-0.5 hover:text-accent-deep">
-                <span className="font-display text-lg font-semibold leading-tight">{category.title}</span>
+                <span className="min-w-0 break-words font-display text-lg font-semibold leading-tight">{category.title}</span>
                 <span className="shrink-0 text-xs text-ink/55">{count}</span>
               </a>
               <ul className="space-y-0.5 border-t border-line pt-2">

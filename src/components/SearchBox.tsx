@@ -137,7 +137,7 @@ export default function SearchBox({
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        className="h-10 w-full rounded-full border border-line bg-ground pl-9 pr-9 text-sm text-ink placeholder:text-ink/45 focus:border-accent focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/25 [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 w-full rounded-full border border-line bg-ground pl-9 pr-9 text-base text-ink sm:text-sm placeholder:text-ink/45 focus:border-accent focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/25 [&::-webkit-search-cancel-button]:hidden"
       />
       {query && (
         <button
