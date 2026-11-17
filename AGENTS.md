@@ -98,8 +98,8 @@ historical).
   Klanten (+ CSV export), Producten (read-only price list from `src/lib/catalog.ts`),
   Activiteit and Instellingen. Server-rendered HTML with plain forms, Dutch UI, no JS.
   `worker/index.ts` dispatches on the hostname, so the public site never reaches it.
-- **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (created 2026-11-17 by the
-  first `wrangler deploy`, no `database_id` in `wrangler.jsonc`). The Worker applies the schema
+- **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (id `4fa6e039-…`, created
+  2026-11-17, pinned in `wrangler.jsonc`). The Worker applies the schema
   itself (`worker/crm/schema.ts`): to change it, append a migration, never edit a shipped one.
   Saving a submission is best effort: it never blocks or replaces the quote e-mail.
 - **Login:** Cloudflare Access app "Natuurhout beheer (CRM)" on `beheer.natuurhout.be`
@@ -112,5 +112,5 @@ historical).
 - **Locally:** put `ADMIN_DEV_EMAIL=you@example.com` in `.dev.vars` (gitignored), then
   `npm run build && npm run dev:beheer` and open http://localhost:8787/__beheer/.
   The dev login only works on localhost, never on a deployed Worker.
-- **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` needs **D1: Edit** besides the
-  Workers permissions, or the deploy fails.
+- **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` has no D1 permission. That is
+  fine as long as `database_id` stays pinned in `wrangler.jsonc`; without it the deploy fails.
