@@ -33,9 +33,8 @@ Before pushing, run all four:
 3. `npm run build`
 4. `npm run migration:audit:built`
 
-Cutover to Cloudflare Workers prepared 2026-11-09 (zone, DNS, custom domains,
-indexable build deployed); it goes live when the natuurhout.be nameservers at
-Combell are changed to Cloudflare. Until then WordPress at Combell still answers.
+LIVE on Cloudflare Workers since 2026-11-17: the natuurhout.be nameservers at
+Combell point to Cloudflare (bill/iris.ns.cloudflare.com); WordPress is retired.
 
 ## Hosting: Cloudflare Workers
 
@@ -64,15 +63,14 @@ historical).
 - **Domains:** `wrangler.jsonc` routes `www.natuurhout.be` + `natuurhout.be`
   as custom domains (zone natuurhout.be on the FX Media Cloudflare account,
   created 2026-11-09). The Worker 301s the apex to www. Mail stays at
-  Microsoft 365 (MX/SPF/DMARC copied into the zone). The workers.dev URL
-  gets `X-Robots-Tag: noindex` from the Worker; set `workers_dev: false`
-  once the nameserver switch at Combell is verified.
+  Microsoft 365 (MX/SPF/DMARC copied into the zone). `workers_dev` is
+  `false` since 2026-11-17, so there is no duplicate copy on workers.dev.
 - **Quote mail (2026-11-09):** Cloudflare Email Sending via the `EMAIL`
   binding (`send_email` in `wrangler.jsonc`, sender `offerte@natuurhout.be`),
-  no API key, Resend removed. The domain must be onboarded once the zone is
-  active: `npx wrangler email sending enable natuurhout.be` (adds the DKIM/SPF
-  records). Until then the binding rejects the sender, the route answers 503
-  `not-configured` and the page opens the customer's mail program. Optional
+  no API key, Resend removed. Email Sending is enabled for natuurhout.be
+  (2026-11-17; DKIM `cf-bounce._domainkey`, return path `cf-bounce`). If the
+  binding ever rejects the sender, the route answers 503 `not-configured` and
+  the page opens the customer's mail program. Optional
   vars: `QUOTE_TO`, `QUOTE_FROM`.
 - **Build-time env:** `SITE_INDEXING_ENABLED` is read during the build (static
   export). `.env.production` (committed) sets it to `true`, so `npm run build`
