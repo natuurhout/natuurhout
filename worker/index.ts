@@ -10,15 +10,23 @@
  *      list, matched like Next does (case-insensitive, optional trailing slash);
  *   3. POST /api/offerte/ (worker/offerte.ts, formerly the Next route handler).
  *
+ * beheer.natuurhout.be is the CRM (worker/admin/), behind Cloudflare Access;
+ * locally it answers at http://localhost:<port>/__beheer/ (needs
+ * ADMIN_DEV_EMAIL in .dev.vars).
+ *
  * Everything else goes to the static assets unchanged (404 → out/404.html);
  * raw *.html paths and /404/ answer 404 like on Vercel.
  */
 import nextConfig from "../next.config";
+import { ADMIN_HOST, handleAdmin, type AdminEnv } from "./admin";
 import { POST, type OfferteEnv } from "./offerte";
 
-interface Env extends OfferteEnv {
+interface Env extends OfferteEnv, AdminEnv {
   ASSETS: Fetcher;
 }
+
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
+const LOCAL_ADMIN_BASE = "/__beheer";
 
 type Redirect = { source: string; destination: string; permanent?: boolean };
 type CompiledRedirect = {
@@ -79,6 +87,11 @@ function withSecurityHeaders(response: Response): Response {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.hostname === ADMIN_HOST) return handleAdmin(request, env, url, "", false);
+    if (LOCAL_HOSTS.has(url.hostname) && (url.pathname === LOCAL_ADMIN_BASE || url.pathname.startsWith(`${LOCAL_ADMIN_BASE}/`))) {
+      return handleAdmin(request, env, url, LOCAL_ADMIN_BASE, true);
+    }
 
     // Apex → www (canonical host, see src/lib/site.ts).
     if (url.hostname === "natuurhout.be") {
