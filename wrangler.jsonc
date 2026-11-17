@@ -33,15 +33,13 @@
   "d1_databases": [{ "binding": "DB", "database_name": "natuurhout-crm" }],
   "vars": {
     // Cloudflare Access for beheer.natuurhout.be (worker/admin/auth.ts). Empty = the admin refuses everyone.
-    // Team domain: Zero Trust -> Settings -> Custom Pages/Team domain, e.g. "natuurhout.cloudflareaccess.com".
-    // AUD: Zero Trust -> Access -> Applications -> beheer -> "Application Audience (AUD) Tag".
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
-    // Optional extra allow-list on top of the Access policy (comma separated).
-    "ADMIN_EMAILS": ""
+    // Access app "Natuurhout beheer (CRM)" on the FX Media Zero Trust org (created 2026-11-17).
+    "ACCESS_TEAM_DOMAIN": "fx-media.cloudflareaccess.com",
+    "ACCESS_AUD": "557860cf755ada7ed466c98ef752fff096391182050ef3636b675390425dea57",
+    // Extra allow-list on top of the Access policy (comma separated). Keep in sync with that policy.
+    "ADMIN_EMAILS": "info@natuurhout.be,info@fx-media.no"
   },
-  // Keep the workers.dev staging URL until the Combell nameserver switch is verified, then set false.
-  // The Worker sends X-Robots-Tag: noindex on *.workers.dev so the staging copy is never indexed.
+  // Off since the nameserver switch (2026-11-17): the site only lives on natuurhout.be.
   "workers_dev": false,
   "preview_urls": false,
   "observability": { "enabled": true }

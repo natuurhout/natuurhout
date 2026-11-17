@@ -98,12 +98,14 @@ historical).
   Klanten (+ CSV export), Producten (read-only price list from `src/lib/catalog.ts`),
   Activiteit and Instellingen. Server-rendered HTML with plain forms, Dutch UI, no JS.
   `worker/index.ts` dispatches on the hostname, so the public site never reaches it.
-- **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (created by the first
-  `wrangler deploy`, no `database_id` in `wrangler.jsonc`). The Worker applies the schema
+- **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (created 2026-11-17 by the
+  first `wrangler deploy`, no `database_id` in `wrangler.jsonc`). The Worker applies the schema
   itself (`worker/crm/schema.ts`): to change it, append a migration, never edit a shipped one.
   Saving a submission is best effort: it never blocks or replaces the quote e-mail.
-- **Login:** Cloudflare Access (Zero Trust) application on `beheer.natuurhout.be` with an
-  allow policy for the two owners' e-mail addresses (one-time code by e-mail). The Worker
+- **Login:** Cloudflare Access app "Natuurhout beheer (CRM)" on `beheer.natuurhout.be`
+  (FX Media Zero Trust org, team domain `fx-media.cloudflareaccess.com`, created 2026-11-17),
+  allow policy for info@natuurhout.be and info@fx-media.no (one-time code by e-mail).
+  Add a person in both the Access policy and `ADMIN_EMAILS`. The Worker
   verifies the Access JWT as well (`worker/admin/auth.ts`, vars `ACCESS_TEAM_DOMAIN`,
   `ACCESS_AUD`, optional `ADMIN_EMAILS` in `wrangler.jsonc`); with those empty the admin
   refuses everyone. POSTs must be same-origin.
