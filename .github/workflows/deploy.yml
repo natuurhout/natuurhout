@@ -38,5 +38,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Live check
         run: |
-          code=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 30 https://natuurhout.tiny-fire-1523.workers.dev/)
+          code=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 30 https://www.natuurhout.be/)
           echo "HTTP $code"; [ "$code" = "200" ]
