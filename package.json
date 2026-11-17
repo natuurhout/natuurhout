@@ -7,6 +7,7 @@
     "build": "next build",
     "postbuild": "node scripts/flatten-rsc.mjs",
     "start": "wrangler dev",
+    "dev:beheer": "wrangler dev --host localhost",
     "deploy": "npm run build && wrangler deploy",
     "cf:types": "wrangler types worker/worker-configuration.d.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p worker",
