@@ -10,13 +10,15 @@
 
 import { ensureSchema, now } from "../crm/schema";
 import { authenticate, type AuthEnv } from "./auth";
+import { makeMailer, type MailEnv } from "../shop/send";
 import { APP_JS } from "./app-js";
 import { html, page } from "./html";
-import { productList } from "./catalog";
+import { lowStockCount, productEdit, productList, productSave, reports, stockPage, stockPost } from "./shop-catalog";
+import { invoiceList, invoicePdfResponse, invoicesCsv, orderCreate, orderDetail, orderList, orderNew, orderPdfResponse, orderPost } from "./shop-orders";
 import * as pages from "./pages";
 import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
 
-export interface AdminEnv extends AuthEnv {
+export interface AdminEnv extends AuthEnv, MailEnv {
   DB?: D1Database;
 }
 
@@ -83,9 +85,11 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     .run();
   const { results: userRows } = await db.prepare("SELECT email, name FROM users ORDER BY name").all<{ email: string; name: string }>();
   const users = new Map(userRows.map((u) => [u.email.toLowerCase(), u.name]));
-  const [nieuw, taken] = await Promise.all([
+  const [nieuw, taken, orders, lowStock] = await Promise.all([
     db.prepare("SELECT COUNT(*) AS n FROM requests WHERE status = 'nieuw'").first<{ n: number }>(),
     taskBadges(db, auth.email),
+    db.prepare("SELECT COUNT(*) AS n FROM orders WHERE status = 'nieuw'").first<{ n: number }>(),
+    lowStockCount(db),
   ]);
   const ctx: pages.Ctx = {
     db,
@@ -93,8 +97,9 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     base,
     user: { email: auth.email, name: users.get(auth.email) ?? "" },
     users,
-    badges: { nieuw: nieuw?.n ?? 0, ...taken },
+    badges: { nieuw: nieuw?.n ?? 0, ...taken, orders: orders?.n ?? 0, lowStock },
     board: request.headers.get("x-board") === "1",
+    mail: makeMailer(env),
   };
 
   const path = (url.pathname.slice(base.length) || "/").replace(/(.)\/+$/, "$1");
@@ -119,9 +124,23 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     if (path === "/taken") return post ? await taskCreate(ctx, form) : await taskList(ctx);
     n = id(/^\/taken\/(\d+)$/);
     if (n !== null) return post ? await taskPost(ctx, n, form) : notAllowed();
-    if (path === "/producten") return post ? notAllowed() : productList(ctx);
+    if (path === "/producten") return post ? notAllowed() : await productList(ctx);
+    const handle = /^\/producten\/([\w-]+)$/.exec(path)?.[1];
+    if (handle) return post ? await productSave(ctx, handle, form) : await productEdit(ctx, handle);
+    if (path === "/bestellingen") return post ? await orderCreate(ctx, form) : await orderList(ctx);
+    if (path === "/bestellingen/nieuw") return post ? notAllowed() : await orderNew(ctx);
+    n = id(/^\/bestellingen\/(\d+)$/);
+    if (n !== null) return post ? await orderPost(ctx, n, form) : await orderDetail(ctx, n);
+    n = id(/^\/bestellingen\/(\d+)\/bevestiging\.pdf$/);
+    if (n !== null) return post ? notAllowed() : await orderPdfResponse(ctx, n);
+    if (path === "/facturen") return post ? notAllowed() : await invoiceList(ctx);
+    if (path === "/facturen.csv") return post ? notAllowed() : await invoicesCsv(ctx);
+    n = id(/^\/facturen\/(\d+)\.pdf$/);
+    if (n !== null) return post ? notAllowed() : await invoicePdfResponse(ctx, n);
+    if (path === "/voorraad") return post ? await stockPost(ctx, form) : await stockPage(ctx);
+    if (path === "/rapporten") return post ? notAllowed() : await reports(ctx);
     if (path === "/activiteit") return post ? notAllowed() : await pages.activity(ctx);
-    if (path === "/instellingen") return post ? await pages.settingsPost(ctx, form) : pages.settings(ctx);
+    if (path === "/instellingen") return post ? await pages.settingsPost(ctx, form) : await pages.settings(ctx);
     if (path === "/favicon.ico" || path === "/robots.txt")
       return new Response(path === "/robots.txt" ? "User-agent: *\nDisallow: /\n" : null, { status: path === "/robots.txt" ? 200 : 404 });
     return message(base, 404, "Niet gevonden", "Deze pagina bestaat niet.", ctx.user);

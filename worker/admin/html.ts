@@ -100,6 +100,11 @@ const ICONS = {
   board: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7"/><path d="M12 7v4"/><path d="M16 7v9"/>',
   list: '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
   tree: '<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22v-3"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+  cart: '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  receipt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
+  boxes: '<path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"/><path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/><path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/><path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/><path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/>',
+  chart: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
   external: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
 } as const;
 export type IconName = keyof typeof ICONS;
@@ -186,6 +191,7 @@ label{display:block;font-size:13px;font-weight:500;color:var(--soft);margin-bott
 input,select,textarea{display:block;width:100%;margin-top:5px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-size:14px;transition:border-color .15s,box-shadow .15s}
 select{appearance:none;-webkit-appearance:none;background-image:${CHEVRON};background-repeat:no-repeat;background-position:right 10px center;padding-right:34px;cursor:pointer}
 textarea{height:auto;min-height:96px;padding:10px 12px;resize:vertical}
+input::placeholder,textarea::placeholder{color:var(--soft);opacity:.55}
 input:hover,select:hover,textarea:hover{border-color:var(--line-strong)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus)}
 .fields{display:grid;gap:0 14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
@@ -238,6 +244,24 @@ button.tick:hover{border-color:var(--accent);filter:none}button.tick.on{backgrou
 dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}dt{color:var(--soft)}dd{margin:0;overflow-wrap:anywhere}
 .flash{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--s-gewonnen);box-shadow:var(--shadow);padding:10px 14px;border-radius:10px;margin-bottom:18px;font-weight:500}
 pre.body{white-space:pre-wrap;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);padding:12px 14px;border-radius:10px;margin:0;max-height:420px;overflow:auto}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.tabs a{padding:8px 12px;color:var(--soft);text-decoration:none;font-weight:600;font-size:13.5px;border-bottom:2px solid transparent;white-space:nowrap;margin-bottom:-1px}
+.tabs a.on{color:var(--ink);border-color:var(--accent)}.tabs a:hover{color:var(--ink)}.tabs .n{font-weight:500;color:var(--soft);font-size:12px}
+.os-nieuw{--c:var(--s-nieuw)}.os-bevestigd{--c:var(--s-offerte_verstuurd)}.os-betaald{--c:var(--s-gewonnen)}.os-klaar{--c:var(--s-in_behandeling)}.os-geleverd{--c:var(--s-gearchiveerd)}.os-geannuleerd{--c:var(--s-verloren)}
+.chip[class*=" os-"]::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.steps{display:flex;flex-direction:column;gap:14px}.steps form.act{padding-bottom:14px;border-bottom:1px solid var(--line)}.steps form.act:last-child{border-bottom:0;padding-bottom:0}
+.steps form.act button{width:100%}
+label.check{display:flex;gap:8px;align-items:center;color:var(--ink);font-weight:500}label.check input{width:auto;height:auto;margin:0}
+table.editor td{padding:6px 6px}table.editor input,table.editor select{margin:0}
+form.inline-form{display:inline;margin:0}
+code{font:13px ui-monospace,Menlo,Consolas,monospace;background:var(--chip);padding:2px 6px;border-radius:6px}
+details summary{cursor:pointer;color:var(--link);font-weight:500}
+.bars{display:flex;align-items:flex-end;gap:6px;height:180px;padding-top:10px}
+.bars .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;height:100%;justify-content:flex-end}
+.bars .bar i{display:block;width:100%;max-width:42px;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px}
+.bars .bar span{font-size:11px;color:var(--soft);white-space:nowrap}.bars .bar b{font-size:10.5px;font-weight:600;white-space:nowrap}
+.meter{height:8px;border-radius:99px;background:var(--chip);overflow:hidden}.meter i{display:block;height:100%;background:var(--accent)}
+.k-low{color:var(--danger,#c62828);font-weight:700}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:500;box-shadow:var(--shadow-lg);z-index:20}
 
 @media(max-width:899px){
@@ -263,22 +287,28 @@ export type Section =
   | "klanten"
   | "producten"
   | "activiteit"
-  | "instellingen";
+  | "instellingen"
+  | "facturen"
+  | "voorraad"
+  | "rapporten";
 
 const CRUMBS: Record<Section, [string, string]> = {
   overzicht: ["", "Overzicht"],
   aanvragen: ["Verkoop", "Aanvragen"],
   offertes: ["Verkoop", "Offertes"],
-  bestellingen: ["Verkoop", "Bestellingen"],
+  bestellingen: ["Webshop", "Bestellingen"],
+  facturen: ["Webshop", "Facturen"],
+  producten: ["Webshop", "Producten"],
+  voorraad: ["Webshop", "Voorraad"],
+  rapporten: ["Webshop", "Rapporten"],
   taken: ["Verkoop", "Taken"],
   klanten: ["Gegevens", "Klanten"],
-  producten: ["Gegevens", "Producten"],
   activiteit: ["Gegevens", "Activiteit"],
   instellingen: ["", "Instellingen"],
 };
 
 /** Counters in the sidebar. */
-export type Badges = { nieuw: number; taken: number; takenLaat: number };
+export type Badges = { nieuw: number; taken: number; takenLaat: number; orders: number; lowStock: number };
 
 export function page(opts: {
   title: string;
@@ -304,11 +334,15 @@ ${tab("overzicht", "/", "Overzicht", "home")}
 <span class="group">Verkoop</span>
 ${tab("aanvragen", "/aanvragen", "Aanvragen", "inbox", badge(badges?.nieuw))}
 ${tab("offertes", "/aanvragen?soort=offertes", "Offertes", null)}
-${tab("bestellingen", "/aanvragen?soort=bestellingen", "Bestellingen", null)}
 ${tab("taken", "/taken", "Taken", "check", badge(badges?.takenLaat || badges?.taken, Boolean(badges?.takenLaat)))}
+<span class="group">Webshop</span>
+${tab("bestellingen", "/bestellingen", "Bestellingen", "cart", badge(badges?.orders))}
+${tab("facturen", "/facturen", "Facturen", "receipt")}
+${tab("producten", "/producten", "Producten", "package")}
+${tab("voorraad", "/voorraad", "Voorraad", "boxes", badge(badges?.lowStock, true))}
+${tab("rapporten", "/rapporten", "Rapporten", "chart")}
 <span class="group">Gegevens</span>
 ${tab("klanten", "/klanten", "Klanten", "users")}
-${tab("producten", "/producten", "Producten", "package")}
 ${tab("activiteit", "/activiteit", "Activiteit", "activity")}
 ${tab("instellingen", "/instellingen", "Instellingen", "settings")}
 </nav>

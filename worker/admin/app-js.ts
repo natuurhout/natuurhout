@@ -9,6 +9,18 @@
 export const APP_JS = String.raw`"use strict";
 (() => {
   for (const s of document.querySelectorAll("form.toolbar select")) s.addEventListener("change", () => s.form.requestSubmit());
+  // Buttons with data-confirm ask first (cancelling an order).
+  document.addEventListener("submit", (e) => {
+    const b = e.submitter || e.target.querySelector("[data-confirm]");
+    const text = b && b.getAttribute && b.getAttribute("data-confirm");
+    if (text && !window.confirm(text)) e.preventDefault();
+  });
+  // Double submits (a slow mail) would send twice: lock the button.
+  document.addEventListener("submit", (e) => {
+    if (e.defaultPrevented || e.target.method === "get") return;
+    const b = e.submitter;
+    if (b) setTimeout(() => { b.disabled = true; b.textContent = "Bezig…"; }, 0);
+  });
 
   const board = document.querySelector("[data-board]");
   if (!board) return;

@@ -17,6 +17,8 @@
  * Everything else goes to the static assets unchanged (404 → out/404.html);
  * raw *.html paths and /404/ answer 404 like on Vercel.
  */
+import { NO_OVERRIDES } from "../src/lib/catalog-overrides";
+import { loadCatalog } from "./shop/catalog";
 import nextConfig from "../next.config";
 import { ADMIN_HOST, handleAdmin, type AdminEnv } from "./admin";
 import { POST, type OfferteEnv } from "./offerte";
@@ -133,6 +135,13 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
       destination,
     );
     return redirect(`${target}${url.search}`);
+  }
+
+  // Backend catalogue edits, published for the site build (scripts/sync-catalog.mjs).
+  if (path === "/api/catalogus/") {
+    if (!env.DB) return Response.json(NO_OVERRIDES);
+    const { overrides } = await loadCatalog(env.DB);
+    return Response.json(overrides, { headers: { "Cache-Control": "no-store" } });
   }
 
   if (path === "/api/offerte/") {

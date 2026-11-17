@@ -245,6 +245,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
     return was === null ? sum : sum + (was - parseFloat(l.variant.price)) * l.quantity;
   }, 0);
   const requestLines: RequestLine[] = lines.map((l) => ({
+    id: l.variant.id,
     group: l.product.title,
     label: rowLabel(l.row),
     detail: l.variant.available ? "Op voorraad" : orderTerm(l.product.handle).badge,

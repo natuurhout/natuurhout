@@ -112,5 +112,22 @@ historical).
 - **Locally:** put `ADMIN_DEV_EMAIL=you@example.com` in `.dev.vars` (gitignored), then
   `npm run build && npm run dev:beheer` and open http://localhost:8787/__beheer/.
   The dev login only works on localhost, never on a deployed Worker.
+- **Webshop backend (2026-11-18, `worker/shop/` + `worker/admin/shop-*.ts`):** Bestellingen,
+  Facturen, Producten, Voorraad, Rapporten. A website order (`/api/offerte/`, kind
+  `bestelling`, lines carry the variant `id`) becomes an order, priced again with the live
+  catalogue (never trust the page's price). Flow: nieuw → Bevestigen (PDF payment request
+  mailed: iBanFirst IBAN from Instellingen, Belgian structured reference +++…+++, EPC QR) →
+  Betaling ontvangen (invoice, gapless number per year `YYYY-NNNN`, PDF mailed) → klaar →
+  geleverd; annuleren gives counted stock back and makes a credit note when invoiced.
+  Payments are bank transfers, marked paid by hand (no iBanFirst API link yet).
+  Invoices are never edited or deleted: correct with a credit note. PDFs are drawn by
+  `worker/shop/pdf.ts` (no browser). Prices incl. 21% btw.
+- **Catalogue edits:** Producten/Voorraad store overrides in D1 on top of the site's catalogue
+  (`src/lib/catalog-overrides.ts`, applied last in `src/lib/catalog.ts`; `baseProducts` is
+  without them). Checkout uses D1 at once; the site gets them via `/api/catalogus/` →
+  `scripts/sync-catalog.mjs` → `src/data/catalog-overrides.json`, run by the deploy workflow
+  on every push and every 15 minutes (commits + rebuilds only when changed). So that file is
+  written by a bot: **pull before you push**, and don't edit it by hand. Code-level price
+  rules (`price-updates.ts`, `promotions.ts`) still work; a backend edit wins over them.
 - **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` has no D1 permission. That is
   fine as long as `database_id` stays pinned in `wrangler.jsonc`; without it the deploy fails.

@@ -5,6 +5,10 @@
  */
 
 import { now } from "../crm/schema";
+import type { Mailer } from "../shop/send";
+import type { OrderRow } from "../shop/orders";
+import { orderTable } from "./shop-orders";
+import { getSettings, missingSettings, saveSettings, SETTING_FIELDS, validIban, type ShopSettings } from "../shop/settings";
 import { myOpenTasks, tasksPanel } from "./tasks";
 import { ago, euro, euroRound, html, icon, initials, lines, page, raw, when, type Badges, type Safe, type Section } from "./html";
 
@@ -17,6 +21,8 @@ export type Ctx = {
   badges: Badges;
   /** A status change dragged on the pipeline board (fetch, wants 204). */
   board: boolean;
+  /** Sends shop mail to customers (null when the EMAIL binding is missing). */
+  mail: Mailer | null;
 };
 
 export const STATUSES = [
@@ -175,6 +181,10 @@ export async function overview(ctx: Ctx): Promise<Response> {
   ]);
   const n = new Map((counts.results as { status: string; n: number }[]).map((r) => [r.status, r.n]));
   const tasks = await myOpenTasks(ctx);
+  const { results: shop } = await ctx.db
+    .prepare("SELECT status, COUNT(*) AS n, COALESCE(SUM(total), 0) AS sum FROM orders WHERE status IN ('nieuw', 'bevestigd', 'betaald', 'klaar') GROUP BY status")
+    .all<{ status: string; n: number; sum: number }>();
+  const shopN = new Map(shop.map((s) => [s.status, s]));
   const mine = (open.results as RequestRow[]).filter((r) => r.assigned_to?.toLowerCase() === ctx.user.email).length;
   return respond(
     ctx,
@@ -188,6 +198,14 @@ ${(["nieuw", "in_behandeling", "offerte_verstuurd", "gewonnen"] as Status[]).map
 )}
 <a class="stat" href="${ctx.base}/aanvragen?wie=${ctx.user.email}"><span>Open, aan mij</span><b>${mine}</b></a>
 <a class="stat" href="${ctx.base}/taken"><span>Taken vandaag of te laat</span><b class="${ctx.badges.takenLaat ? "warn" : ""}">${ctx.badges.takenLaat}</b></a>
+</div>
+<h2 style="margin:4px 0 10px">Webshop</h2>
+<div class="stats">
+<a class="stat" href="${ctx.base}/bestellingen?status=nieuw"><span><i class="dot os-nieuw"></i>Nieuwe bestellingen</span><b>${shopN.get("nieuw")?.n ?? 0}</b></a>
+<a class="stat" href="${ctx.base}/bestellingen?status=bevestigd"><span><i class="dot os-bevestigd"></i>Wacht op betaling</span><b>${euro(shopN.get("bevestigd")?.sum ?? 0)}</b></a>
+<a class="stat" href="${ctx.base}/bestellingen?status=betaald"><span><i class="dot os-betaald"></i>Betaald, klaarzetten</span><b>${shopN.get("betaald")?.n ?? 0}</b></a>
+<a class="stat" href="${ctx.base}/bestellingen?status=klaar"><span><i class="dot os-klaar"></i>Klaar voor levering</span><b>${shopN.get("klaar")?.n ?? 0}</b></a>
+<a class="stat" href="${ctx.base}/voorraad"><span>Voorraad laag of op</span><b class="${ctx.badges.lowStock ? "warn" : ""}">${ctx.badges.lowStock}</b></a>
 </div>
 <div class="grid two">
 <section class="card"><div class="head" style="margin-bottom:10px"><h2>Open aanvragen</h2><a class="small" href="${ctx.base}/aanvragen?weergave=lijst">alle aanvragen</a></div>
@@ -412,6 +430,8 @@ ${tasks}
 <section class="card"><h2>Notities</h2>${noteForm(ctx, `/aanvragen/${r.id}`)}${timeline(ctx, notes.results)}</section>
 </div>
 <div class="side-first">
+<section class="card"><h2>Bestelling maken</h2><p class="muted small">Akkoord van de klant? Maak er een bestelling van: de regels${data.lines?.length ? "" : " (vul ze in)"} en de klant worden overgenomen, de aanvraag gaat naar Gewonnen.</p>
+<a class="btn" href="${ctx.base}/bestellingen/nieuw?aanvraag=${r.id}">${icon("cart")}Omzetten naar bestelling</a></section>
 <section class="card"><h2>Opvolging</h2>
 <form method="post" action="${ctx.base}/aanvragen/${r.id}"><input type="hidden" name="action" value="update">
 <label>Status<select name="status">${STATUSES.map(([k, l]) => html`<option value="${k}" ${k === r.status ? raw("selected") : ""}>${l}</option>`)}</select></label>
@@ -598,13 +618,15 @@ export async function contactDetail(ctx: Ctx, id: number): Promise<Response> {
     ctx.db.prepare("SELECT * FROM notes WHERE contact_id = ? ORDER BY created_at DESC LIMIT 100").bind(id).all<NoteRow>(),
   ]);
   const tasks = await tasksPanel(ctx, { contactId: id }, `/klanten/${id}`);
+  const { results: orders } = await ctx.db.prepare("SELECT * FROM orders WHERE contact_id = ? ORDER BY created_at DESC").bind(id).all<OrderRow>();
   return respond(
     ctx,
     contactName(c),
     "klanten",
-    html`<div class="head"><h1>${contactName(c)}</h1><a class="btn" href="${ctx.base}/aanvragen/nieuw?klant=${c.id}">Nieuwe aanvraag</a></div>
+    html`<div class="head"><h1>${contactName(c)}</h1><div class="actions"><a class="btn ghost" href="${ctx.base}/aanvragen/nieuw?klant=${c.id}">${icon("plus")}Nieuwe aanvraag</a><a class="btn" href="${ctx.base}/bestellingen/nieuw?klant=${c.id}">${icon("cart")}Nieuwe bestelling</a></div></div>
 <div class="grid two">
 <div>
+${orders.length ? html`<section class="card"><h2>Bestellingen</h2>${orderTable(ctx, orders, false)}</section>` : ""}
 <section class="card"><h2>Aanvragen</h2>${requestTable(ctx, requests.results, false)}</section>
 ${tasks}
 <section class="card"><h2>Notities</h2>${noteForm(ctx, `/klanten/${c.id}`)}${timeline(ctx, notes.results, true)}</section>
@@ -728,13 +750,23 @@ ${e.actor ? html`<b>${who(ctx, e.actor)}</b> ` : ""}${what(e)}</li>`,
 
 // ---------------------------------------------------------------- instellingen
 
-export function settings(ctx: Ctx): Response {
+export async function settings(ctx: Ctx): Promise<Response> {
+  const shop = await getSettings(ctx.db);
+  const missing = missingSettings(shop);
   return respond(
     ctx,
     "Instellingen",
     "instellingen",
     html`<h1>Instellingen</h1>
-<form class="card" method="post" action="${ctx.base}/instellingen">
+<form class="card" method="post" action="${ctx.base}/instellingen"><input type="hidden" name="action" value="shop">
+<h2>Bedrijf en betaling (facturen, betaalverzoeken)</h2>
+${missing.length ? html`<p class="warn small">Nog in te vullen voor betaalverzoeken en facturen: ${missing.join(", ")}.</p>` : ""}
+<div class="fields">${SETTING_FIELDS.map(
+      (f) => html`<label>${f.label}${f.required ? " *" : ""}<input name="${f.key}" value="${shop[f.key]}" placeholder="${f.hint ?? ""}"></label>`,
+    )}</div>
+<p class="muted small">Klanten betalen per overschrijving naar dit rekeningnummer (iBanFirst), met de gestructureerde mededeling van de bestelling. Deze gegevens staan op elke factuur.</p>
+<button>Opslaan</button></form>
+<form class="card" method="post" action="${ctx.base}/instellingen"><input type="hidden" name="action" value="me">
 <label>Je naam (zichtbaar bij notities en toewijzingen)<input name="name" value="${ctx.user.name}" required maxlength="60"></label>
 <p class="muted small">Aangemeld als ${ctx.user.email}.</p>
 <button>Opslaan</button></form>
@@ -744,6 +776,14 @@ export function settings(ctx: Ctx): Response {
 }
 
 export async function settingsPost(ctx: Ctx, form: FormData): Promise<Response> {
+  if (field(form, "action") === "shop") {
+    const values: Partial<ShopSettings> = {};
+    for (const f of SETTING_FIELDS) values[f.key] = field(form, f.key, f.key === "invoiceFooter" ? 1000 : 200);
+    if (values.iban && !validIban(values.iban)) throw new HttpError(400, "Dit IBAN klopt niet (controlegetal). Kijk het na.");
+    if (values.paymentDays && !/^\d{1,3}$/.test(values.paymentDays)) throw new HttpError(400, "Betaaltermijn: een aantal dagen.");
+    await saveSettings(ctx.db, values);
+    return seeOther(ctx, "/instellingen", "saved");
+  }
   const name = field(form, "name", 60);
   if (!name) throw new HttpError(400, "Een naam is verplicht.");
   await ctx.db.prepare("UPDATE users SET name = ? WHERE email = ?").bind(name, ctx.user.email).run();

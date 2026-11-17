@@ -42,6 +42,7 @@ export default function CartView() {
   const onOrder = cart.filter((l) => !l.available);
   const notes = [...new Set(onOrder.map((l) => orderTerm(l.handle).note))];
   const requestLines: RequestLine[] = cart.map((l) => ({
+    id: l.id,
     group: l.product,
     label: l.label,
     detail: l.available ? "Op voorraad" : orderTerm(l.handle).badge,

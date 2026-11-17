@@ -15,7 +15,7 @@ export function requestTitle(q: Pick<Quote, "kind" | "inStock">): string {
 }
 
 /** Finds the contact by e-mail (or creates it) and fills in what the form adds. */
-async function upsertContact(db: D1Database, q: Quote, at: string): Promise<number> {
+export async function upsertContact(db: D1Database, q: Pick<Quote, "name" | "email" | "phone" | "street" | "postcode" | "city">, at: string): Promise<number> {
   const existing = await db
     .prepare("SELECT id, name, phone, street, postcode, city FROM contacts WHERE email = ? COLLATE NOCASE")
     .bind(q.email)
