@@ -11,7 +11,9 @@
 import { ensureSchema, now } from "../crm/schema";
 import { authenticate, type AuthEnv } from "./auth";
 import { html, page } from "./html";
+import { productList } from "./catalog";
 import * as pages from "./pages";
+import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
 
 export interface AdminEnv extends AuthEnv {
   DB?: D1Database;
@@ -79,7 +81,18 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     .run();
   const { results: userRows } = await db.prepare("SELECT email, name FROM users ORDER BY name").all<{ email: string; name: string }>();
   const users = new Map(userRows.map((u) => [u.email.toLowerCase(), u.name]));
-  const ctx: pages.Ctx = { db, url, base, user: { email: auth.email, name: users.get(auth.email) ?? "" }, users };
+  const [nieuw, taken] = await Promise.all([
+    db.prepare("SELECT COUNT(*) AS n FROM requests WHERE status = 'nieuw'").first<{ n: number }>(),
+    taskBadges(db, auth.email),
+  ]);
+  const ctx: pages.Ctx = {
+    db,
+    url,
+    base,
+    user: { email: auth.email, name: users.get(auth.email) ?? "" },
+    users,
+    badges: { nieuw: nieuw?.n ?? 0, ...taken },
+  };
 
   const path = (url.pathname.slice(base.length) || "/").replace(/(.)\/+$/, "$1");
   const post = request.method === "POST";
@@ -100,6 +113,11 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     if (path === "/klanten.csv") return post ? notAllowed() : await pages.contactsCsv(ctx);
     n = id(/^\/klanten\/(\d+)$/);
     if (n !== null) return post ? await pages.contactPost(ctx, n, form) : await pages.contactDetail(ctx, n);
+    if (path === "/taken") return post ? await taskCreate(ctx, form) : await taskList(ctx);
+    n = id(/^\/taken\/(\d+)$/);
+    if (n !== null) return post ? await taskPost(ctx, n, form) : notAllowed();
+    if (path === "/producten") return post ? notAllowed() : productList(ctx);
+    if (path === "/activiteit") return post ? notAllowed() : await pages.activity(ctx);
     if (path === "/instellingen") return post ? await pages.settingsPost(ctx, form) : pages.settings(ctx);
     if (path === "/favicon.ico" || path === "/robots.txt")
       return new Response(path === "/robots.txt" ? "User-agent: *\nDisallow: /\n" : null, { status: path === "/robots.txt" ? 200 : 404 });

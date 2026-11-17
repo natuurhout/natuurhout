@@ -64,6 +64,24 @@ const MIGRATIONS: string[][] = [
       last_seen TEXT NOT NULL
     )`,
   ],
+  // 2: follow-up tasks (to-dos with a due date, optionally tied to a request or customer).
+  [
+    `CREATE TABLE tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      due_date TEXT,
+      assigned_to TEXT,
+      contact_id INTEGER REFERENCES contacts (id),
+      request_id INTEGER REFERENCES requests (id),
+      done_at TEXT,
+      done_by TEXT,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE INDEX tasks_open ON tasks (done_at, due_date)`,
+    `CREATE INDEX tasks_request ON tasks (request_id)`,
+    `CREATE INDEX tasks_contact ON tasks (contact_id)`,
+  ],
 ];
 
 let ready: Promise<void> | undefined;

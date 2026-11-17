@@ -93,8 +93,10 @@ historical).
 ## Backend: CRM at beheer.natuurhout.be (2026-11-17)
 
 - **What:** the Worker serves a small CRM on `beheer.natuurhout.be` (`worker/admin/`):
-  requests (every form sent to `/api/offerte/` is saved, plus manual ones), customers,
-  notes, status/assignment, CSV export. Server-rendered HTML with plain forms, Dutch UI.
+  sidebar with Overzicht, Aanvragen (+ Offertes/Bestellingen views; every form sent to
+  `/api/offerte/` is saved, plus manual ones), Taken (follow-up tasks with due dates),
+  Klanten (+ CSV export), Producten (read-only price list from `src/lib/catalog.ts`),
+  Activiteit and Instellingen. Server-rendered HTML with plain forms, Dutch UI, no JS.
   `worker/index.ts` dispatches on the hostname, so the public site never reaches it.
 - **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (created by the first
   `wrangler deploy`, no `database_id` in `wrangler.jsonc`). The Worker applies the schema

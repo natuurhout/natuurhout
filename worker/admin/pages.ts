@@ -5,7 +5,8 @@
  */
 
 import { now } from "../crm/schema";
-import { euro, html, lines, page, raw, when, type Safe, type Section } from "./html";
+import { myOpenTasks, tasksPanel } from "./tasks";
+import { euro, html, lines, page, raw, when, type Badges, type Safe, type Section } from "./html";
 
 export type Ctx = {
   db: D1Database;
@@ -13,6 +14,7 @@ export type Ctx = {
   base: string;
   user: { email: string; name: string };
   users: Map<string, string>;
+  badges: Badges;
 };
 
 export const STATUSES = [
@@ -34,11 +36,18 @@ const KINDS: Record<string, string> = {
   bestelling: "Bestelling",
   manueel: "Manueel",
 };
+/** Sidebar views on the request list. */
+const KIND_GROUPS: Record<string, { label: string; kinds: string[]; section: Section }> = {
+  offertes: { label: "Offertes", kinds: ["calculator", "vraag"], section: "offertes" },
+  bestellingen: { label: "Bestellingen", kinds: ["bestelling"], section: "bestellingen" },
+};
 
 const FLASH: Record<string, string> = {
   saved: "Opgeslagen.",
   note: "Notitie toegevoegd.",
   created: "Aangemaakt.",
+  task: "Taak toegevoegd.",
+  done: "Taak afgevinkt.",
 };
 
 type ContactRow = {
@@ -80,11 +89,11 @@ export class HttpError extends Error {
   }
 }
 
-const notFound = () => new HttpError(404, "Niet gevonden.");
+export const notFound = () => new HttpError(404, "Niet gevonden.");
 
-function respond(ctx: Ctx, title: string, section: Section | undefined, body: Safe): Response {
+export function respond(ctx: Ctx, title: string, section: Section | undefined, body: Safe): Response {
   const flash = FLASH[ctx.url.searchParams.get("ok") ?? ""];
-  return new Response(page({ title, base: ctx.base, section, user: ctx.user, flash, body }), {
+  return new Response(page({ title, base: ctx.base, section, user: ctx.user, badges: ctx.badges, flash, body }), {
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 }
@@ -92,11 +101,11 @@ function respond(ctx: Ctx, title: string, section: Section | undefined, body: Sa
 export const seeOther = (ctx: Ctx, path: string, ok?: keyof typeof FLASH) =>
   new Response(null, { status: 303, headers: { Location: `${ctx.base}${path}${ok ? `${path.includes("?") ? "&" : "?"}ok=${ok}` : ""}` } });
 
-const who = (ctx: Ctx, email: string | null) => (email ? ctx.users.get(email.toLowerCase()) || email : "");
-const contactName = (c: { name: string; email: string | null; phone?: string }) => c.name || c.email || c.phone || "(zonder naam)";
+export const who = (ctx: Ctx, email: string | null) => (email ? ctx.users.get(email.toLowerCase()) || email : "");
+export const contactName = (c: { name: string; email: string | null; phone?: string }) => c.name || c.email || c.phone || "(zonder naam)";
 const chip = (status: string) => html`<span class="chip st-${status}">${statusLabel(status)}</span>`;
-const like = (q: string) => `%${q.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
-const field = (form: FormData, name: string, max = 500) => String(form.get(name) ?? "").trim().slice(0, max);
+export const like = (q: string) => `%${q.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
+export const field = (form: FormData, name: string, max = 500) => String(form.get(name) ?? "").trim().slice(0, max);
 
 function mailNote(status: string | null): Safe | string {
   if (status === "mislukt") return html` <span class="warn small" title="De e-mail naar de inbox is mislukt">· mail mislukt</span>`;
@@ -104,7 +113,7 @@ function mailNote(status: string | null): Safe | string {
   return "";
 }
 
-function userOptions(ctx: Ctx, selected: string | null): Safe {
+export function userOptions(ctx: Ctx, selected: string | null): Safe {
   return html`<option value="">Niemand</option>${[...ctx.users].map(
     ([email, name]) => html`<option value="${email}" ${email === selected?.toLowerCase() ? raw("selected") : ""}>${name || email}</option>`,
   )}`;
@@ -124,7 +133,7 @@ ${withContact ? html`<td><a href="${ctx.base}/klanten/${r.contact_id}">${contact
 )}</tbody></table></div>`;
 }
 
-function timeline(ctx: Ctx, notes: NoteRow[], showRequest = false): Safe {
+export function timeline(ctx: Ctx, notes: NoteRow[], showRequest = false): Safe {
   if (!notes.length) return html`<p class="muted small">Nog geen notities.</p>`;
   return html`<ul class="timeline">${notes.map(
     (n) => html`<li class="${n.kind}"><div class="meta">${who(ctx, n.author) || "Website"} · ${when(n.created_at)}${
@@ -160,6 +169,7 @@ export async function overview(ctx: Ctx): Promise<Response> {
     ctx.db.prepare("SELECT * FROM notes ORDER BY created_at DESC LIMIT 10"),
   ]);
   const n = new Map((counts.results as { status: string; n: number }[]).map((r) => [r.status, r.n]));
+  const tasks = await myOpenTasks(ctx);
   const mine = (open.results as RequestRow[]).filter((r) => r.assigned_to?.toLowerCase() === ctx.user.email).length;
   return respond(
     ctx,
@@ -171,11 +181,15 @@ ${(["nieuw", "in_behandeling", "offerte_verstuurd", "gewonnen"] as Status[]).map
   (s) => html`<a class="stat" href="${ctx.base}/aanvragen?status=${s}"><b class="st-${s}">${n.get(s) ?? 0}</b><span>${statusLabel(s)}</span></a>`,
 )}
 <a class="stat" href="${ctx.base}/aanvragen?wie=${ctx.user.email}"><b>${mine}</b><span>Open, aan mij toegewezen</span></a>
+<a class="stat" href="${ctx.base}/taken"><b class="${ctx.badges.takenLaat ? "warn" : ""}">${ctx.badges.takenLaat}</b><span>Taken vandaag of te laat</span></a>
 </div>
 <div class="grid two">
 <section class="card"><div class="head"><h2>Open aanvragen</h2><a class="btn ghost" href="${ctx.base}/aanvragen/nieuw">Nieuwe aanvraag</a></div>
 ${requestTable(ctx, open.results as never)}</section>
+<div>
+<section class="card"><div class="head"><h2 style="margin:0">Mijn taken</h2><a class="small" href="${ctx.base}/taken">alle taken</a></div>${tasks}</section>
 <section class="card"><h2>Laatste notities</h2>${timeline(ctx, notes.results as NoteRow[], true)}</section>
+</div>
 </div>`,
   );
 }
@@ -197,7 +211,11 @@ export async function requestList(ctx: Ctx): Promise<Response> {
     where.push("r.status = ?");
     args.push(status);
   }
-  if (kind in KINDS) {
+  const group = KIND_GROUPS[kind];
+  if (group) {
+    where.push(`r.kind IN (${group.kinds.map(() => "?").join(",")})`);
+    args.push(...group.kinds);
+  } else if (kind in KINDS) {
     where.push("r.kind = ?");
     args.push(kind);
   }
@@ -215,14 +233,15 @@ export async function requestList(ctx: Ctx): Promise<Response> {
   const { results } = await ctx.db.prepare(sql).bind(...args).all<RequestRow & { contact_name: string; contact_email: string | null }>();
   const opt = (value: string, label: string, current: string) =>
     html`<option value="${value}" ${value === current ? raw("selected") : ""}>${label}</option>`;
+  const heading = group?.label ?? "Aanvragen";
   return respond(
     ctx,
-    "Aanvragen",
-    "aanvragen",
-    html`<div class="head"><h1>Aanvragen</h1><a class="btn" href="${ctx.base}/aanvragen/nieuw">Nieuwe aanvraag</a></div>
+    heading,
+    group?.section ?? "aanvragen",
+    html`<div class="head"><h1>${heading}</h1><a class="btn" href="${ctx.base}/aanvragen/nieuw">Nieuwe aanvraag</a></div>
 <form class="card inline" method="get" action="${ctx.base}/aanvragen">
 <label>Status<select name="status">${opt("open", "Alle open", status)}${opt("alle", "Alle", status)}${STATUSES.map(([k, l]) => opt(k, l, status))}</select></label>
-<label>Soort<select name="soort">${opt("", "Alle", kind)}${Object.entries(KINDS).map(([k, l]) => opt(k, l, kind))}</select></label>
+<label>Soort<select name="soort">${opt("", "Alle", kind)}${Object.entries(KIND_GROUPS).map(([k, g]) => opt(k, `Alle ${g.label.toLowerCase()}`, kind))}${Object.entries(KINDS).map(([k, l]) => opt(k, l, kind))}</select></label>
 <label>Toegewezen aan<select name="wie">${opt("", "Iedereen", assignee)}${opt("niemand", "Niemand", assignee)}${[...ctx.users].map(([e, nm]) => opt(e, nm || e, assignee))}</select></label>
 <label>Zoeken<input name="q" value="${q}" placeholder="naam, e-mail, gemeente, tekst"></label>
 <button>Filter</button></form>
@@ -247,6 +266,7 @@ export async function requestDetail(ctx: Ctx, id: number): Promise<Response> {
     ctx.db.prepare("SELECT * FROM notes WHERE request_id = ? ORDER BY created_at DESC").bind(id).all<NoteRow>(),
   ]);
   if (!contact) throw notFound();
+  const tasks = await tasksPanel(ctx, { requestId: r.id }, `/aanvragen/${r.id}`);
   let data: QuoteData = {};
   try {
     data = r.data ? (JSON.parse(r.data) as QuoteData) : {};
@@ -284,6 +304,7 @@ ${data.lines.map(
 ${linesTable ? html`<section class="card"><h2>Artikelen</h2>${linesTable}</section>` : ""}
 ${data.remarks ? html`<section class="card"><h2>Opmerkingen van de klant</h2><p>${lines(data.remarks)}</p></section>` : ""}
 ${r.body ? html`<section class="card"><h2>${r.kind === "manueel" ? "Omschrijving" : "Volledige aanvraag"}</h2><pre class="body">${r.body}</pre></section>` : ""}
+${tasks}
 <section class="card"><h2>Notities</h2>${noteForm(ctx, `/aanvragen/${r.id}`)}${timeline(ctx, notes.results)}</section>
 </div>
 <div class="side-first">
@@ -458,6 +479,7 @@ export async function contactDetail(ctx: Ctx, id: number): Promise<Response> {
     ctx.db.prepare(`${REQUEST_SELECT} WHERE r.contact_id = ? ORDER BY r.created_at DESC`).bind(id).all<RequestRow & { contact_name: string; contact_email: string | null }>(),
     ctx.db.prepare("SELECT * FROM notes WHERE contact_id = ? ORDER BY created_at DESC LIMIT 100").bind(id).all<NoteRow>(),
   ]);
+  const tasks = await tasksPanel(ctx, { contactId: id }, `/klanten/${id}`);
   return respond(
     ctx,
     contactName(c),
@@ -466,6 +488,7 @@ export async function contactDetail(ctx: Ctx, id: number): Promise<Response> {
 <div class="grid two">
 <div>
 <section class="card"><h2>Aanvragen</h2>${requestTable(ctx, requests.results, false)}</section>
+${tasks}
 <section class="card"><h2>Notities</h2>${noteForm(ctx, `/klanten/${c.id}`)}${timeline(ctx, notes.results, true)}</section>
 </div>
 <section class="card"><h2>Gegevens</h2><form method="post" action="${ctx.base}/klanten/${c.id}"><input type="hidden" name="action" value="update">
@@ -532,6 +555,57 @@ export async function contactsCsv(ctx: Ctx): Promise<Response> {
       "content-disposition": `attachment; filename="natuurhout-klanten-${now().slice(0, 10)}.csv"`,
     },
   });
+}
+
+// ---------------------------------------------------------------- activiteit
+
+export async function activity(ctx: Ctx): Promise<Response> {
+  const wie = (ctx.url.searchParams.get("wie") ?? "").toLowerCase();
+  const byUser = ctx.users.has(wie) ? wie : "";
+  // One feed: notes and status changes, requests coming in, tasks done.
+  const { results } = await ctx.db
+    .prepare(
+      `SELECT * FROM (
+        SELECT 'note' AS type, n.kind, n.created_at AS at, n.author AS actor, n.body AS text, n.request_id, n.contact_id, c.name AS contact_name, c.email AS contact_email
+          FROM notes n JOIN contacts c ON c.id = n.contact_id
+        UNION ALL
+        SELECT 'request', r.kind, r.created_at, r.created_by, r.title, r.id, r.contact_id, c.name, c.email
+          FROM requests r JOIN contacts c ON c.id = r.contact_id
+        UNION ALL
+        SELECT 'task', 'done', t.done_at, t.done_by, t.title, t.request_id, t.contact_id, c.name, c.email
+          FROM tasks t LEFT JOIN contacts c ON c.id = t.contact_id WHERE t.done_at IS NOT NULL
+      )${byUser ? " WHERE actor = ? COLLATE NOCASE" : ""} ORDER BY at DESC LIMIT 150`,
+    )
+    .bind(...(byUser ? [byUser] : []))
+    .all<{ type: string; kind: string; at: string; actor: string | null; text: string; request_id: number | null; contact_id: number | null; contact_name: string | null; contact_email: string | null }>();
+  const opt = (value: string, label: string) => html`<option value="${value}" ${value === byUser ? raw("selected") : ""}>${label}</option>`;
+  const what = (e: (typeof results)[number]) =>
+    e.type === "request"
+      ? e.actor
+        ? html`maakte <a href="${ctx.base}/aanvragen/${e.request_id}">${e.text} #${e.request_id}</a> aan`
+        : html`Nieuwe aanvraag via de website: <a href="${ctx.base}/aanvragen/${e.request_id}">${e.text} #${e.request_id}</a>`
+      : e.type === "task"
+        ? html`vinkte taak af: ${e.text}`
+        : e.kind === "event"
+          ? lines(e.text)
+          : html`notitie: ${lines(e.text)}`;
+  return respond(
+    ctx,
+    "Activiteit",
+    "activiteit",
+    html`<h1>Activiteit</h1>
+<form class="card inline" method="get" action="${ctx.base}/activiteit"><label>Wie<select name="wie">${opt("", "Iedereen")}${[...ctx.users].map(([e, n]) => opt(e, n || e))}</select></label><button>Filter</button></form>
+<section class="card">${
+      results.length
+        ? html`<ul class="timeline">${results.map(
+            (e) => html`<li class="${e.kind === "event" ? "event" : ""}"><div class="meta">${when(e.at)}${
+              e.contact_id ? html` · <a href="${ctx.base}/klanten/${e.contact_id}">${contactName({ name: e.contact_name ?? "", email: e.contact_email })}</a>` : ""
+            }${e.type === "note" && e.request_id ? html` · <a href="${ctx.base}/aanvragen/${e.request_id}">aanvraag #${e.request_id}</a>` : ""}</div>
+${e.actor ? html`<b>${who(ctx, e.actor)}</b> ` : ""}${what(e)}</li>`,
+          )}</ul>`
+        : html`<p class="muted">Nog geen activiteit.</p>`
+    }</section>`,
+  );
 }
 
 // ---------------------------------------------------------------- instellingen
