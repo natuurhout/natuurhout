@@ -343,6 +343,7 @@ export async function syncPayment(env: CheckoutEnv, db: D1Database, order: Order
       author: null,
       how: `online via MultiSafepay${method ? `, ${methodName(method)}` : ""}${mode === "test" ? ", TEST" : ""}`,
       sendInvoice: true,
+      invoice: mode === "live",
     });
     if (Math.abs(psp.amount / 100 - order.total) > 0.005)
       await addOrderNote(db, order, `Let op: betaald bedrag (€ ${(psp.amount / 100).toFixed(2)}) verschilt van het totaal (€ ${order.total.toFixed(2)}).`, null);

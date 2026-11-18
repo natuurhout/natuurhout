@@ -44,7 +44,7 @@ export async function markPaid(
   db: D1Database,
   mail: Mailer | null,
   order: OrderRow,
-  opts: { amount: number; at: string; author: string | null; how: string; sendInvoice: boolean },
+  opts: { amount: number; at: string; author: string | null; how: string; sendInvoice: boolean; /** false for test payments: no invoice number used. */ invoice?: boolean },
 ): Promise<boolean> {
   const at = now();
   const done = await db
@@ -54,6 +54,10 @@ export async function markPaid(
   if (!done.meta.changes) return false;
   const paid: OrderRow = { ...order, status: "betaald", paid_at: opts.at, paid_amount: round2(opts.amount) };
   await addOrderNote(db, order, `Betaling ontvangen: ${euro(opts.amount)} (${opts.how})`, opts.author);
+  if (opts.invoice === false) {
+    await addOrderNote(db, order, "Testbetaling: geen factuur gemaakt (de factuurnummering blijft onaangeroerd).", opts.author);
+    return true;
+  }
   if (await openInvoice(db, order.id)) return true;
   const [lines, settings] = await Promise.all([getLines(db, order.id), getSettings(db)]);
   const missing = missingSettings(settings);
