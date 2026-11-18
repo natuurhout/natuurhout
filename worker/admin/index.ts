@@ -16,6 +16,7 @@ import { html, page } from "./html";
 import { lowStockCount, productEdit, productList, productSave, publishPost, reports, stockPage, stockPost } from "./shop-catalog";
 import { invoiceList, invoicePdfResponse, invoicesCsv, orderBulk, orderCreate, orderDetail, orderList, orderNew, orderPdfResponse, orderPost, ordersCsv } from "./shop-orders";
 import * as pages from "./pages";
+import { checkoutPage, checkoutPost } from "./shop-checkout";
 import type { PublishEnv } from "../shop/publish";
 import type { MspEnv } from "../shop/msp";
 import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
@@ -135,6 +136,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     if (path === "/bestellingen/nieuw") return post ? notAllowed() : await orderNew(ctx);
     if (path === "/bestellingen/bulk") return post ? await orderBulk(ctx, form) : notAllowed();
     if (path === "/bestellingen.csv") return post ? notAllowed() : await ordersCsv(ctx);
+    if (path === "/checkout") return post ? await checkoutPost(ctx, form) : await checkoutPage(ctx);
     if (path === "/zoeken") return post ? notAllowed() : await pages.search(ctx);
     n = id(/^\/bestellingen\/(\d+)$/);
     if (n !== null) return post ? await orderPost(ctx, n, form) : await orderDetail(ctx, n);

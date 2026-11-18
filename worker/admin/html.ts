@@ -374,7 +374,8 @@ export type Section =
   | "facturen"
   | "voorraad"
   | "rapporten"
-  | "zoeken";
+  | "zoeken"
+  | "checkout";
 
 /** Counters in the sidebar. */
 export type Badges = { nieuw: number; taken: number; takenLaat: number; orders: number; lowStock: number };
@@ -408,6 +409,7 @@ ${tab("bestellingen", "/bestellingen", "Bestellingen", "cart", badge(badges?.ord
 ${open("bestellingen", "facturen") ? tab("facturen", "/facturen", "Facturen", null) : ""}
 ${tab("producten", "/producten", "Producten", "package")}
 ${open("producten", "voorraad") ? tab("voorraad", "/voorraad", "Voorraad", null, badge(badges?.lowStock, true)) : ""}
+${tab("checkout", "/checkout", "Checkout", "truck")}
 ${tab("klanten", "/klanten", "Klanten", "users")}
 ${tab("aanvragen", "/aanvragen", "Aanvragen", "inbox", badge(badges?.nieuw))}
 ${open("aanvragen", "offertes", "taken") ? html`${tab("offertes", "/aanvragen?soort=offertes", "Offertes", null)}${tab("taken", "/taken", "Taken", null, badge(badges?.takenLaat || badges?.taken, Boolean(badges?.takenLaat)))}` : ""}

@@ -20,7 +20,7 @@
 import { ensureSchema, now } from "../crm/schema";
 import { upsertContact } from "../crm/store";
 import { loadCatalog, variantLabel } from "./catalog";
-import { deliveryFee, getCheckoutSettings } from "./delivery";
+import { deliveryQuote, getCheckoutSettings } from "./delivery";
 import { createPayment, getPayment, methodName, mspKey, MspError, validSignature, type MspEnv, type MspMode } from "./msp";
 import { createOrder, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
 import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid";
@@ -57,7 +57,8 @@ type Priced = {
   lines: (NewLine & { id: number; image: string | null })[];
   invalid: number[];
   subtotal: number;
-  delivery: { price: number; label: string } | null;
+  /** null when the customer picks up; otherwise the delivery quote (ok or why not). */
+  delivery: { ok: boolean; price: number; label: string; km: number | null; reason: string } | null;
   total: number;
 };
 
@@ -73,7 +74,7 @@ function parseBasket(body: Record<string, unknown>): BasketLine[] {
   return [...out].map(([id, qty]) => ({ id, qty }));
 }
 
-async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolean, postcode: string): Promise<Priced> {
+async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolean, postcode: string, city: string): Promise<Priced> {
   const [{ byId }, settings] = await Promise.all([loadCatalog(db), getCheckoutSettings(db)]);
   const lines: Priced["lines"] = [];
   const invalid: number[] = [];
@@ -97,8 +98,14 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
     });
   }
   const subtotal = round2(lines.reduce((t, l) => t + l.qty * l.unit, 0));
-  const delivery = wantsDelivery ? deliveryFee(settings, postcode, subtotal) : { price: 0, label: "Afhalen in Zele" };
-  return { lines, invalid, subtotal, delivery, total: round2(subtotal + (delivery?.price ?? 0)) };
+  let delivery: Priced["delivery"] = null;
+  if (wantsDelivery) {
+    const q = deliveryQuote(settings, postcode, city, { subtotal, lines: lines.map((l) => ({ handle: l.handle, qty: l.qty })) });
+    delivery = q.ok
+      ? { ok: true, price: q.price, label: `${postcode} ${q.place}`, km: q.km, reason: "" }
+      : { ok: false, price: 0, label: q.place ? `${postcode} ${q.place}` : postcode, km: q.km ?? null, reason: q.reason };
+  }
+  return { lines, invalid, subtotal, delivery, total: round2(subtotal + (delivery?.ok ? delivery.price : 0)) };
 }
 
 export async function quote(request: Request, env: CheckoutEnv): Promise<Response> {
@@ -106,13 +113,13 @@ export async function quote(request: Request, env: CheckoutEnv): Promise<Respons
   await ensureSchema(env.DB);
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   const wantsDelivery = body.delivery === true;
-  const p = await price(env.DB, parseBasket(body), wantsDelivery, str(body.postcode, 10));
+  const p = await price(env.DB, parseBasket(body), wantsDelivery, str(body.postcode, 10), str(body.city, 60));
   return json({
     lines: p.lines.map((l) => ({ id: l.id, product: l.product, label: l.label === l.product ? "" : l.label, qty: l.qty, unit: l.unit, note: l.note, image: l.image })),
     invalid: p.invalid,
     subtotal: p.subtotal,
     delivery: p.delivery,
-    deliverable: !wantsDelivery || p.delivery !== null,
+    deliverable: !wantsDelivery || Boolean(p.delivery?.ok),
     total: p.total,
     vat: round2((p.total * VAT_RATE) / (100 + VAT_RATE)),
   });
@@ -231,14 +238,14 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
   if (missingSettings(shop).length) return json({ error: "Online bestellen is nog niet ingesteld. Bel of mail ons voor uw bestelling." }, 503);
   if (method === "online" && !mspKey(env, checkout.mspMode)) return json({ error: "Online betalen is even niet beschikbaar. Kies betalen via overschrijving." }, 503);
 
-  const p = await price(db, parseBasket(body), wantsDelivery, customer.postcode);
+  const p = await price(db, parseBasket(body), wantsDelivery, customer.postcode, customer.city);
   if (p.invalid.length) return json({ error: "Enkele producten kunnen niet online besteld worden. Haal ze uit uw winkelmandje en vraag er een offerte voor.", invalid: p.invalid }, 400);
   if (!p.lines.length) return json({ error: "Uw winkelmandje is leeg." }, 400);
-  if (wantsDelivery && !p.delivery) return json({ error: "Naar deze postcode kunnen we niet via de webshop leveren. Kies afhalen in Zele of vraag een offerte." }, 400);
+  if (wantsDelivery && !p.delivery?.ok) return json({ error: `${p.delivery?.reason || "Naar deze postcode leveren we niet via de webshop."} Kies afhalen in Zele of vraag een offerte.` }, 400);
 
   const lines: NewLine[] = p.lines.map(({ id: _id, image: _image, ...l }) => l);
-  if (wantsDelivery && p.delivery && p.delivery.price > 0)
-    lines.push({ variant_id: null, handle: "", product: "Levering", label: `Levering ${customer.postcode} ${customer.city}`.trim(), qty: 1, unit: p.delivery.price, note: "" });
+  if (wantsDelivery && p.delivery?.ok && p.delivery.price > 0)
+    lines.push({ variant_id: null, handle: "", product: "Levering", label: `Levering ${p.delivery.label} (${String(p.delivery.km).replace(".", ",")} km)`, qty: 1, unit: p.delivery.price, note: "" });
 
   const at = now();
   const contactId = await upsertContact(db, customer, at);

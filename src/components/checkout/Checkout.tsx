@@ -23,7 +23,7 @@ type Quote = {
   lines: { id: number; product: string; label: string; qty: number; unit: number; note: string; image: string | null }[];
   invalid: number[];
   subtotal: number;
-  delivery: { price: number; label: string } | null;
+  delivery: { ok: boolean; price: number; label: string; km: number | null; reason: string } | null;
   deliverable: boolean;
   total: number;
   vat: number;
@@ -76,6 +76,7 @@ export default function Checkout() {
   const basket = cart.map((l) => ({ id: l.id, qty: l.qty }));
   const basketKey = JSON.stringify(basket);
   const postcode = f.postcode.trim();
+  const city = f.city.trim();
 
   // Server prices + delivery, refreshed when the basket, delivery or postcode changes.
   useEffect(() => {
@@ -85,7 +86,7 @@ export default function Checkout() {
       fetch("/api/afrekenen/prijs/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines: JSON.parse(basketKey), delivery, postcode }),
+        body: JSON.stringify({ lines: JSON.parse(basketKey), delivery, postcode, city }),
         signal: ctrl.signal,
       })
         .then((r) => (r.ok ? r.json() : null))
@@ -96,7 +97,7 @@ export default function Checkout() {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [basketKey, delivery, postcode, cart.length]);
+  }, [basketKey, delivery, postcode, city, cart.length]);
 
   const errors: Record<string, string> = {};
   if (!EMAIL.test(f.email.trim())) errors.email = "Vul een geldig e-mailadres in.";
@@ -205,7 +206,9 @@ export default function Checkout() {
           <dd className="tabular-nums">{quote ? formatPrice(quote.subtotal) : "…"}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-ink/70">{delivery ? "Levering" : "Afhalen in Zele"}</dt>
+          <dt className="text-ink/70">
+            {!delivery ? "Afhalen in Zele" : quote?.delivery?.km != null ? `Levering naar ${quote.delivery.label} (± ${Math.round(quote.delivery.km)} km)` : "Levering"}
+          </dt>
           <dd className="text-right tabular-nums">
             {!delivery
               ? "Gratis"
@@ -213,7 +216,7 @@ export default function Checkout() {
                 ? <span className="text-ink/55">Vul uw postcode in</span>
                 : !quote
                   ? "…"
-                  : quote.delivery
+                  : quote.delivery?.ok
                     ? quote.delivery.price === 0
                       ? "Gratis"
                       : formatPrice(quote.delivery.price)
@@ -271,7 +274,7 @@ export default function Checkout() {
                 </Field>
                 {quote && /^\d{4}$/.test(postcode) && !quote.deliverable && (
                   <p className="text-sm text-red-700 sm:col-span-3">
-                    Naar deze postcode leveren we niet via de webshop. Kies afhalen in Zele, of{" "}
+                    {quote.delivery?.reason || "Naar deze postcode leveren we niet via de webshop."} Kies afhalen in Zele, of{" "}
                     <Link href="/offerte-aanvragen/" className="font-semibold underline">
                       vraag een offerte
                     </Link>{" "}

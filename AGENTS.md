@@ -127,13 +127,17 @@ historical).
 - **Checkout v2 (2026-11-18, hidden at `/afrekenen/`, not linked yet):** the customer pays at
   checkout, online via MultiSafepay (hosted payment page, all methods enabled on the account) or by
   bank transfer (payment request with QR mailed at once). Server side `worker/shop/checkout.ts`
-  (+ `msp.ts`, `delivery.ts`, `paid.ts`): prices from D1, delivery from postcode zones in
-  Instellingen → Levering en online betalen (no zone = pickup only), orders start `bevestigd`.
+  (+ `msp.ts`, `delivery.ts`, `paid.ts`): prices from D1, orders start `bevestigd`. Delivery is
+  priced on road km from the Zele yard per Belgian postcode (`worker/shop/data/be-postcodes.json`,
+  built by `scripts/build-delivery-distances.mjs` from GeoNames + OSRM; rerun only if the yard
+  moves): distance bands, max km, free-above, rounding and rules (surcharges, discounts, free,
+  pickup only) are set in the backend tab **Checkout** (`worker/admin/shop-checkout.ts`, with a
+  tester). No bands = pickup only.
   A payment only counts when MultiSafepay's API says `completed` (webhook
   `/api/multisafepay/webhook/` is HMAC-checked, then the API is asked); then betaald + invoice
   mailed. Unpaid online orders are cancelled after 3 days by the 5-minute cron (stock back).
   Secrets `MSP_API_KEY_TEST` / `MSP_API_KEY_LIVE` (Worker secrets, never in the repo); test or
-  live is chosen in Instellingen. Checkout refuses orders until the company/bank settings are
+  live is chosen in the Checkout tab. Checkout refuses orders until the company/bank settings are
   complete. To go live: link the cart's button to `/afrekenen/` (`CartView.tsx`).
 - **Catalogue edits:** Producten/Voorraad store overrides in D1 on top of the site's catalogue
   (`src/lib/catalog-overrides.ts`, applied last in `src/lib/catalog.ts`; `baseProducts` is
