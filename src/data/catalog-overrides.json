@@ -1,4 +1,8 @@
 {
   "products": {},
-  "variants": {}
+  "variants": {
+    "53720621220171": {
+      "price": 66.5
+    }
+  }
 }
