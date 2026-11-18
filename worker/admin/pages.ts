@@ -6,6 +6,7 @@
 
 import { now } from "../crm/schema";
 import type { Mailer } from "../shop/send";
+import type { PublishEnv } from "../shop/publish";
 import type { OrderRow } from "../shop/orders";
 import { orderTable } from "./shop-orders";
 import { getSettings, missingSettings, saveSettings, SETTING_FIELDS, validIban, type ShopSettings } from "../shop/settings";
@@ -23,6 +24,8 @@ export type Ctx = {
   board: boolean;
   /** Sends shop mail to customers (null when the EMAIL binding is missing). */
   mail: Mailer | null;
+  /** Site rebuild after catalogue edits (worker/shop/publish.ts). */
+  publish: PublishEnv;
 };
 
 export const STATUSES = [

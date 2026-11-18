@@ -13,12 +13,13 @@ import { authenticate, type AuthEnv } from "./auth";
 import { makeMailer, type MailEnv } from "../shop/send";
 import { APP_JS } from "./app-js";
 import { html, page } from "./html";
-import { lowStockCount, productEdit, productList, productSave, reports, stockPage, stockPost } from "./shop-catalog";
+import { lowStockCount, productEdit, productList, productSave, publishPost, reports, stockPage, stockPost } from "./shop-catalog";
 import { invoiceList, invoicePdfResponse, invoicesCsv, orderCreate, orderDetail, orderList, orderNew, orderPdfResponse, orderPost } from "./shop-orders";
 import * as pages from "./pages";
+import type { PublishEnv } from "../shop/publish";
 import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
 
-export interface AdminEnv extends AuthEnv, MailEnv {
+export interface AdminEnv extends AuthEnv, MailEnv, PublishEnv {
   DB?: D1Database;
 }
 
@@ -100,6 +101,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     badges: { nieuw: nieuw?.n ?? 0, ...taken, orders: orders?.n ?? 0, lowStock },
     board: request.headers.get("x-board") === "1",
     mail: makeMailer(env),
+    publish: env,
   };
 
   const path = (url.pathname.slice(base.length) || "/").replace(/(.)\/+$/, "$1");
@@ -124,7 +126,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     if (path === "/taken") return post ? await taskCreate(ctx, form) : await taskList(ctx);
     n = id(/^\/taken\/(\d+)$/);
     if (n !== null) return post ? await taskPost(ctx, n, form) : notAllowed();
-    if (path === "/producten") return post ? notAllowed() : await productList(ctx);
+    if (path === "/producten") return post ? await publishPost(ctx) : await productList(ctx);
     const handle = /^\/producten\/([\w-]+)$/.exec(path)?.[1];
     if (handle) return post ? await productSave(ctx, handle, form) : await productEdit(ctx, handle);
     if (path === "/bestellingen") return post ? await orderCreate(ctx, form) : await orderList(ctx);

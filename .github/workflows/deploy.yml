@@ -4,11 +4,14 @@ name: Deploy
 # content change only needs a push. Build failures (TypeScript, Next.js) stop
 # the deploy and show up as a red cross on the commit.
 #
-# Every 15 minutes it also checks the catalogue edits made in the backend
-# (beheer.natuurhout.be → Producten / Voorraad, published at
-# /api/catalogus/). When they changed, it commits them to
-# src/data/catalog-overrides.json (so the repo has the history of every price
-# change) and rebuilds the site. Pull before you push: this job commits too.
+# Catalogue edits made in the backend (beheer.natuurhout.be → Producten /
+# Voorraad, published at /api/catalogus/) are copied into
+# src/data/catalog-overrides.json first (committed, so the repo has the
+# history of every price change). The Worker starts this workflow itself
+# (workflow_dispatch, secret GITHUB_DEPLOY_TOKEN on the Worker) as soon as the
+# backend differs from the live site, and its 5-minute Cloudflare cron retries
+# a run that failed (worker/shop/publish.ts). The schedule below is only a
+# backup: GitHub often delays or skips it. Pull before you push: this job commits too.
 #
 # Secrets (Settings → Secrets and variables → Actions):
 #   CLAUDE_CLOUDFLARE     "Edit Cloudflare Workers" API token on the FX Media account

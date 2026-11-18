@@ -125,8 +125,13 @@ historical).
 - **Catalogue edits:** Producten/Voorraad store overrides in D1 on top of the site's catalogue
   (`src/lib/catalog-overrides.ts`, applied last in `src/lib/catalog.ts`; `baseProducts` is
   without them). Checkout uses D1 at once; the site gets them via `/api/catalogus/` →
-  `scripts/sync-catalog.mjs` → `src/data/catalog-overrides.json`, run by the deploy workflow
-  on every push and every 15 minutes (commits + rebuilds only when changed). So that file is
+  `scripts/sync-catalog.mjs` → `src/data/catalog-overrides.json`, run by the deploy workflow.
+  The Worker starts that workflow itself (`worker/shop/publish.ts`, GitHub workflow_dispatch with
+  the Worker secret `GITHUB_DEPLOY_TOKEN`: fine-grained token of the `natuurhout` account, this
+  repo only, "Actions: read and write") whenever the backend differs from the catalogue bundled
+  in the deployed Worker, so the site follows in ~2 minutes; a 5-minute Worker cron retries
+  failed runs and Producten/Voorraad show whether the site is up to date. The workflow's own
+  15-minute schedule is only a backup (GitHub delays it). So that file is
   written by a bot: **pull before you push**, and don't edit it by hand. Code-level price
   rules (`price-updates.ts`, `promotions.ts`) still work; a backend edit wins over them.
 - **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` has no D1 permission. That is

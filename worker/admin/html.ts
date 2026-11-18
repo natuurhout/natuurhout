@@ -243,6 +243,8 @@ button.tick:hover{border-color:var(--accent);filter:none}button.tick.on{backgrou
 .timeline li.task{display:flex;gap:10px;align-items:flex-start}form.check{margin:0}
 dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}dt{color:var(--soft)}dd{margin:0;overflow-wrap:anywhere}
 .flash{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--s-gewonnen);box-shadow:var(--shadow);padding:10px 14px;border-radius:10px;margin-bottom:18px;font-weight:500}
+.sync{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c,var(--s-gewonnen));padding:9px 14px;border-radius:10px;margin-bottom:16px;font-size:13.5px}
+.sync.building{--c:var(--s-nieuw)}.sync.waiting{--c:var(--warn)}.sync form{margin:0 0 0 auto}
 pre.body{white-space:pre-wrap;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);padding:12px 14px;border-radius:10px;margin:0;max-height:420px;overflow:auto}
 .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;border-bottom:1px solid var(--line)}
 .tabs a{padding:8px 12px;color:var(--soft);text-decoration:none;font-weight:600;font-size:13.5px;border-bottom:2px solid transparent;white-space:nowrap;margin-bottom:-1px}

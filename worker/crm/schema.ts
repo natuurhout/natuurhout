@@ -188,6 +188,12 @@ const MIGRATIONS: string[][] = [
     `ALTER TABLE notes ADD COLUMN order_id INTEGER REFERENCES orders (id)`,
     `CREATE INDEX notes_order ON notes (order_id, created_at)`,
   ],
+  // 4: the Worker asks GitHub to rebuild the site when the catalogue changed (worker/shop/publish.ts).
+  [
+    `ALTER TABLE catalog_publish ADD COLUMN requested_hash TEXT`,
+    `ALTER TABLE catalog_publish ADD COLUMN requested_at TEXT`,
+    `ALTER TABLE catalog_publish ADD COLUMN error TEXT`,
+  ],
 ];
 
 let ready: Promise<void> | undefined;

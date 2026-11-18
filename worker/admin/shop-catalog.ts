@@ -4,14 +4,15 @@
  * (counted stock, low stock, corrections, movements) and Rapporten.
  *
  * Edits are stored as overrides on top of the site's catalogue
- * (worker/shop/catalog.ts). Checkout uses them at once; the static site picks
- * them up on the next automatic rebuild (.github/workflows/deploy.yml, every
- * 15 minutes when something changed).
+ * (worker/shop/catalog.ts). Checkout uses them at once; saving also starts a
+ * rebuild of the static site (worker/shop/publish.ts), live in about 2 minutes.
+ * siteBar() shows where that stands.
  */
 
 import { collections } from "../../src/lib/catalog";
 import { now } from "../crm/schema";
 import { loadCatalog, productGroups, touchCatalog, variantLabel, type LiveProduct } from "../shop/catalog";
+import { publishSite, siteStatus } from "../shop/publish";
 import { round2, todayBE } from "../shop/orders";
 import { ago, euro, html, icon, raw, when, type Safe } from "./html";
 import { field, HttpError, notFound, respond, seeOther, who, type Ctx } from "./pages";
@@ -39,6 +40,28 @@ function stockChip(p: LiveProduct["variants"][number]): Safe | string {
   return html`<span class="chip os-betaald">${p.stock}</span>`;
 }
 
+// ---------------------------------------------------------------- Website sync
+
+/** One line above Producten/Voorraad: does the public site show these edits yet? */
+async function siteBar(ctx: Ctx): Promise<Safe> {
+  const s = await siteStatus(ctx.db, ctx.publish);
+  const button = html`<form method="post" action="${ctx.base}/producten"><button class="btn ghost sm">Nu bijwerken</button></form>`;
+  if (s.state === "live") return html`<div class="sync" role="status">${icon("check")} Website is up-to-date: prijzen, namen en beschikbaarheid zijn dezelfde als hier.</div>`;
+  if (s.state === "building")
+    return s.slow
+      ? html`<div class="sync waiting" role="status">De website wordt bijgewerkt sinds ${ago(s.since)} geleden; dat duurt langer dan normaal. Het systeem probeert het automatisch opnieuw.${button}</div>`
+      : html`<div class="sync building" role="status">Website wordt bijgewerkt (gestart ${ago(s.since)} geleden, duurt meestal 1 à 2 minuten). Nieuwe bestellingen gebruiken de nieuwe prijzen al.</div>`;
+  return html`<div class="sync waiting" role="status">De website toont nog de vorige prijzen/beschikbaarheid. ${
+    s.token ? (s.error ? html`Bijwerken lukte niet (${s.error}); het systeem probeert het elke 5 minuten opnieuw.` : "Bijwerken start zo meteen.") : "Automatisch bijwerken is nog niet ingesteld (sleutel GITHUB_DEPLOY_TOKEN ontbreekt), de website volgt via de reservelus binnen ongeveer een uur."
+  } Nieuwe bestellingen gebruiken de nieuwe prijzen al.${s.token ? button : ""}</div>`;
+}
+
+/** "Nu bijwerken": start the site rebuild now. */
+export async function publishPost(ctx: Ctx): Promise<Response> {
+  await publishSite(ctx.publish, { force: true });
+  return seeOther(ctx, "/producten");
+}
+
 // ---------------------------------------------------------------- Producten
 
 export async function productList(ctx: Ctx): Promise<Response> {
@@ -64,7 +87,7 @@ export async function productList(ctx: Ctx): Promise<Response> {
       changed?.changed_at ? html` Laatste wijziging ${ago(changed.changed_at)} geleden.` : ""
     }</p></div></div>
 <form class="toolbar" method="get" action="${ctx.base}/producten"><label class="search">${icon("search")}<input name="q" type="search" value="${q}" placeholder="Zoek product, uitvoering of SKU…" aria-label="Zoeken"></label><button class="btn ghost">Zoek</button></form>
-<p class="muted small">Prijzen gelden meteen voor nieuwe bestellingen. De website zelf wordt automatisch bijgewerkt binnen ongeveer 20 minuten na een wijziging.</p>
+${await siteBar(ctx)}
 ${groups
   .filter(([, list]) => list.length)
   .map(
@@ -96,6 +119,7 @@ export async function productEdit(ctx: Ctx, handle: string): Promise<Response> {
     p.title,
     "producten",
     html`<div class="head"><div><h1>${p.title}</h1><p class="sub"><a href="https://www.natuurhout.be/shop/${p.handle}/" target="_blank" rel="noopener">Bekijk op de website</a> · ${p.variants.length} uitvoeringen</p></div></div>
+${await siteBar(ctx)}
 <form method="post" action="${ctx.base}/producten/${p.handle}">
 <section class="card"><h2>Product</h2><div class="fields"><label>Naam<input name="title" value="${p.title !== p.base.title ? p.title : ""}" placeholder="${p.base.title}"></label>
 <label class="check" style="align-self:end;margin-bottom:22px"><input type="checkbox" name="hidden" value="1" ${p.hidden ? raw("checked") : ""}> Verbergen uit de productlijsten (de productpagina blijft bestaan)</label></div>
@@ -169,6 +193,7 @@ export async function productSave(ctx: Ctx, handle: string, form: FormData): Pro
   }
   await ctx.db.batch(stmts);
   await touchCatalog(ctx.db, at);
+  await publishSite(ctx.publish);
   return seeOther(ctx, `/producten/${handle}`, "saved");
 }
 
@@ -192,6 +217,7 @@ export async function stockPage(ctx: Ctx): Promise<Response> {
     "Voorraad",
     "voorraad",
     html`<div class="head"><div><h1>Voorraad</h1><p class="sub">${counted.length} uitvoeringen worden geteld${lowCount ? html`, <b class="warn">${lowCount} laag of op</b>` : ""}. Een telling start je bij het product (Producten → product → Voorraad).</p></div></div>
+${await siteBar(ctx)}
 <div class="grid two"><section class="card"><h2>Getelde voorraad</h2>${
       counted.length
         ? html`<div class="scroll"><table><thead><tr><th>Product</th><th>Voorraad</th><th>Bijboeken / afboeken</th></tr></thead><tbody>
@@ -228,6 +254,7 @@ export async function stockPost(ctx: Ctx, form: FormData): Promise<Response> {
     ctx.db.prepare("INSERT INTO stock_moves (variant_id, delta, reason, author, created_at) VALUES (?, ?, ?, ?, ?)").bind(id, delta, reason, ctx.user.email, at),
   ]);
   await touchCatalog(ctx.db, at);
+  await publishSite(ctx.publish);
   return seeOther(ctx, "/voorraad", "saved");
 }
 
