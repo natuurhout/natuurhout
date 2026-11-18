@@ -20,6 +20,8 @@ import { collections } from "../../src/lib/catalog";
 import type { MspMode } from "./msp";
 
 export type Band = { upTo: number; price: number; perKm: number };
+/** Minimum order value (products incl. btw, without delivery) for deliveries up to `upTo` km. */
+export type MinRow = { upTo: number; min: number };
 export const RULE_WHEN = {
   always: "Altijd",
   total_min: "Bestelbedrag vanaf (€)",
@@ -53,6 +55,9 @@ export type CheckoutSettings = {
   freeAbove: number | null;
   roundUp: boolean;
   rules: Rule[];
+  minimums: MinRow[];
+  /** Minimum order value for pickup in Zele (null: none). */
+  pickupMin: number | null;
   mspMode: MspMode;
 };
 
@@ -61,7 +66,7 @@ const POSTCODES = (distances as { postcodes: Record<string, PostcodeRow> }).post
 export const DISTANCE_INFO = { yard: (distances as { yard: { label: string } }).yard.label, about: (distances as { _about: string })._about, count: Object.keys(POSTCODES).length };
 export const COLLECTIONS = collections.map((c) => ({ handle: c.handle, title: c.title, products: new Set(c.products) }));
 
-const KEYS = ["delivery_bands", "delivery_max_km", "delivery_free_above", "delivery_round", "delivery_rules", "msp_mode"] as const;
+const KEYS = ["delivery_bands", "delivery_max_km", "delivery_free_above", "delivery_round", "delivery_rules", "delivery_minimums", "pickup_min", "msp_mode"] as const;
 
 function parseJson<T>(raw: string | undefined, ok: (x: unknown) => x is T): T[] {
   try {
@@ -90,8 +95,14 @@ export async function getCheckoutSettings(db: D1Database): Promise<CheckoutSetti
     const x = r as Rule;
     return Boolean(x) && x.when in RULE_WHEN && x.effect in RULE_EFFECT;
   });
+  const minimums = parseJson(v.get("delivery_minimums"), (m): m is MinRow => {
+    const x = m as MinRow;
+    return Boolean(x) && x.upTo > 0 && x.min >= 0;
+  }).sort((a, b) => a.upTo - b.upTo);
   return {
     bands,
+    minimums,
+    pickupMin: num(v.get("pickup_min")),
     maxKm: num(v.get("delivery_max_km")),
     freeAbove: num(v.get("delivery_free_above")),
     roundUp: v.get("delivery_round") === "1",
@@ -108,13 +119,15 @@ export async function saveCheckoutSettings(db: D1Database, s: Partial<CheckoutSe
   if ("freeAbove" in s) stmts.push(put("delivery_free_above", s.freeAbove ? String(s.freeAbove) : ""));
   if ("roundUp" in s) stmts.push(put("delivery_round", s.roundUp ? "1" : ""));
   if (s.rules) stmts.push(put("delivery_rules", JSON.stringify(s.rules)));
+  if (s.minimums) stmts.push(put("delivery_minimums", JSON.stringify([...s.minimums].sort((a, b) => a.upTo - b.upTo))));
+  if ("pickupMin" in s) stmts.push(put("pickup_min", s.pickupMin ? String(s.pickupMin) : ""));
   if (s.mspMode) stmts.push(put("msp_mode", s.mspMode));
   if (stmts.length) await db.batch(stmts);
 }
 
 export type Basket = { subtotal: number; lines: { handle: string; qty: number }[] };
 export type DeliveryQuote =
-  | { ok: true; price: number; km: number; place: string; steps: string[] }
+  | { ok: true; price: number; km: number; place: string; steps: string[]; minimum: number | null }
   | { ok: false; reason: string; km?: number; place?: string; steps: string[] };
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace(".", ",")}`;
@@ -151,6 +164,13 @@ function matches(rule: Rule, km: number, basket: Basket): boolean {
     case "qty_min":
       return basket.lines.filter((l) => inCollection(l.handle)).reduce((t, l) => t + l.qty, 0) >= rule.value;
   }
+}
+
+/** Minimum order value for a delivery distance (km) or for pickup (null). */
+export function minimumFor(s: CheckoutSettings, km: number | null): { min: number; upTo: number | null } | null {
+  if (km === null) return s.pickupMin ? { min: s.pickupMin, upTo: null } : null;
+  const row = s.minimums.find((m) => km <= m.upTo);
+  return row && row.min > 0 ? { min: row.min, upTo: row.upTo } : null;
 }
 
 export function deliveryQuote(s: CheckoutSettings, postcode: string, city: string, basket: Basket): DeliveryQuote {
@@ -195,5 +215,7 @@ export function deliveryQuote(s: CheckoutSettings, postcode: string, city: strin
     price = Math.ceil(price);
     steps.push(`Afgerond naar ${euro(price)}`);
   }
-  return { ok: true, price, km, place, steps };
+  const minimum = minimumFor(s, km);
+  if (minimum) steps.push(`Minimum bestelbedrag tot ${minimum.upTo} km: ${euro(minimum.min)}${basket.subtotal < minimum.min ? ` (nog ${euro(round2(minimum.min - basket.subtotal))} te gaan)` : " (gehaald)"}`);
+  return { ok: true, price, km, place, steps, minimum: minimum?.min ?? null };
 }

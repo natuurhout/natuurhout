@@ -132,7 +132,9 @@ historical).
   built by `scripts/build-delivery-distances.mjs` from GeoNames + OSRM; rerun only if the yard
   moves): distance bands, max km, free-above, rounding and rules (surcharges, discounts, free,
   pickup only) are set in the backend tab **Checkout** (`worker/admin/shop-checkout.ts`, with a
-  tester). No bands = pickup only.
+  tester). No bands = pickup only. Minimum order value per distance (products incl. btw, without
+  delivery; e.g. up to 40 km €120, up to 150 km €200) and an optional pickup minimum are set there
+  too; below it the checkout shows delivery and total but refuses the order.
   A payment only counts when MultiSafepay's API says `completed` (webhook
   `/api/multisafepay/webhook/` is HMAC-checked, then the API is asked); then betaald + invoice
   mailed. Unpaid online orders are cancelled after 3 days by the 5-minute cron (stock back).

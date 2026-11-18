@@ -25,6 +25,8 @@ type Quote = {
   subtotal: number;
   delivery: { ok: boolean; price: number; label: string; km: number | null; reason: string } | null;
   deliverable: boolean;
+  minimum: number | null;
+  short: number;
   total: number;
   vat: number;
 };
@@ -110,7 +112,10 @@ export default function Checkout() {
   const shown = attempted ? errors : {};
 
   const invalid = new Set(quote?.invalid ?? []);
-  const blocked = invalid.size > 0 || (delivery && quote !== null && /^\d{4}$/.test(postcode) && !quote.deliverable);
+  const short = quote?.short ?? 0;
+  // No price: a product that cannot be ordered online, or no delivery to this postcode.
+  const unpriced = invalid.size > 0 || (delivery && quote !== null && /^\d{4}$/.test(postcode) && !quote.deliverable);
+  const blocked = unpriced || short > 0;
   const total = quote?.total ?? null;
 
   async function submit(event: React.FormEvent) {
@@ -225,10 +230,16 @@ export default function Checkout() {
         </div>
         <div className="flex items-baseline justify-between border-t border-line pt-3">
           <dt className="font-display text-lg font-semibold">Totaal</dt>
-          <dd className="font-display text-xl font-bold tabular-nums">{total !== null && !blocked ? formatPrice(total) : "…"}</dd>
+          <dd className="font-display text-xl font-bold tabular-nums">{total !== null && !unpriced ? formatPrice(total) : "…"}</dd>
         </div>
         {quote && <p className="text-right text-xs text-ink/55">incl. {formatPrice(quote.vat)} btw (21%)</p>}
       </dl>
+      {quote && quote.minimum !== null && short > 0 && (
+        <p role="status" className="rounded-xl border border-amber-500/40 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+          Het minimum bestelbedrag {delivery ? `voor levering naar ${quote.delivery?.label ?? "uw adres"}` : "om af te halen"} is <strong>{formatPrice(quote.minimum)}</strong>.
+          Voeg nog <strong>{formatPrice(short)}</strong> aan producten toe{delivery ? ", of kies afhalen in Zele" : ""}.
+        </p>
+      )}
     </div>
   );
 
@@ -362,7 +373,7 @@ export default function Checkout() {
             <Lock className="h-4 w-4" aria-hidden />
             {status === "sending"
               ? "Even geduld…"
-              : `${method === "online" ? "Betalen" : "Bestelling plaatsen"}${total !== null && !blocked ? ` · ${formatPrice(total)}` : ""}`}
+              : `${method === "online" ? "Betalen" : "Bestelling plaatsen"}${total !== null && !unpriced ? ` · ${formatPrice(total)}` : ""}`}
           </button>
           <Link href="/winkelmandje/" className="inline-flex items-center gap-2 text-sm font-medium text-ink/65 hover:text-accent-deep">
             <ArrowLeft className="h-4 w-4" /> Terug naar het winkelmandje
