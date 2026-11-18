@@ -96,7 +96,9 @@ historical).
   sidebar with Overzicht, Aanvragen (+ Offertes/Bestellingen views; every form sent to
   `/api/offerte/` is saved, plus manual ones), Taken (follow-up tasks with due dates),
   Klanten (+ CSV export), Producten (read-only price list from `src/lib/catalog.ts`),
-  Activiteit and Instellingen. Server-rendered HTML with plain forms, Dutch UI, no JS.
+  Activiteit and Instellingen. Server-rendered HTML with plain forms, Dutch UI; look and feel
+  follow Shopify's admin (Polaris: grey sidebar with Ctrl K search, badges, index tables; CSS in
+  `worker/admin/html.ts`). `/app.js` only enhances (row clicks, bulk select, board drag, menus).
   `worker/index.ts` dispatches on the hostname, so the public site never reaches it.
 - **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (id `4fa6e039-…`, created
   2026-11-17, pinned in `wrangler.jsonc`). The Worker applies the schema

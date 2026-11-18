@@ -107,7 +107,8 @@ export const notFound = () => new HttpError(404, "Niet gevonden.");
 
 export function respond(ctx: Ctx, title: string, section: Section | undefined, body: Safe, wide = false): Response {
   const flash = FLASH[ctx.url.searchParams.get("ok") ?? ""];
-  return new Response(page({ title, base: ctx.base, section, user: ctx.user, badges: ctx.badges, flash, wide, body }), {
+  const query = section === "zoeken" ? (ctx.url.searchParams.get("q") ?? "") : undefined;
+  return new Response(page({ title, base: ctx.base, section, user: ctx.user, badges: ctx.badges, flash, wide, query, body }), {
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 }
@@ -791,4 +792,51 @@ export async function settingsPost(ctx: Ctx, form: FormData): Promise<Response> 
   if (!name) throw new HttpError(400, "Een naam is verplicht.");
   await ctx.db.prepare("UPDATE users SET name = ? WHERE email = ?").bind(name, ctx.user.email).run();
   return seeOther(ctx, "/instellingen", "saved");
+}
+
+// ---------------------------------------------------------------- search
+
+/** Sidebar search (Ctrl K): orders, customers and requests at once. */
+export async function search(ctx: Ctx): Promise<Response> {
+  const q = (ctx.url.searchParams.get("q") ?? "").trim().slice(0, 100);
+  const pat = like(q);
+  const [orders, contacts, requests] = q
+    ? await Promise.all([
+        ctx.db
+          .prepare("SELECT * FROM orders WHERE number LIKE ?1 ESCAPE '\\' OR name LIKE ?1 ESCAPE '\\' OR email LIKE ?1 ESCAPE '\\' OR phone LIKE ?1 ESCAPE '\\' OR company LIKE ?1 ESCAPE '\\' OR city LIKE ?1 ESCAPE '\\' OR ogm LIKE ?1 ESCAPE '\\' ORDER BY created_at DESC LIMIT 20")
+          .bind(pat)
+          .all<OrderRow>(),
+        ctx.db
+          .prepare("SELECT * FROM contacts WHERE name LIKE ?1 ESCAPE '\\' OR email LIKE ?1 ESCAPE '\\' OR phone LIKE ?1 ESCAPE '\\' OR company LIKE ?1 ESCAPE '\\' OR city LIKE ?1 ESCAPE '\\' ORDER BY updated_at DESC LIMIT 20")
+          .bind(pat)
+          .all<ContactRow>(),
+        ctx.db
+          .prepare("SELECT r.id, r.kind, r.status, r.title, r.total, r.created_at, c.name, c.email FROM requests r JOIN contacts c ON c.id = r.contact_id WHERE r.title LIKE ?1 ESCAPE '\\' OR r.body LIKE ?1 ESCAPE '\\' OR c.name LIKE ?1 ESCAPE '\\' OR c.email LIKE ?1 ESCAPE '\\' ORDER BY r.created_at DESC LIMIT 20")
+          .bind(pat)
+          .all<{ id: number; kind: string; status: string; title: string; total: number | null; created_at: string; name: string; email: string | null }>(),
+      ])
+    : [{ results: [] as OrderRow[] }, { results: [] as ContactRow[] }, { results: [] }];
+  const none = !orders.results.length && !contacts.results.length && !requests.results.length;
+  return respond(
+    ctx,
+    q ? `Zoeken: ${q}` : "Zoeken",
+    "zoeken",
+    html`<div class="ph"><div class="title">${icon("search")}${q ? html`Resultaten voor “${q}”` : "Zoeken"}</div></div>
+${!q ? html`<p class="muted">Typ in het zoekveld links (of druk Ctrl K) om bestellingen, klanten en aanvragen te zoeken.</p>` : none ? html`<section class="card"><p class="muted" style="margin:0">Niets gevonden.</p></section>` : ""}
+${orders.results.length ? html`<section class="card flush"><div class="card-h"><h2>Bestellingen</h2></div>${orderTable(ctx, orders.results)}</section>` : ""}
+${
+  contacts.results.length
+    ? html`<section class="card flush"><div class="card-h"><h2>Klanten</h2></div><div class="scroll"><table class="itable"><thead><tr><th>Naam</th><th>E-mail</th><th>Telefoon</th><th>Gemeente</th></tr></thead><tbody>${contacts.results.map(
+        (c) => html`<tr data-href="${ctx.base}/klanten/${c.id}"><td><a href="${ctx.base}/klanten/${c.id}">${contactName(c)}</a>${c.company ? html` <span class="muted">· ${c.company}</span>` : ""}</td><td>${c.email ?? ""}</td><td>${c.phone}</td><td>${c.city}</td></tr>`,
+      )}</tbody></table></div></section>`
+    : ""
+}
+${
+  requests.results.length
+    ? html`<section class="card flush"><div class="card-h"><h2>Aanvragen</h2></div><div class="scroll"><table class="itable"><thead><tr><th>Aanvraag</th><th>Klant</th><th>Soort</th><th>Status</th><th class="num">Bedrag</th></tr></thead><tbody>${requests.results.map(
+        (r) => html`<tr data-href="${ctx.base}/aanvragen/${r.id}"><td><a href="${ctx.base}/aanvragen/${r.id}">${r.title || `#${r.id}`}</a><div class="muted small">${when(r.created_at)}</div></td><td>${r.name || r.email}</td><td>${KINDS[r.kind] ?? r.kind}</td><td>${chip(r.status)}</td><td class="num">${euro(r.total)}</td></tr>`,
+      )}</tbody></table></div></section>`
+    : ""
+}`,
+  );
 }

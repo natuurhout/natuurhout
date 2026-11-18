@@ -14,7 +14,7 @@ import { makeMailer, type MailEnv } from "../shop/send";
 import { APP_JS } from "./app-js";
 import { html, page } from "./html";
 import { lowStockCount, productEdit, productList, productSave, publishPost, reports, stockPage, stockPost } from "./shop-catalog";
-import { invoiceList, invoicePdfResponse, invoicesCsv, orderCreate, orderDetail, orderList, orderNew, orderPdfResponse, orderPost } from "./shop-orders";
+import { invoiceList, invoicePdfResponse, invoicesCsv, orderBulk, orderCreate, orderDetail, orderList, orderNew, orderPdfResponse, orderPost, ordersCsv } from "./shop-orders";
 import * as pages from "./pages";
 import type { PublishEnv } from "../shop/publish";
 import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
@@ -29,7 +29,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Cache-Control": "no-store",
   "X-Robots-Tag": "noindex, nofollow",
   "Content-Security-Policy":
-    "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+    "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; img-src 'self' data: https://cdn.shopify.com; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
   "Referrer-Policy": "same-origin",
 };
 
@@ -131,6 +131,9 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     if (handle) return post ? await productSave(ctx, handle, form) : await productEdit(ctx, handle);
     if (path === "/bestellingen") return post ? await orderCreate(ctx, form) : await orderList(ctx);
     if (path === "/bestellingen/nieuw") return post ? notAllowed() : await orderNew(ctx);
+    if (path === "/bestellingen/bulk") return post ? await orderBulk(ctx, form) : notAllowed();
+    if (path === "/bestellingen.csv") return post ? notAllowed() : await ordersCsv(ctx);
+    if (path === "/zoeken") return post ? notAllowed() : await pages.search(ctx);
     n = id(/^\/bestellingen\/(\d+)$/);
     if (n !== null) return post ? await orderPost(ctx, n, form) : await orderDetail(ctx, n);
     n = id(/^\/bestellingen\/(\d+)\/bevestiging\.pdf$/);

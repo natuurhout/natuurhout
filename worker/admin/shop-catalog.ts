@@ -91,11 +91,14 @@ ${await siteBar(ctx)}
 ${groups
   .filter(([, list]) => list.length)
   .map(
-    ([title, list]) => html`<section class="card"><h2>${title}</h2><div class="scroll"><table><thead><tr><th>Product</th><th>Uitvoeringen</th><th class="num">Prijs</th><th>Voorraad</th><th></th></tr></thead><tbody>
+    ([title, list]) => html`<section class="card"><h2>${title}</h2><div class="scroll"><table class="itable"><thead><tr><th>Product</th><th>Uitvoeringen</th><th class="num">Prijs</th><th>Voorraad</th><th></th></tr></thead><tbody>
 ${list.map((p) => {
   const counted = p.variants.filter((v) => v.stock !== null);
   const low = counted.filter((v) => v.stock! <= 0 || (v.lowStock !== null && v.stock! <= v.lowStock));
-  return html`<tr><td><a href="${ctx.base}/producten/${p.handle}">${p.title}</a>${p.hidden ? html` <span class="chip">verborgen</span>` : ""}${edited(p) ? html` <span class="chip st-offerte">aangepast</span>` : ""}</td>
+  const img = p.images[0]?.src;
+  return html`<tr data-href="${ctx.base}/producten/${p.handle}"><td><span style="display:flex;align-items:center;gap:10px">${
+    img ? html`<img class="thumb" src="${`${img}${img.includes("?") ? "&" : "?"}width=80`}" alt="" loading="lazy" style="width:36px;height:36px">` : html`<span class="thumb" style="width:36px;height:36px">${icon("package")}</span>`
+  }<span><a href="${ctx.base}/producten/${p.handle}">${p.title}</a>${p.hidden ? html` <span class="chip">verborgen</span>` : ""}${edited(p) ? html` <span class="chip st-offerte">aangepast</span>` : ""}</span></span></td>
 <td class="small">${p.variants.length}</td><td class="num">${p.priceFrom === p.priceTo ? priceText(p.priceFrom) : html`${priceText(p.priceFrom)} – ${priceText(p.priceTo)}`}</td>
 <td class="small">${counted.length ? html`${counted.length} geteld${low.length ? html` · <span class="warn">${low.length} laag/op</span>` : ""}` : p.available ? html`<span class="muted">niet geteld</span>` : "op bestelling"}</td>
 <td class="num"><a class="small" href="https://www.natuurhout.be/shop/${p.handle}/" target="_blank" rel="noopener">op de site</a></td></tr>`;

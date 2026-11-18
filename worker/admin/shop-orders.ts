@@ -37,7 +37,6 @@ import { field, HttpError, like, notFound, respond, seeOther, userOptions, who, 
 
 const OPEN_ORDER: OrderStatus[] = ["nieuw", "bevestigd", "betaald", "klaar"];
 
-export const orderChip = (status: string) => html`<span class="chip os-${status}">${orderStatusLabel(status)}</span>`;
 
 async function orderNote(ctx: Ctx, order: Pick<OrderRow, "id" | "contact_id">, body: string, kind: "note" | "event" = "event") {
   if (!order.contact_id) return;
@@ -49,66 +48,248 @@ async function orderNote(ctx: Ctx, order: Pick<OrderRow, "id" | "contact_id">, b
 
 // ---------------------------------------------------------------- list
 
-export async function orderList(ctx: Ctx): Promise<Response> {
+type Badge = Safe;
+const badge = (label: string, tone: "" | "attention" | "warning" | "info" | "success" | "critical", progress: "done" | "todo" | "half" | "plain") =>
+  html`<span class="b ${tone} ${progress}">${label}</span>`;
+
+/** Shopify-style "Payment status". */
+export function paymentBadge(o: Pick<OrderRow, "status" | "paid_at">): Badge {
+  if (o.status === "geannuleerd") return o.paid_at ? badge("Gecrediteerd", "", "half") : badge("Geannuleerd", "", "plain");
+  if (o.paid_at || o.status === "betaald" || o.status === "klaar" || o.status === "geleverd") return badge("Betaald", "", "done");
+  if (o.status === "bevestigd") return badge("Wacht op betaling", "attention", "todo");
+  return badge("Te bevestigen", "warning", "todo");
+}
+
+/** Shopify-style "Fulfillment status". */
+export function fulfilBadge(o: Pick<OrderRow, "status" | "delivery">): Badge | string {
+  if (o.status === "geannuleerd") return "";
+  if (o.status === "geleverd") return badge(o.delivery ? "Geleverd" : "Afgehaald", "", "done");
+  if (o.status === "klaar") return badge(o.delivery ? "Klaar voor levering" : "Klaar om af te halen", "info", "half");
+  return badge("Niet afgehandeld", "attention", "todo");
+}
+
+export const orderChip = (o: Pick<OrderRow, "status" | "paid_at" | "delivery">) => html`${paymentBadge(o)} ${fulfilBadge(o)}`;
+
+const channel = (o: Pick<OrderRow, "source">) => (o.source === "website" ? "Webshop" : o.source === "offerte" ? "Offerte" : "Manueel");
+const deliveryLabel = (o: Pick<OrderRow, "delivery">) => (o.delivery ? "Levering" : "Afhalen in Zele");
+
+/** Filter tabs ("views"), Shopify's All / Unfulfilled / Unpaid / … */
+const VIEWS: [key: string, label: string, statuses: OrderStatus[] | null][] = [
+  ["alle", "Alle", null],
+  ["open", "Niet afgehandeld", ["nieuw", "bevestigd", "betaald", "klaar"]],
+  ["nieuw", "Te bevestigen", ["nieuw"]],
+  ["onbetaald", "Wacht op betaling", ["bevestigd"]],
+  ["betaald", "Te verzenden", ["betaald"]],
+  ["klaar", "Klaar", ["klaar"]],
+  ["geleverd", "Geleverd", ["geleverd"]],
+  ["geannuleerd", "Geannuleerd", ["geannuleerd"]],
+];
+const PER_PAGE = 50;
+const PERIODS: [days: number, label: string][] = [
+  [1, "Vandaag"],
+  [7, "Laatste 7 dagen"],
+  [30, "Laatste 30 dagen"],
+  [90, "Laatste 90 dagen"],
+];
+
+const beDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Brussels", year: "numeric", month: "2-digit", day: "2-digit" });
+/** UTC instant of Brussels midnight, `daysAgo` days back. */
+function beMidnight(daysAgo: number): Date {
+  const day = new Date(Date.now() - daysAgo * 86_400_000);
+  const local = beDay.format(day); // YYYY-MM-DD in Brussels
+  const guess = new Date(`${local}T00:00:00Z`);
+  const shown = new Date(guess.toLocaleString("en-US", { timeZone: "Europe/Brussels" }));
+  const offset = shown.getTime() - new Date(guess.toLocaleString("en-US", { timeZone: "UTC" })).getTime();
+  return new Date(guess.getTime() - offset);
+}
+
+function sparkline(values: number[]): Safe {
+  if (values.length < 2 || values.every((v) => v === 0)) return raw('<svg class="spark" viewBox="0 0 44 16" aria-hidden="true"><path d="M0 14H44" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>');
+  const max = Math.max(...values) || 1;
+  const pts = values.map((v, i) => `${((i / (values.length - 1)) * 44).toFixed(1)},${(14 - (v / max) * 12).toFixed(1)}`).join(" ");
+  return raw(`<svg class="spark" viewBox="0 0 44 16" aria-hidden="true"><polyline points="${pts}" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>`);
+}
+
+type ListRow = OrderRow & { line_count: number };
+
+function filters(ctx: Ctx) {
   const p = ctx.url.searchParams;
-  const status = p.get("status") ?? "open";
+  const view = VIEWS.find(([k]) => k === p.get("status")) ?? VIEWS[0];
   const q = (p.get("q") ?? "").trim();
   const where: string[] = [];
   const args: (string | number)[] = [];
-  if (status === "open") {
-    where.push(`status IN (${OPEN_ORDER.map(() => "?").join(",")})`);
-    args.push(...OPEN_ORDER);
-  } else if (isOrderStatus(status)) {
-    where.push("status = ?");
-    args.push(status);
+  if (view[2]) {
+    where.push(`status IN (${view[2].map(() => "?").join(",")})`);
+    args.push(...view[2]);
   }
   if (q) {
-    const cols = ["number", "name", "email", "phone", "city", "company"];
+    const cols = ["number", "name", "email", "phone", "city", "company", "ogm"];
     where.push(`(${cols.map((c) => `${c} LIKE ? ESCAPE '\\'`).join(" OR ")})`);
     args.push(...cols.map(() => like(q)));
   }
-  const [{ results }, { results: counts }] = await Promise.all([
+  return { view, q, sql: where.length ? ` WHERE ${where.join(" AND ")}` : "", args };
+}
+
+export async function orderList(ctx: Ctx): Promise<Response> {
+  const p = ctx.url.searchParams;
+  const { view, q, sql, args } = filters(ctx);
+  const pageNo = Math.max(1, Number(p.get("pagina")) || 1);
+  const days = PERIODS.find(([d]) => d === Number(p.get("periode")))?.[0] ?? 30;
+  const sparkDays = Math.max(days, 7);
+  const sparkFrom = beMidnight(sparkDays - 1).toISOString();
+
+  const [{ results }, total, { results: counts }, { results: recent }, waiting] = await Promise.all([
     ctx.db
-      .prepare(`SELECT * FROM orders${where.length ? ` WHERE ${where.join(" AND ")}` : ""} ORDER BY created_at DESC LIMIT 300`)
-      .bind(...args)
-      .all<OrderRow>(),
-    ctx.db.prepare("SELECT status, COUNT(*) AS n, COALESCE(SUM(total), 0) AS sum FROM orders GROUP BY status").all<{ status: string; n: number; sum: number }>(),
+      .prepare(`SELECT orders.*, (SELECT COUNT(*) FROM order_lines l WHERE l.order_id = orders.id) AS line_count FROM orders${sql} ORDER BY created_at DESC LIMIT ? OFFSET ?`)
+      .bind(...args, PER_PAGE, (pageNo - 1) * PER_PAGE)
+      .all<ListRow>(),
+    ctx.db.prepare(`SELECT COUNT(*) AS n FROM orders${sql}`).bind(...args).first<{ n: number }>(),
+    ctx.db.prepare("SELECT status, COUNT(*) AS n FROM orders GROUP BY status").all<{ status: string; n: number }>(),
+    ctx.db
+      .prepare("SELECT created_at, delivered_at, status, total, (SELECT COUNT(*) FROM order_lines l WHERE l.order_id = orders.id) AS line_count FROM orders WHERE created_at >= ? OR delivered_at >= ?")
+      .bind(sparkFrom, sparkFrom)
+      .all<{ created_at: string; delivered_at: string | null; status: string; total: number; line_count: number }>(),
+    ctx.db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(total), 0) AS sum FROM orders WHERE status = 'bevestigd'").first<{ n: number; sum: number }>(),
   ]);
-  const n = new Map(counts.map((c) => [c.status, c]));
-  const openCount = OPEN_ORDER.reduce((t, s) => t + (n.get(s)?.n ?? 0), 0);
-  const toPay = n.get("bevestigd")?.sum ?? 0;
-  const tab = (key: string, label: string, count: number | null) => {
-    const u = new URLSearchParams();
-    if (key !== "open") u.set("status", key);
-    if (q) u.set("q", q);
-    return html`<a href="${ctx.base}/bestellingen${u.size ? `?${u}` : ""}" class="${status === key ? "on" : ""}">${label}${count !== null ? html` <span class="n">${count}</span>` : ""}</a>`;
+  const n = new Map(counts.map((c) => [c.status, c.n]));
+  const viewCount = (statuses: OrderStatus[] | null) => (statuses ? statuses.reduce((t, s) => t + (n.get(s) ?? 0), 0) : counts.reduce((t, c) => t + c.n, 0));
+
+  // KPI strip: the period's figures, sparkline per day over at least 7 days.
+  const dayKeys = Array.from({ length: sparkDays }, (_, i) => beDay.format(new Date(beMidnight(sparkDays - 1 - i).getTime() + 3_600_000)));
+  const series = (pick: (r: (typeof recent)[number]) => [string | null, number]) => {
+    const m = new Map(dayKeys.map((k) => [k, 0]));
+    for (const r of recent) {
+      const [at, v] = pick(r);
+      if (!at) continue;
+      const k = beDay.format(new Date(at));
+      if (m.has(k)) m.set(k, m.get(k)! + v);
+    }
+    return [...m.values()];
   };
+  const inPeriod = (vals: number[]) => vals.slice(-days).reduce((a, b) => a + b, 0);
+  const live = (r: (typeof recent)[number]) => r.status !== "geannuleerd";
+  const sOrders = series((r) => [live(r) ? r.created_at : null, 1]);
+  const sLines = series((r) => [live(r) ? r.created_at : null, r.line_count]);
+  const sRevenue = series((r) => [live(r) ? r.created_at : null, r.total]);
+  const sDelivered = series((r) => [r.status === "geleverd" ? r.delivered_at : null, 1]);
+  const sCancelled = series((r) => [r.status === "geannuleerd" ? r.created_at : null, 1]);
+  const kpi = (label: string, value: string, vals: number[] | null, title: string) =>
+    html`<div class="kpi" title="${title}"><span>${label}</span><b>${value}</b>${vals ? sparkline(vals) : ""}</div>`;
+
+  const link = (patch: Record<string, string | null>) => {
+    const u = new URLSearchParams(p);
+    for (const [k, v] of Object.entries(patch)) (v === null ? u.delete(k) : u.set(k, v));
+    return `${ctx.base}/bestellingen${u.size ? `?${u}` : ""}`;
+  };
+  const count = total?.n ?? 0;
+  const first = count ? (pageNo - 1) * PER_PAGE + 1 : 0;
+  const last = Math.min(count, pageNo * PER_PAGE);
+
   return respond(
     ctx,
     "Bestellingen",
     "bestellingen",
-    html`<div class="head"><div><h1>Bestellingen</h1><p class="sub">Bestellingen van de website en manueel ingevoerde bestellingen.${
-      toPay ? html` <b>${euro(toPay)}</b> wacht op betaling.` : ""
-    }</p></div>
-<div class="actions"><a class="btn" href="${ctx.base}/bestellingen/nieuw">${icon("plus")}Nieuwe bestelling</a></div></div>
-<nav class="tabs">${tab("open", "Open", openCount)}${ORDER_STATUSES.map(([k, l]) => tab(k, l, n.get(k)?.n ?? 0))}${tab("alle", "Alle", null)}</nav>
-<form class="toolbar" method="get" action="${ctx.base}/bestellingen">${status !== "open" ? html`<input type="hidden" name="status" value="${status}">` : ""}
-<label class="search">${icon("search")}<input name="q" type="search" value="${q}" placeholder="Zoek op nummer, naam, e-mail, gemeente…" aria-label="Zoeken"></label><button class="btn ghost">Zoek</button></form>
-<section class="card">${orderTable(ctx, results)}</section>`,
+    html`<div class="ph"><div class="title">${icon("cart")}Bestellingen</div>
+<a class="btn ghost" href="${ctx.base}/bestellingen.csv${p.size ? `?${p}` : ""}">Exporteren</a>
+<details class="menu"><summary class="btn ghost">Meer acties ${icon("chevron")}</summary><div class="pop">
+<a href="${ctx.base}/facturen">Facturen</a><a href="${ctx.base}/facturen.csv">Facturen exporteren (boekhouder)</a><a href="${ctx.base}/aanvragen?soort=bestellingen">Bestelaanvragen</a></div></details>
+<a class="btn" href="${ctx.base}/bestellingen/nieuw">Bestelling maken</a></div>
+<div class="kpis"><form class="period" method="get" action="${ctx.base}/bestellingen">${p.get("status") ? html`<input type="hidden" name="status" value="${p.get("status")!}">` : ""}<select name="periode" aria-label="Periode">${PERIODS.map(
+      ([d, l]) => html`<option value="${d}" ${d === days ? raw("selected") : ""}>${l}</option>`,
+    )}</select></form>
+${kpi("Bestellingen", String(inPeriod(sOrders)), sOrders, "Bestellingen in de periode (zonder geannuleerde)")}
+${kpi("Artikelen besteld", String(inPeriod(sLines)), sLines, "Bestelregels in de periode")}
+${kpi("Omzet", euro(inPeriod(sRevenue)), sRevenue, "Totaal incl. btw van de bestellingen in de periode")}
+${kpi("Wacht op betaling", waiting?.n ? `${waiting.n} · ${euro(waiting.sum)}` : "0", null, "Bevestigd, betaling nog niet ontvangen (alle periodes)")}
+${kpi("Te verzenden", String((n.get("betaald") ?? 0) + (n.get("klaar") ?? 0)), null, "Betaald of klaar, nog niet geleverd (alle periodes)")}
+${kpi("Geleverd", String(inPeriod(sDelivered)), sDelivered, "Geleverd of afgehaald in de periode")}
+${kpi("Geannuleerd", String(inPeriod(sCancelled)), sCancelled, "Geannuleerd in de periode")}</div>
+<section class="card flush">
+<div class="views">${VIEWS.map(
+      ([k, l, s]) => html`<a href="${link({ status: k === "alle" ? null : k, pagina: null })}" class="${view[0] === k ? "on" : ""}">${l}${k !== "alle" ? html`<span class="n">${viewCount(s)}</span>` : ""}</a>`,
+    )}
+<form method="get" action="${ctx.base}/bestellingen">${view[0] !== "alle" ? html`<input type="hidden" name="status" value="${view[0]}">` : ""}<label class="search">${icon("search")}<input name="q" type="search" value="${q}" placeholder="Zoeken en filteren" aria-label="Zoek op nummer, naam, e-mail, gemeente, mededeling"></label></form></div>
+${
+  results.length
+    ? html`<form method="post" action="${ctx.base}/bestellingen/bulk" data-bulk>
+<div class="bulk"><b><span data-selected>0</span> geselecteerd</b><button class="btn ghost sm" name="action" value="ready">Markeren als klaar</button><button class="btn ghost sm" name="action" value="delivered">Markeren als geleverd</button></div>
+${orderTable(ctx, results, true, true)}</form>`
+    : html`<p class="muted" style="padding:24px 16px">${q ? "Geen bestellingen gevonden." : "Nog geen bestellingen."}</p>`
+}
+${
+  count > PER_PAGE
+    ? html`<div class="pager"><span>${first}–${last} van ${count}</span><span class="seg"><a href="${link({ pagina: String(pageNo - 1) })}" class="${pageNo > 1 ? "" : "off"}" aria-label="Vorige">${icon("left")}</a><a href="${link({
+        pagina: String(pageNo + 1),
+      })}" class="${last < count ? "" : "off"}" aria-label="Volgende">${icon("right")}</a></span></div>`
+    : ""
+}</section>`,
+    true,
   );
 }
 
-export function orderTable(ctx: Ctx, rows: OrderRow[], withCustomer = true): Safe {
+export function orderTable(ctx: Ctx, rows: (OrderRow & { line_count?: number })[], withCustomer = true, select = false): Safe {
   if (!rows.length) return html`<p class="muted">Geen bestellingen.</p>`;
-  return html`<div class="scroll"><table><thead><tr><th>Nummer</th><th>Datum</th>${withCustomer ? html`<th>Klant</th>` : ""}<th>Status</th><th>Levering</th><th class="num">Totaal</th></tr></thead><tbody>
+  return html`<div class="scroll"><table class="itable"><thead><tr>${select ? html`<th class="sel"><input type="checkbox" data-all aria-label="Alles selecteren"></th>` : ""}<th>Bestelling</th><th>Datum ↓</th>${
+    withCustomer ? html`<th>Klant</th>` : ""
+  }<th>Kanaal</th><th class="num">Totaal</th><th>Betaalstatus</th><th>Afhandeling</th>${rows[0].line_count !== undefined ? html`<th>Artikelen</th>` : ""}<th>Leveringsmethode</th></tr></thead><tbody>
 ${rows.map(
-  (o) => html`<tr><td><a href="${ctx.base}/bestellingen/${o.id}">${o.number}</a>${o.source !== "website" ? html` <span class="muted small">${o.source}</span>` : ""}${
-    o.mail_status === "mislukt" ? html` <span class="warn small">· mail mislukt</span>` : ""
+  (o) => html`<tr data-href="${ctx.base}/bestellingen/${o.id}">${select ? html`<td class="sel"><input type="checkbox" name="id" value="${o.id}" aria-label="Selecteer ${o.number}"></td>` : ""}<td><a class="strong" href="${ctx.base}/bestellingen/${o.id}">#${o.number}</a>${
+    o.mail_status === "mislukt" ? html` <span class="b critical plain" title="De mail naar de inbox is mislukt">mail mislukt</span>` : ""
   }</td>
-<td class="small" title="${when(o.created_at)}">${ago(o.created_at)}</td>
-${withCustomer ? html`<td>${o.contact_id ? html`<a href="${ctx.base}/klanten/${o.contact_id}">${o.company || o.name || o.email}</a>` : o.name}<div class="muted small">${o.city}</div></td>` : ""}
-<td>${orderChip(o.status)}</td><td class="small">${o.delivery ? "Levering" : "Afhalen"}</td><td class="num"><b>${euro(o.total)}</b></td></tr>`,
+<td title="${when(o.created_at)}">${shortDate(o.created_at)}</td>
+${withCustomer ? html`<td class="cust">${o.company || o.name || o.email}</td>` : ""}
+<td>${channel(o)}</td><td class="num">${euro(o.total)}</td><td>${paymentBadge(o)}</td><td>${fulfilBadge(o)}</td>${
+    o.line_count !== undefined ? html`<td>${o.line_count} ${o.line_count === 1 ? "artikel" : "artikelen"}</td>` : ""
+  }<td>${deliveryLabel(o)}</td></tr>`,
 )}</tbody></table></div>`;
+}
+
+const shortFmt = new Intl.DateTimeFormat("nl-BE", { timeZone: "Europe/Brussels", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const yearFmt = new Intl.DateTimeFormat("nl-BE", { timeZone: "Europe/Brussels", year: "numeric" });
+/** "10 nov. om 19:14" (with the year when it is not this year), like Shopify. */
+function shortDate(iso: string): string {
+  const d = new Date(iso);
+  const parts = shortFmt.formatToParts(d);
+  const get = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
+  const year = yearFmt.format(d) !== yearFmt.format(new Date()) ? ` ${yearFmt.format(d)}` : "";
+  return `${get("day")} ${get("month")}${year} om ${get("hour")}:${get("minute")}`;
+}
+
+/** Bulk actions on the list: only orders where the step makes sense. */
+export async function orderBulk(ctx: Ctx, form: FormData): Promise<Response> {
+  const action = field(form, "action");
+  const ids = form.getAll("id").map(Number).filter((x) => Number.isInteger(x) && x > 0).slice(0, 200);
+  const allowed: Record<string, OrderStatus[]> = { ready: ["betaald"], delivered: ["betaald", "klaar"] };
+  if (!allowed[action]) throw new HttpError(400, "Onbekende actie.");
+  for (const id of ids) {
+    const order = await getOrder(ctx.db, id);
+    if (!order || !allowed[action].includes(order.status as OrderStatus)) continue;
+    const one = new FormData();
+    one.set("action", action);
+    await orderPost(ctx, id, one);
+  }
+  return seeOther(ctx, `/bestellingen${ctx.url.search}`, "saved");
+}
+
+export async function ordersCsv(ctx: Ctx): Promise<Response> {
+  const { sql, args } = filters(ctx);
+  const { results } = await ctx.db
+    .prepare(`SELECT orders.*, (SELECT COUNT(*) FROM order_lines l WHERE l.order_id = orders.id) AS line_count FROM orders${sql} ORDER BY created_at DESC LIMIT 5000`)
+    .bind(...args)
+    .all<ListRow>();
+  const text = (b: Safe | string) => String(b).replace(/<[^>]+>/g, "").trim();
+  const headers = ["Bestelling", "Datum", "Klant", "Bedrijf", "E-mail", "Telefoon", "Adres", "Postcode", "Gemeente", "Kanaal", "Betaalstatus", "Afhandeling", "Leveringsmethode", "Artikelen", "Totaal", "Mededeling"];
+  const cell = (v: unknown) => {
+    let s = v === null || v === undefined ? "" : String(v);
+    if (/^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s)) s = `'${s}`;
+    return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = results.map((o) => [
+    o.number, when(o.created_at), o.name, o.company, o.email, o.phone, o.street, o.postcode, o.city, channel(o),
+    text(paymentBadge(o)), text(fulfilBadge(o)), deliveryLabel(o), o.line_count, o.total.toFixed(2).replace(".", ","), o.ogm,
+  ]);
+  const csv = "﻿" + [headers, ...rows].map((r) => r.map(cell).join(";")).join("\r\n");
+  return new Response(csv, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="natuurhout-bestellingen-${todayBE()}.csv"` } });
 }
 
 // ---------------------------------------------------------------- line editor
@@ -283,128 +464,159 @@ export async function orderCreate(ctx: Ctx, form: FormData): Promise<Response> {
 export async function orderDetail(ctx: Ctx, id: number): Promise<Response> {
   const order = await getOrder(ctx.db, id);
   if (!order) throw notFound();
-  const [lines, invoices, notes, settings] = await Promise.all([
+  const [lines, invoices, notes, settings, catalog, siblings, contactOrders] = await Promise.all([
     getLines(ctx.db, id),
     ctx.db.prepare("SELECT * FROM invoices WHERE order_id = ? ORDER BY id").bind(id).all<InvoiceRow>(),
     ctx.db.prepare("SELECT * FROM notes WHERE order_id = ? ORDER BY created_at DESC").bind(id).all<{ kind: string; author: string; body: string; created_at: string }>(),
     getSettings(ctx.db),
+    loadCatalog(ctx.db),
+    ctx.db
+      .prepare("SELECT (SELECT id FROM orders WHERE created_at > ? ORDER BY created_at ASC LIMIT 1) AS newer, (SELECT id FROM orders WHERE created_at < ? ORDER BY created_at DESC LIMIT 1) AS older")
+      .bind(order.created_at, order.created_at)
+      .first<{ newer: number | null; older: number | null }>(),
+    order.contact_id ? ctx.db.prepare("SELECT COUNT(*) AS n FROM orders WHERE contact_id = ?").bind(order.contact_id).first<{ n: number }>() : null,
   ]);
-  const editing = ctx.url.searchParams.has("bewerk") && EDITABLE.includes(order.status as OrderStatus) && !invoices.results.length;
+  const status = order.status as OrderStatus;
+  const editing = ctx.url.searchParams.has("bewerk") && EDITABLE.includes(status) && !invoices.results.length;
   const t = totals(lines);
   const missing = missingSettings(settings);
-  const status = order.status as OrderStatus;
-  const action = (name: string, label: string, opts: { ghost?: boolean; body?: Safe | string; confirm?: string } = {}) =>
-    html`<form method="post" action="${ctx.base}/bestellingen/${id}" class="act"><input type="hidden" name="action" value="${name}">${opts.body ?? ""}<button class="${
-      opts.ghost ? "btn ghost" : ""
-    }"${opts.confirm ? raw(` data-confirm="${opts.confirm}"`) : ""}>${label}</button></form>`;
   const canMail = Boolean(ctx.mail && order.email);
+  const post = `${ctx.base}/bestellingen/${id}`;
+  const hidden = (name: string) => html`<input type="hidden" name="action" value="${name}">`;
   const mailCheck = (name: string, label: string) =>
     canMail ? html`<label class="check"><input type="checkbox" name="${name}" value="1" checked> ${label}</label>` : html`<p class="muted small">${order.email ? "E-mail verzenden is niet ingesteld." : "Geen e-mailadres: geen mail."}</p>`;
-
-  const steps: Safe[] = [];
-  if (missing.length && (status === "nieuw" || status === "bevestigd"))
-    steps.push(html`<p class="warn small">Vul eerst bij <a href="${ctx.base}/instellingen">Instellingen</a> de bedrijfs- en bankgegevens in: ${missing.join(", ")}.</p>`);
-  if (status === "nieuw")
-    steps.push(
-      action("confirm", "Bevestigen & betaalverzoek sturen", {
-        body: html`${mailCheck("mail", `Betaalverzoek mailen naar ${order.email}`)}<label>Extra bericht in de mail (optioneel)<textarea name="message" style="min-height:60px" placeholder="Bv. levering voorzien in week 12"></textarea></label>`,
-      }),
-    );
-  if (status === "bevestigd") {
-    steps.push(
-      action("paid", "Betaling ontvangen", {
-        body: html`<div class="fields"><label>Bedrag<input name="amount" inputmode="decimal" value="${String(order.total).replace(".", ",")}"></label><label>Datum<input name="date" type="date" value="${todayBE()}"></label></div>${mailCheck(
-          "mail",
-          "Factuur maken en mailen",
-        )}`,
-      }),
-    );
-    if (canMail) steps.push(action("resend", "Betaalverzoek opnieuw mailen", { ghost: true }));
-  }
-  if (status === "betaald") steps.push(action("ready", order.delivery ? "Klaar voor levering" : "Klaar om af te halen"));
-  if (status === "klaar" || status === "betaald") steps.push(action("delivered", order.delivery ? "Geleverd" : "Afgehaald", { ghost: status === "betaald" }));
-  if (status !== "geannuleerd" && status !== "geleverd")
-    steps.push(
-      action("cancel", "Bestelling annuleren", {
-        ghost: true,
-        body: invoices.results.some((i) => i.type === "factuur") ? html`<p class="muted small">Er is al een factuur: er wordt een creditnota gemaakt.</p>` : "",
-        confirm: "Bestelling annuleren?",
-      }),
-    );
+  const images = new Map(catalog.products.map((p) => [p.handle, p.images[0]?.src ?? null]));
+  const thumb = (handle: string) => {
+    const src = handle ? images.get(handle) : null;
+    return src ? html`<img class="thumb" src="${`${src}${src.includes("?") ? "&" : "?"}width=96`}" alt="" loading="lazy">` : html`<span class="thumb">${icon("package")}</span>`;
+  };
+  const hasInvoice = invoices.results.some((i) => i.type === "factuur");
   const hasOpenInvoice = invoices.results.some((i) => i.type === "factuur" && !invoices.results.some((c) => c.credit_of === i.id));
-  if (!hasOpenInvoice && ["betaald", "klaar", "geleverd", "bevestigd"].includes(status)) steps.push(action("invoice", "Factuur maken", { ghost: true, body: mailCheck("mail", "Factuur mailen") }));
+  const itemCount = lines.length;
 
-  const party = [order.company, order.name, order.street, [order.postcode, order.city].filter(Boolean).join(" "), order.vat_number && `Btw ${order.vat_number}`].filter(Boolean);
-  return respond(
-    ctx,
-    `Bestelling ${order.number}`,
-    "bestellingen",
-    html`<div class="head"><div><h1>Bestelling ${order.number} ${orderChip(order.status)}</h1><p class="sub">${when(order.created_at)} · ${
-      order.source === "website" ? "via de website" : order.source === "offerte" ? html`van <a href="${ctx.base}/aanvragen/${order.request_id}">aanvraag #${order.request_id}</a>` : `manueel door ${who(ctx, order.created_by)}`
-    }${order.mail_status === "mislukt" ? html` · <span class="warn">mail naar de inbox mislukt</span>` : ""}</p></div>
-<div class="actions"><a class="btn ghost" href="${ctx.base}/bestellingen/${id}/bevestiging.pdf" target="_blank">${icon("file")}Bestelbevestiging (PDF)</a></div></div>
-<div class="grid two"><div>
-<section class="card"><div class="head" style="margin-bottom:8px"><h2>Regels</h2>${
-      EDITABLE.includes(status) && !invoices.results.length && !editing ? html`<a class="btn ghost sm" href="${ctx.base}/bestellingen/${id}?bewerk=1">Regels wijzigen</a>` : ""
-    }</div>
+  // Fulfilment card: the goods, and the next delivery step.
+  const fulfilActions: Safe[] = [];
+  if (status === "betaald") fulfilActions.push(html`<form method="post" action="${post}">${hidden("delivered")}<button class="btn ghost">${order.delivery ? "Markeren als geleverd" : "Markeren als afgehaald"}</button></form>`);
+  if (status === "betaald") fulfilActions.push(html`<form method="post" action="${post}">${hidden("ready")}<button>${order.delivery ? "Klaar voor levering" : "Klaar om af te halen"}</button></form>`);
+  if (status === "klaar") fulfilActions.push(html`<form method="post" action="${post}">${hidden("delivered")}<button>${order.delivery ? "Markeren als geleverd" : "Markeren als afgehaald"}</button></form>`);
+
+  const fulfilCard = html`<section class="card"><div class="head" style="margin-bottom:10px"><h2 style="display:flex;gap:8px;align-items:center">${fulfilBadge(order) || badge("Geannuleerd", "", "plain")}</h2>${
+    EDITABLE.includes(status) && !invoices.results.length && !editing ? html`<a class="btn plain" href="${post}?bewerk=1">Bewerken</a>` : ""
+  }</div>
+<div class="box"><div class="contact" style="padding:8px 0 4px"><div class="row">${icon("truck")}<span>${order.delivery ? "Levering aan huis" : "Afhalen in Zele"}${
+    order.delivery && (order.street || order.city) ? html` · <span class="muted">${[order.street, [order.postcode, order.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}</span>` : ""
+  }</span></div></div>
 ${
   editing
-    ? html`<form method="post" action="${ctx.base}/bestellingen/${id}"><input type="hidden" name="action" value="lines">${lineEditor((await loadCatalog(ctx.db)).products, lines)}
-<div class="actions"><button>Regels opslaan</button><a class="btn ghost" href="${ctx.base}/bestellingen/${id}">Annuleren</a></div>${
+    ? html`<form method="post" action="${post}" style="padding:8px 0">${hidden("lines")}${lineEditor(catalog.products, lines)}
+<div class="actions"><button>Opslaan</button><a class="btn ghost" href="${post}">Annuleren</a></div>${
         status === "bevestigd" ? html`<p class="muted small">Het betaalverzoek is al verstuurd: mail het na het wijzigen opnieuw.</p>` : ""
       }</form>`
-    : html`<div class="scroll"><table><thead><tr><th>Artikel</th><th class="num">Aantal</th><th class="num">Prijs</th><th class="num">Totaal</th></tr></thead><tbody>
-${lines.map(
-  (l) => html`<tr><td>${l.handle ? html`<a href="https://www.natuurhout.be/shop/${l.handle}/" target="_blank" rel="noopener">${l.product}</a>` : l.product}${
-    !l.product ? l.label : l.label !== l.product ? html`<div class="muted small">${l.label}</div>` : ""
-  }${l.note ? html`<div class="warn small">${l.note}</div>` : ""}${l.reserved ? html`<div class="muted small">${l.reserved} uit voorraad gereserveerd</div>` : ""}</td>
-<td class="num">${l.qty}</td><td class="num">${euro(l.unit)}</td><td class="num">${euro(l.qty * l.unit)}</td></tr>`,
-)}
-<tr><td colspan="3" class="num muted">Excl. btw</td><td class="num">${euro(t.net)}</td></tr>
-<tr><td colspan="3" class="num muted">Btw ${VAT_RATE}%</td><td class="num">${euro(t.vat)}</td></tr>
-<tr><td colspan="3" class="num"><b>Totaal incl. btw</b></td><td class="num"><b>${euro(t.total)}</b></td></tr></tbody></table></div>`
-}</section>
-${order.remarks ? html`<section class="card"><h2>Opmerking van de klant</h2><p>${multiline(order.remarks)}</p></section>` : ""}
-<section class="card"><h2>Documenten</h2>${
-      invoices.results.length
-        ? html`<table><tbody>${invoices.results.map(
-            (i) => html`<tr><td><a href="${ctx.base}/facturen/${i.id}.pdf" target="_blank">${i.type === "factuur" ? "Factuur" : "Creditnota"} ${i.number}</a></td><td class="small">${when(i.issued_at)}</td>
-<td class="small">${i.emailed_at ? `gemaild ${ago(i.emailed_at)} geleden` : "niet gemaild"}</td><td class="num">${euro(i.total)}</td>
-<td class="num">${canMail ? html`<form method="post" action="${ctx.base}/bestellingen/${id}" class="inline-form"><input type="hidden" name="action" value="mail-invoice"><input type="hidden" name="invoice" value="${i.id}"><button class="btn ghost sm">Mailen</button></form>` : ""}</td></tr>`,
-          )}</tbody></table>`
-        : html`<p class="muted small">Nog geen factuur. Die wordt gemaakt bij "Betaling ontvangen".</p>`
-    }</section>
-<section class="card"><h2>Tijdlijn</h2>
-<form method="post" action="${ctx.base}/bestellingen/${id}"><input type="hidden" name="action" value="note"><label>Nieuwe notitie<textarea name="body" required style="min-height:60px"></textarea></label><button class="btn ghost">Notitie toevoegen</button></form>
-${
-  notes.results.length
-    ? html`<ul class="timeline">${notes.results.map((n) => html`<li class="${n.kind}"><div class="meta">${who(ctx, n.author) || "Website"} · ${when(n.created_at)}</div>${multiline(n.body)}</li>`)}</ul>`
-    : ""
-}</section>
-</div>
-<div class="side-first">
-<section class="card"><h2>Volgende stap</h2><div class="steps">${steps.length ? steps : html`<p class="muted small">Afgerond.</p>`}</div></section>
-<section class="card"><h2>Betaling</h2><dl>
-<dt>Bedrag</dt><dd><b>${euro(order.total)}</b></dd>
-<dt>Mededeling</dt><dd><code>${order.ogm}</code></dd>
-<dt>Status</dt><dd>${order.paid_at ? html`<span class="chip os-betaald">Betaald ${when(order.paid_at)}</span>${order.paid_amount !== null && Math.abs(order.paid_amount - order.total) > 0.005 ? html` <span class="warn small">(${euro(order.paid_amount)})</span>` : ""}` : "Open"}</dd>
-</dl></section>
-<section class="card"><h2>Klant</h2>
-<p>${order.contact_id ? html`<a href="${ctx.base}/klanten/${order.contact_id}"><b>${party[0] ?? order.email}</b></a>` : html`<b>${party[0] ?? ""}</b>`}${party.slice(1).map((r) => html`<br>${r}`)}</p>
-<dl>${order.email ? html`<dt>E-mail</dt><dd><a href="mailto:${order.email}">${order.email}</a></dd>` : ""}${order.phone ? html`<dt>Telefoon</dt><dd><a href="tel:${order.phone.replace(/[^\d+]/g, "")}">${order.phone}</a></dd>` : ""}
-<dt>Levering</dt><dd>${order.delivery ? "Levering aan huis" : "Afhalen in Zele"}</dd></dl>
-<details style="margin-top:12px"><summary class="small">Gegevens wijzigen</summary>
-<form method="post" action="${ctx.base}/bestellingen/${id}" style="margin-top:10px"><input type="hidden" name="action" value="customer">
+    : lines.map(
+        (l) => html`<div class="li">${thumb(l.handle)}<div class="what">${l.handle ? html`<a href="https://www.natuurhout.be/shop/${l.handle}/" target="_blank" rel="noopener">${l.product}</a>` : html`<b>${l.product || l.label}</b>`}${
+          l.product && l.label !== l.product ? html`<div class="muted small">${l.label}</div>` : ""
+        }${l.note ? html`<div class="b critical plain small" style="margin-top:3px">${l.note}</div>` : ""}${l.reserved ? html`<div class="muted small">${l.reserved} uit voorraad gereserveerd</div>` : ""}</div>
+<span class="q">${euro(l.unit)} × ${l.qty}</span><span class="t">${euro(l.qty * l.unit)}</span></div>`,
+      )
+}</div>
+${fulfilActions.length ? html`<div class="actions" style="justify-content:flex-end;margin-top:12px">${fulfilActions}</div>` : ""}</section>`;
+
+  // Payment card: the money, and the next payment step.
+  let payStep: Safe | string = "";
+  if (missing.length && (status === "nieuw" || status === "bevestigd"))
+    payStep = html`<p class="b attention plain" style="white-space:normal;margin-top:12px">Vul eerst bij <a href="${ctx.base}/instellingen">&nbsp;Instellingen&nbsp;</a> in: ${missing.join(", ")}.</p>`;
+  else if (status === "nieuw")
+    payStep = html`<form method="post" action="${post}" class="sec">${hidden("confirm")}${mailCheck("mail", `Betaalverzoek met QR-code mailen naar ${order.email}`)}
+<details><summary class="small">Bericht toevoegen aan de mail</summary><label style="margin-top:8px">Bericht<textarea name="message" style="min-height:60px" placeholder="Bv. levering voorzien in week 12"></textarea></label></details>
+<div class="actions" style="justify-content:flex-end;margin-top:10px"><button>Bevestigen en betaalverzoek sturen</button></div></form>`;
+  else if (status === "bevestigd")
+    payStep = html`<form method="post" action="${post}" class="sec">${hidden("paid")}<div class="fields"><label>Ontvangen bedrag<input name="amount" inputmode="decimal" value="${String(order.total).replace(".", ",")}"></label><label>Datum<input name="date" type="date" value="${todayBE()}"></label></div>${mailCheck(
+      "mail",
+      "Factuur maken en mailen",
+    )}<div class="actions" style="justify-content:flex-end;margin-top:10px"><button>Betaling ontvangen</button></div></form>`;
+  const paid = order.paid_amount ?? (order.paid_at ? order.total : 0);
+  const payCard = html`<section class="card"><h2>${paymentBadge(order)}</h2>
+<div class="box" style="padding:12px"><div class="sumrows">
+<span>Subtotaal</span><span class="m">${itemCount} ${itemCount === 1 ? "artikel" : "artikelen"}</span><span class="r">${euro(t.total)}</span>
+<span>Excl. btw</span><span></span><span class="r">${euro(t.net)}</span>
+<span>Btw</span><span class="m">${VAT_RATE}% (inbegrepen)</span><span class="r">${euro(t.vat)}</span>
+<span class="tot">Totaal</span><span></span><span class="r tot">${euro(t.total)}</span>
+<hr>
+<span>Betaald door klant</span><span class="m">${order.paid_at ? `overschrijving ${when(order.paid_at)}` : html`mededeling <code>${order.ogm}</code>`}</span><span class="r">${euro(paid)}</span>
+${order.paid_at && Math.abs(paid - order.total) > 0.005 ? html`<span class="warn">Verschil</span><span></span><span class="r warn">${euro(round2(paid - order.total))}</span>` : ""}
+</div></div>${payStep}</section>`;
+
+  const docsCard = invoices.results.length
+    ? html`<section class="card"><h2>Documenten</h2>${invoices.results.map(
+        (i) => html`<div class="li" style="align-items:center"><span class="thumb">${icon("receipt")}</span><div class="what"><a href="${ctx.base}/facturen/${i.id}.pdf" target="_blank">${i.type === "factuur" ? "Factuur" : "Creditnota"} ${i.number}</a><div class="muted small">${when(i.issued_at)} · ${
+          i.emailed_at ? `gemaild ${ago(i.emailed_at)} geleden` : "niet gemaild"
+        }</div></div><span class="t">${euro(i.total)}</span>${
+          canMail ? html`<form method="post" action="${post}" class="inline-form">${hidden("mail-invoice")}<input type="hidden" name="invoice" value="${i.id}"><button class="btn ghost sm">Mailen</button></form>` : ""
+        }</div>`,
+      )}</section>`
+    : "";
+
+  const timeline = html`<section class="card"><h2>Tijdlijn</h2>
+<form method="post" action="${post}">${hidden("note")}<label style="margin:0"><textarea name="body" required style="min-height:56px" placeholder="Laat een notitie achter…" aria-label="Notitie"></textarea></label><div class="actions" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost">Plaatsen</button></div></form>
+${notes.results.length ? html`<ul class="timeline" style="margin-top:6px">${notes.results.map((n) => html`<li class="${n.kind}"><div class="meta">${who(ctx, n.author) || "Website"} · ${when(n.created_at)}</div>${multiline(n.body)}</li>`)}</ul>` : ""}</section>`;
+
+  const addr = [order.street, [order.postcode, order.city].filter(Boolean).join(" ")].filter(Boolean);
+  const customerCard = html`<section class="card"><div class="head" style="margin-bottom:8px"><h2>Klant</h2><details class="menu"><summary class="btn plain">Bewerken</summary><div class="pop panel" style="min-width:300px;padding:12px">
+<form method="post" action="${post}">${hidden("customer")}
 ${(["name:Naam", "company:Bedrijf", "vat_number:Btw-nummer", "email:E-mail", "phone:Telefoon", "street:Straat + nr", "postcode:Postcode", "city:Gemeente"] as const).map((pair) => {
   const [k, label] = pair.split(":") as [keyof OrderRow, string];
   return html`<label>${label}<input name="${k}" value="${String(order[k] ?? "")}"></label>`;
 })}
 <label>Levering<select name="delivery"><option value="0">Afhalen</option><option value="1" ${order.delivery ? raw("selected") : ""}>Levering</option></select></label>
 <label>Toegewezen aan<select name="assigned_to">${userOptions(ctx, order.assigned_to)}</select></label>
-<button class="btn ghost">Opslaan</button></form></details></section>
-<section class="card"><h2>Status corrigeren</h2><form method="post" action="${ctx.base}/bestellingen/${id}" class="inline"><input type="hidden" name="action" value="status">
+<button>Opslaan</button></form></div></details></div>
+<p style="margin:0">${order.contact_id ? html`<a href="${ctx.base}/klanten/${order.contact_id}">${order.name || order.company || order.email}</a>` : html`<b>${order.name || order.company}</b>`}</p>
+${contactOrders ? html`<p class="muted" style="margin:2px 0 0">${contactOrders.n === 1 ? "1 bestelling" : `${contactOrders.n} bestellingen`}</p>` : ""}
+<div class="sec"><h3>Contactgegevens</h3><div class="contact">${order.email ? html`<div class="row">${icon("mail")}<a href="mailto:${order.email}">${order.email}</a></div>` : html`<span class="muted">Geen e-mailadres</span>`}${
+    order.phone ? html`<div class="row">${icon("phone")}<a href="tel:${order.phone.replace(/[^\d+]/g, "")}">${order.phone}</a></div>` : ""
+  }</div></div>
+<div class="sec"><h3>${order.delivery ? "Leveringsadres" : "Afhalen"}</h3><div class="contact"><div class="row">${icon("pin")}<span>${
+    addr.length ? html`${order.company ? html`${order.company}<br>` : ""}${order.name}<br>${addr.map((r, i) => html`${i ? html`<br>` : ""}${r}`)}` : html`<span class="muted">Geen adres</span>`
+  }</span></div></div></div>
+${order.vat_number || order.company ? html`<div class="sec"><h3>Factuurgegevens</h3><p style="margin:0">${order.company || order.name}${order.vat_number ? html`<br>Btw ${order.vat_number}` : ""}</p></div>` : ""}
+${order.assigned_to ? html`<div class="sec"><h3>Toegewezen aan</h3><p style="margin:0">${who(ctx, order.assigned_to)}</p></div>` : ""}</section>`;
+
+  const menu = html`<details class="menu"><summary class="btn ghost">Meer acties ${icon("chevron")}</summary><div class="pop">
+<a href="${post}/bevestiging.pdf" target="_blank">Bestelbevestiging (PDF)</a>
+${EDITABLE.includes(status) && !invoices.results.length ? html`<a href="${post}?bewerk=1">Artikelen bewerken</a>` : ""}
+${status === "bevestigd" && canMail ? html`<form method="post" action="${post}">${hidden("resend")}<button>Betaalverzoek opnieuw mailen</button></form>` : ""}
+${!hasOpenInvoice && ["betaald", "klaar", "geleverd", "bevestigd"].includes(status) ? html`<form method="post" action="${post}">${hidden("invoice")}<input type="hidden" name="mail" value="${canMail ? "1" : ""}"><button>Factuur maken${canMail ? " en mailen" : ""}</button></form>` : ""}
+${order.request_id ? html`<a href="${ctx.base}/aanvragen/${order.request_id}">Oorspronkelijke aanvraag</a>` : ""}
+${
+  status !== "geannuleerd" && status !== "geleverd"
+    ? html`<hr><form method="post" action="${post}">${hidden("cancel")}<button class="danger" data-confirm="${hasInvoice ? "Bestelling annuleren? Er wordt een creditnota gemaakt." : "Bestelling annuleren?"}">Bestelling annuleren</button></form>`
+    : ""
+}</div></details>`;
+
+  return respond(
+    ctx,
+    `Bestelling ${order.number}`,
+    "bestellingen",
+    html`<div class="ph"><a class="back" href="${ctx.base}/bestellingen" aria-label="Terug naar bestellingen">${icon("back")}</a><h1>#${order.number} ${paymentBadge(order)} ${fulfilBadge(order)}</h1><span style="flex:1"></span>
+<a class="btn ghost" href="${post}/bevestiging.pdf" target="_blank">Afdrukken</a>${menu}
+<span class="seg"><a href="${siblings?.newer ? `${ctx.base}/bestellingen/${siblings.newer}` : "#"}" class="${siblings?.newer ? "" : "off"}" aria-label="Nieuwere bestelling">${icon("left")}</a><a href="${
+      siblings?.older ? `${ctx.base}/bestellingen/${siblings.older}` : "#"
+    }" class="${siblings?.older ? "" : "off"}" aria-label="Oudere bestelling">${icon("right")}</a></span>
+<p class="meta">${when(order.created_at)} · ${
+      order.source === "website" ? "via de webshop" : order.source === "offerte" ? html`van <a href="${ctx.base}/aanvragen/${order.request_id}">aanvraag #${order.request_id}</a>` : `manueel door ${who(ctx, order.created_by)}`
+    }${order.mail_status === "mislukt" ? html` · <span class="warn">mail naar de inbox mislukt</span>` : ""}</p></div>
+<div class="grid two"><div>
+${fulfilCard}
+${payCard}
+${docsCard}
+${timeline}
+</div>
+<div>
+<section class="card"><h2>Opmerkingen</h2>${order.remarks ? html`<p style="margin:0">${multiline(order.remarks)}</p>` : html`<p class="muted" style="margin:0">Geen opmerkingen van de klant</p>`}</section>
+${customerCard}
+<section class="card"><details><summary class="small">Status corrigeren</summary><form method="post" action="${post}" class="inline" style="margin-top:10px">${hidden("status")}
 <select name="status" aria-label="Status">${ORDER_STATUSES.filter(([k]) => k !== "geannuleerd").map(([k, l]) => html`<option value="${k}" ${k === status ? raw("selected") : ""}>${l}</option>`)}</select><button class="btn ghost">Zet</button></form>
-<p class="muted small">Alleen om een vergissing recht te zetten: er wordt niets gemaild of gefactureerd.</p></section>
+<p class="muted small" style="margin-bottom:0">Alleen om een vergissing recht te zetten: er wordt niets gemaild of gefactureerd.</p></details></section>
 </div></div>`,
   );
 }

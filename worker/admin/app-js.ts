@@ -8,7 +8,40 @@
  */
 export const APP_JS = String.raw`"use strict";
 (() => {
-  for (const s of document.querySelectorAll("form.toolbar select")) s.addEventListener("change", () => s.form.requestSubmit());
+  for (const s of document.querySelectorAll("form.toolbar select, form.period select")) s.addEventListener("change", () => s.form.requestSubmit());
+  // Ctrl/Cmd K jumps to the sidebar search, like Shopify.
+  const find = document.querySelector("[data-hotkey]");
+  document.addEventListener("keydown", (e) => {
+    if (find && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); find.focus(); find.select(); }
+  });
+  // Table rows open their record; links, checkboxes and buttons keep their own click.
+  document.addEventListener("click", (e) => {
+    const t = e.target instanceof Element ? e.target : null;
+    const row = t && t.closest("tr[data-href]");
+    if (!row || t.closest("a,button,input,label,select,textarea")) return;
+    if (e.ctrlKey || e.metaKey) window.open(row.dataset.href, "_blank");
+    else location.href = row.dataset.href;
+  });
+  // Bulk selection: the action bar shows while rows are ticked.
+  for (const f of document.querySelectorAll("form[data-bulk]")) {
+    const bar = f.querySelector(".bulk"), n = f.querySelector("[data-selected]"), all = f.querySelector("[data-all]");
+    const boxes = () => [...f.querySelectorAll('input[name="id"]')];
+    const sync = () => {
+      const k = boxes().filter((b) => b.checked).length;
+      n.textContent = String(k);
+      bar.classList.toggle("on", k > 0);
+      if (all) { all.checked = k > 0 && k === boxes().length; all.indeterminate = k > 0 && k < boxes().length; }
+    };
+    f.addEventListener("change", (e) => {
+      if (e.target === all) for (const b of boxes()) b.checked = all.checked;
+      sync();
+    });
+    sync();
+  }
+  // Open "more actions" menus close when clicking elsewhere.
+  document.addEventListener("click", (e) => {
+    for (const d of document.querySelectorAll("details.menu[open]")) if (!d.contains(e.target)) d.removeAttribute("open");
+  });
   // Buttons with data-confirm ask first (cancelling an order).
   document.addEventListener("submit", (e) => {
     const b = e.submitter || e.target.querySelector("[data-confirm]");
