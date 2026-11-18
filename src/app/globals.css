@@ -83,13 +83,16 @@
     .usp-rotate > li:first-child { opacity: 1; visibility: visible; }
   }
   @media (min-width: 992px) {
-    .usp-rotate { position: static; height: auto; flex: none; display: flex; gap: 1.5rem; }
+    /* One row: a USP that does not fit next to the opening status (longer
+       when closed: "Gesloten · morgen open om 09:00") wraps to a hidden
+       second row instead of pushing the bar wider than the screen. */
+    .usp-rotate { position: static; display: flex; flex: 1 1 0%; min-width: 0; flex-wrap: wrap; align-items: center; height: 1.5rem; overflow: hidden; column-gap: 1.5rem; row-gap: 2rem; }
     .usp-rotate > li { position: static; opacity: 1; visibility: visible; animation: none; transform: none; }
     .usp-rotate > li.usp-lg,
     .usp-rotate > li.usp-wide { display: none; }
   }
   @media (min-width: 1280px) {
-    .usp-rotate { gap: 2rem; }
+    .usp-rotate { column-gap: 2rem; }
     .usp-rotate > li.usp-lg { display: flex; }
   }
   @media (min-width: 1440px) {

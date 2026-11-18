@@ -4,13 +4,14 @@
  * the notification, the CRM keeps the record, the status and the notes.
  */
 
-import type { Quote } from "../../src/lib/quote-email";
+import { isContactMessage, type Quote } from "../../src/lib/quote-email";
 import { ensureSchema, now } from "./schema";
 
 export type MailStatus = "verstuurd" | "niet-ingesteld" | "mislukt";
 
-export function requestTitle(q: Pick<Quote, "kind" | "inStock">): string {
+export function requestTitle(q: Pick<Quote, "kind" | "inStock" | "page">): string {
   if (q.kind === "bestelling") return q.inStock ? "Bestelling" : "Aanvraag op bestelling";
+  if (isContactMessage(q)) return "Vraag (contactpagina)";
   return q.kind === "vraag" ? "Offerteaanvraag" : "Offerte afsluiting (calculator)";
 }
 

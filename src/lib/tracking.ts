@@ -110,7 +110,7 @@ export function applyConsent(consent: Consent) {
 }
 
 /** A quote/order request was sent successfully (the real conversion). */
-export function trackLead(kind: "offerte" | "bestelling" | "calculator") {
+export function trackLead(kind: "offerte" | "bestelling" | "calculator" | "contact") {
   window.dataLayer?.push({ event: "generate_lead", lead_kind: kind });
   window.gtag?.("event", "generate_lead", { lead_kind: kind });
   window.fbq?.("track", "Lead", { content_name: kind });

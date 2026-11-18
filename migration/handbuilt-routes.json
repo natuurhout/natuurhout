@@ -425,6 +425,11 @@
         "/project/robiniarasterwerk/": { "to": "/project/robinia-rasterwerk/", "reason": "Old URL; redirects to /project/robinia-rasterwerk/ (next.config)." },
         "/project/hardhout-poorten/": { "to": "/project/cleft-field-veldpoorten/", "reason": "Old URL; redirects to /project/cleft-field-veldpoorten/ (next.config)." }
       }
+    },
+    {
+      "pathname": "/contact/",
+      "approvedBy": "Xander",
+      "reason": "Contact page rebuilt on Xander's request (Nov 2026): the snapshot was a 'Verlof' (holiday closure) notice image above a WordPress-only form. Now: all ways to reach Natuurhout (phone, gsm, WhatsApp, mail), a working contact form through /api/offerte/, address with route, opening hours and delivery info. Title, description, canonical, structured data, the h1 text and the form heading are the snapshot's."
     }
   ]
 }

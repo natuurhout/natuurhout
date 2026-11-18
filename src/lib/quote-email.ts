@@ -235,13 +235,16 @@ Ma–vr 09:00–18:00 · za 09:00–12:00</td></tr>
 /** Who sent it: the name, or the e-mail address when a quote came without one. */
 const who = (q: Quote) => q.name || q.email;
 
+/** A question from the contact page's form (kind "vraag", sent from /contact/). */
+export const isContactMessage = (q: Pick<Quote, "kind" | "page">) => q.kind === "vraag" && q.page === "/contact/";
+
 export function internalMail(q: Quote, photos: MailAttachment[] = []): Mail {
   const order = q.kind === "bestelling";
   const photoNote = photos.length
     ? ` ${photos.length === 1 ? "De klant stuurde 1 foto mee" : `De klant stuurde ${photos.length} foto's mee`} (in bijlage).`
     : "";
   const inner = `<p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">${
-    order ? (q.inStock ? "Nieuwe bestelling" : "Nieuwe aanvraag op bestelling") : "Nieuwe offerteaanvraag"
+    order ? (q.inStock ? "Nieuwe bestelling" : "Nieuwe aanvraag op bestelling") : isContactMessage(q) ? "Nieuwe vraag via de contactpagina" : "Nieuwe offerteaanvraag"
   }</p>
 <p style="margin:0 0 18px;${FONT};font-size:14px;color:${C.soft}">${
     order
@@ -258,9 +261,11 @@ ${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}
 ${remarksBlock(q)}`;
   const subject = order
     ? `${q.inStock ? "Bestelling" : "Aanvraag op bestelling"} – ${who(q)}`
-    : q.kind === "vraag"
-      ? `Offerteaanvraag – ${who(q)}`
-      : `Offerteaanvraag afsluiting – ${who(q)}`;
+    : isContactMessage(q)
+      ? `Vraag via de contactpagina – ${who(q)}`
+      : q.kind === "vraag"
+        ? `Offerteaanvraag – ${who(q)}`
+        : `Offerteaanvraag afsluiting – ${who(q)}`;
   return { subject, html: frame(inner), text: q.text, attachments: [...inlineAttachments(), ...photos] };
 }
 
@@ -271,8 +276,10 @@ export function confirmationMail(q: Quote): Mail {
     ? q.inStock
       ? "Bedankt voor uw bestelling. We hebben ze goed ontvangen en bevestigen ze zo snel mogelijk per mail, met de afspraak voor levering of afhalen en hoe u betaalt."
       : "Bedankt voor uw aanvraag. We hebben ze goed ontvangen en bekijken ze zo snel mogelijk. U krijgt per mail de levertermijn en het verdere verloop van uw bestelling."
-    : q.kind === "vraag"
-      ? "Bedankt voor uw offerteaanvraag. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres."
+    : isContactMessage(q)
+      ? "Bedankt voor uw bericht. We hebben het goed ontvangen en antwoorden zo snel mogelijk op dit e-mailadres."
+      : q.kind === "vraag"
+        ? "Bedankt voor uw offerteaanvraag. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres."
       : "Bedankt voor uw offerteaanvraag via onze afsluitingscalculator. We hebben ze goed ontvangen en behandelen ze zo snel mogelijk. U krijgt onze offerte op dit e-mailadres.";
   const footnote = q.kind === "vraag"
     ? q.delivery
@@ -313,6 +320,8 @@ ${remarksBlock(q)}
     ? q.inStock
       ? "Bedankt voor uw bestelling – Natuurhout"
       : "Bedankt voor uw aanvraag – Natuurhout"
-    : "Bedankt voor uw offerteaanvraag – Natuurhout";
+    : isContactMessage(q)
+      ? "Bedankt voor uw bericht – Natuurhout"
+      : "Bedankt voor uw offerteaanvraag – Natuurhout";
   return { subject, html: frame(inner), text, attachments: inlineAttachments() };
 }
