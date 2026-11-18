@@ -194,6 +194,18 @@ const MIGRATIONS: string[][] = [
     `ALTER TABLE catalog_publish ADD COLUMN requested_at TEXT`,
     `ALTER TABLE catalog_publish ADD COLUMN error TEXT`,
   ],
+  // 5: checkout v2 (/afrekenen/, worker/shop/checkout.ts): pay online through MultiSafepay or by transfer.
+  [
+    `ALTER TABLE orders ADD COLUMN payment_method TEXT`, // 'online' | 'overschrijving' (null: older orders)
+    `ALTER TABLE orders ADD COLUMN checkout_token TEXT`, // secret in the customer's return link
+    `ALTER TABLE orders ADD COLUMN psp_mode TEXT`, // 'test' | 'live': which MultiSafepay key
+    `ALTER TABLE orders ADD COLUMN psp_order_id TEXT`, // our order_id at MultiSafepay (number-attempt)
+    `ALTER TABLE orders ADD COLUMN psp_status TEXT`,
+    `ALTER TABLE orders ADD COLUMN psp_transaction TEXT`,
+    `ALTER TABLE orders ADD COLUMN psp_method TEXT`, // e.g. MISTERCASH, VISA, IDEAL
+    `ALTER TABLE orders ADD COLUMN psp_attempts INTEGER NOT NULL DEFAULT 0`,
+    `CREATE INDEX orders_psp ON orders (psp_order_id)`,
+  ],
 ];
 
 let ready: Promise<void> | undefined;

@@ -23,8 +23,9 @@ import nextConfig from "../next.config";
 import { ADMIN_HOST, handleAdmin, type AdminEnv } from "./admin";
 import { POST, type OfferteEnv } from "./offerte";
 import { publishSite, type PublishEnv } from "./shop/publish";
+import * as checkout from "./shop/checkout";
 
-interface Env extends OfferteEnv, AdminEnv, PublishEnv {
+interface Env extends OfferteEnv, AdminEnv, PublishEnv, checkout.CheckoutEnv {
   ASSETS: Fetcher;
 }
 
@@ -108,7 +109,7 @@ export default {
     }
 
     const response = withSecurityHeaders(await handle(request, env, url));
-    if (request.method === "POST" && url.pathname === "/api/offerte/") sync();
+    if (request.method === "POST" && (url.pathname === "/api/offerte/" || url.pathname.startsWith("/api/afrekenen/") || url.pathname === "/api/multisafepay/webhook/")) sync();
 
     // The workers.dev staging copy must never be indexed, whatever the built HTML says.
     if (url.hostname.endsWith(".workers.dev")) {
@@ -123,6 +124,8 @@ export default {
   // missed or failed, so the site never stays behind the backend.
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(publishSite(env, { retry: true }).then((state) => console.log("Site sync:", state)));
+    // Online orders nobody paid: cancel after a few days so the stock comes back.
+    ctx.waitUntil(checkout.sweepAbandoned(env).then((n) => n && console.log("Checkout: cancelled unpaid orders:", n)));
   },
 } satisfies ExportedHandler<Env>;
 
@@ -155,6 +158,17 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
     if (!env.DB) return Response.json(NO_OVERRIDES);
     const { overrides } = await loadCatalog(env.DB);
     return Response.json(overrides, { headers: { "Cache-Control": "no-store" } });
+  }
+
+  // Checkout v2 (worker/shop/checkout.ts).
+  if (path.startsWith("/api/afrekenen/") || path === "/api/multisafepay/webhook/") {
+    const post = request.method === "POST";
+    if (path === "/api/afrekenen/prijs/" && post) return checkout.quote(request, env);
+    if (path === "/api/afrekenen/" && post) return checkout.place(request, env);
+    if (path === "/api/afrekenen/opnieuw/" && post) return checkout.retry(request, env);
+    if (path === "/api/afrekenen/status/" && request.method === "GET") return checkout.status(request, env);
+    if (path === "/api/multisafepay/webhook/" && post) return checkout.webhook(request, env);
+    return new Response(null, { status: 405 });
   }
 
   if (path === "/api/offerte/") {

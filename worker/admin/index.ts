@@ -17,9 +17,10 @@ import { lowStockCount, productEdit, productList, productSave, publishPost, repo
 import { invoiceList, invoicePdfResponse, invoicesCsv, orderBulk, orderCreate, orderDetail, orderList, orderNew, orderPdfResponse, orderPost, ordersCsv } from "./shop-orders";
 import * as pages from "./pages";
 import type { PublishEnv } from "../shop/publish";
+import type { MspEnv } from "../shop/msp";
 import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
 
-export interface AdminEnv extends AuthEnv, MailEnv, PublishEnv {
+export interface AdminEnv extends AuthEnv, MailEnv, PublishEnv, MspEnv {
   DB?: D1Database;
 }
 
@@ -102,6 +103,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     board: request.headers.get("x-board") === "1",
     mail: makeMailer(env),
     publish: env,
+    checkout: env,
   };
 
   const path = (url.pathname.slice(base.length) || "/").replace(/(.)\/+$/, "$1");

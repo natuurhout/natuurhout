@@ -7,6 +7,9 @@
 import { now } from "../crm/schema";
 import type { Mailer } from "../shop/send";
 import type { PublishEnv } from "../shop/publish";
+import type { CheckoutEnv } from "../shop/checkout";
+import { getCheckoutSettings, saveCheckoutSettings, type Zone } from "../shop/delivery";
+import { mspKey } from "../shop/msp";
 import type { OrderRow } from "../shop/orders";
 import { orderTable } from "./shop-orders";
 import { getSettings, missingSettings, saveSettings, SETTING_FIELDS, validIban, type ShopSettings } from "../shop/settings";
@@ -26,6 +29,8 @@ export type Ctx = {
   mail: Mailer | null;
   /** Site rebuild after catalogue edits (worker/shop/publish.ts). */
   publish: PublishEnv;
+  /** MultiSafepay keys + mail, for the checkout steps the backend can trigger. */
+  checkout: CheckoutEnv;
 };
 
 export const STATUSES = [
@@ -755,8 +760,11 @@ ${e.actor ? html`<b>${who(ctx, e.actor)}</b> ` : ""}${what(e)}</li>`,
 // ---------------------------------------------------------------- instellingen
 
 export async function settings(ctx: Ctx): Promise<Response> {
-  const shop = await getSettings(ctx.db);
+  const [shop, co] = await Promise.all([getSettings(ctx.db), getCheckoutSettings(ctx.db)]);
   const missing = missingSettings(shop);
+  const keys = { test: Boolean(mspKey(ctx.checkout, "test")), live: Boolean(mspKey(ctx.checkout, "live")) };
+  const zoneRows: (Zone | null)[] = [...co.zones, null, null, null];
+  const num = (n: number | null | undefined) => (n === null || n === undefined ? "" : String(n).replace(".", ","));
   return respond(
     ctx,
     "Instellingen",
@@ -770,6 +778,22 @@ ${missing.length ? html`<p class="warn small">Nog in te vullen voor betaalverzoe
     )}</div>
 <p class="muted small">Klanten betalen per overschrijving naar dit rekeningnummer (iBanFirst), met de gestructureerde mededeling van de bestelling. Deze gegevens staan op elke factuur.</p>
 <button>Opslaan</button></form>
+<form class="card" method="post" action="${ctx.base}/instellingen"><input type="hidden" name="action" value="checkout">
+<h2>Levering en online betalen (afrekenen)</h2>
+<p class="muted small" style="margin-top:-6px">Op <a href="https://www.natuurhout.be/afrekenen/" target="_blank" rel="noopener">/afrekenen/</a> betaalt de klant meteen. De leveringskosten komen uit deze zones (Belgische postcodes). Een postcode buiten alle zones kan niet via de webshop geleverd worden: de klant kiest dan afhalen in Zele of vraagt een offerte. Afhalen is gratis.</p>
+<div class="scroll"><table class="editor"><thead><tr><th>Postcode van</th><th>tot en met</th><th>Prijs incl. btw</th><th>Omschrijving</th></tr></thead><tbody>
+${zoneRows.map(
+  (z) => html`<tr><td><input name="z_from" inputmode="numeric" value="${z ? String(z.from) : ""}" placeholder="9000" style="width:90px"></td><td><input name="z_to" inputmode="numeric" value="${z ? String(z.to) : ""}" placeholder="9299" style="width:90px"></td>
+<td><input name="z_price" inputmode="decimal" value="${z ? num(z.price) : ""}" placeholder="45,00" style="width:110px"></td><td><input name="z_label" value="${z?.label ?? ""}" placeholder="Bv. Gent en omgeving"></td></tr>`,
+)}</tbody></table></div>
+<p class="muted small">Eén regel per zone; de eerste zone die past, telt. Lege regels worden genegeerd. Voor meer zones: opslaan, dan komen er nieuwe lege regels bij.</p>
+<div class="fields"><label>Gratis levering vanaf (totaal incl. btw, leeg = nooit)<input name="free_above" inputmode="decimal" value="${num(co.freeAbove)}" placeholder="bv. 500"></label>
+<label>MultiSafepay-modus<select name="msp_mode"><option value="test" ${co.mspMode === "test" ? raw("selected") : ""}>Test (testapi, er wordt niet echt betaald)</option><option value="live" ${co.mspMode === "live" ? raw("selected") : ""}>Live (echte betalingen)</option></select></label></div>
+<p class="small">Sleutels (Worker-geheimen): test ${keys.test ? html`<span class="b success done">ingesteld</span>` : html`<span class="b critical todo">ontbreekt</span>`} · live ${
+      keys.live ? html`<span class="b success done">ingesteld</span>` : html`<span class="b critical todo">ontbreekt</span>`
+    }${co.mspMode === "live" && !keys.live ? html` <span class="warn">Live staat aan maar de live-sleutel ontbreekt: online betalen werkt niet.</span>` : ""}</p>
+<p class="muted small">Webhook voor MultiSafepay: <code>https://www.natuurhout.be/api/multisafepay/webhook/</code> (wordt per betaling meegestuurd, niets in te stellen).</p>
+<button>Opslaan</button></form>
 <form class="card" method="post" action="${ctx.base}/instellingen"><input type="hidden" name="action" value="me">
 <label>Je naam (zichtbaar bij notities en toewijzingen)<input name="name" value="${ctx.user.name}" required maxlength="60"></label>
 <p class="muted small">Aangemeld als ${ctx.user.email}.</p>
@@ -780,6 +804,26 @@ ${missing.length ? html`<p class="warn small">Nog in te vullen voor betaalverzoe
 }
 
 export async function settingsPost(ctx: Ctx, form: FormData): Promise<Response> {
+  if (field(form, "action") === "checkout") {
+    const money = (v: string, what: string) => {
+      const n = Number(v.replace(/[€\s]/g, "").replace(",", "."));
+      if (!Number.isFinite(n) || n < 0 || n > 100000) throw new HttpError(400, `${what}: ongeldig bedrag (${v}).`);
+      return Math.round(n * 100) / 100;
+    };
+    const from = form.getAll("z_from").map(String), to = form.getAll("z_to").map(String), price = form.getAll("z_price").map(String), label = form.getAll("z_label").map(String);
+    const zones: Zone[] = [];
+    from.forEach((f, i) => {
+      const [a, b, p] = [f.trim(), (to[i] ?? "").trim(), (price[i] ?? "").trim()];
+      if (!a && !b && !p) return;
+      const lo = Number(a), hi = Number(b || a);
+      if (!/^\d{4}$/.test(a) || !/^\d{4}$/.test(String(hi)) || hi < lo) throw new HttpError(400, `Zone ${i + 1}: postcodes van 4 cijfers, "van" niet groter dan "tot".`);
+      if (!p) throw new HttpError(400, `Zone ${i + 1}: vul een prijs in (0 voor gratis).`);
+      zones.push({ from: lo, to: hi, price: money(p, `Zone ${i + 1}`), label: (label[i] ?? "").trim().slice(0, 80) });
+    });
+    const free = field(form, "free_above", 20);
+    await saveCheckoutSettings(ctx.db, { zones, freeAbove: free ? money(free, "Gratis levering vanaf") || null : null, mspMode: field(form, "msp_mode") === "live" ? "live" : "test" });
+    return seeOther(ctx, "/instellingen", "saved");
+  }
   if (field(form, "action") === "shop") {
     const values: Partial<ShopSettings> = {};
     for (const f of SETTING_FIELDS) values[f.key] = field(form, f.key, f.key === "invoiceFooter" ? 1000 : 200);

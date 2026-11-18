@@ -31,6 +31,8 @@ import {
   type OrderStatus,
 } from "../shop/orders";
 import { invoicePdf, orderPdf, pdfBase64 } from "../shop/pdf";
+import { syncPayment } from "../shop/checkout";
+import { methodName } from "../shop/msp";
 import { getSettings, missingSettings } from "../shop/settings";
 import { euro, html, icon, lines as multiline, raw, when, ago, type Safe } from "./html";
 import { field, HttpError, like, notFound, respond, seeOther, userOptions, who, type Ctx } from "./pages";
@@ -529,6 +531,10 @@ ${fulfilActions.length ? html`<div class="actions" style="justify-content:flex-e
     payStep = html`<form method="post" action="${post}" class="sec">${hidden("confirm")}${mailCheck("mail", `Betaalverzoek met QR-code mailen naar ${order.email}`)}
 <details><summary class="small">Bericht toevoegen aan de mail</summary><label style="margin-top:8px">Bericht<textarea name="message" style="min-height:60px" placeholder="Bv. levering voorzien in week 12"></textarea></label></details>
 <div class="actions" style="justify-content:flex-end;margin-top:10px"><button>Bevestigen en betaalverzoek sturen</button></div></form>`;
+  else if (status === "bevestigd" && order.payment_method === "online")
+    payStep = html`<div class="sec"><p class="muted small" style="margin:0 0 8px">De klant betaalt online; zodra MultiSafepay de betaling bevestigt, wordt de bestelling automatisch betaald gezet en de factuur gemaild. Onbetaald na 3 dagen: automatisch geannuleerd.</p>
+<div class="actions" style="justify-content:flex-end"><form method="post" action="${post}">${hidden("psp-sync")}<button class="btn ghost">Status bij MultiSafepay opvragen</button></form></div>
+<details style="margin-top:8px"><summary class="small">Toch handmatig als betaald markeren</summary><form method="post" action="${post}" style="margin-top:8px">${hidden("paid")}<div class="fields"><label>Ontvangen bedrag<input name="amount" inputmode="decimal" value="${String(order.total).replace(".", ",")}"></label><label>Datum<input name="date" type="date" value="${todayBE()}"></label></div>${mailCheck("mail", "Factuur maken en mailen")}<button>Betaling ontvangen</button></form></details></div>`;
   else if (status === "bevestigd")
     payStep = html`<form method="post" action="${post}" class="sec">${hidden("paid")}<div class="fields"><label>Ontvangen bedrag<input name="amount" inputmode="decimal" value="${String(order.total).replace(".", ",")}"></label><label>Datum<input name="date" type="date" value="${todayBE()}"></label></div>${mailCheck(
       "mail",
@@ -542,6 +548,17 @@ ${fulfilActions.length ? html`<div class="actions" style="justify-content:flex-e
 <span>Btw</span><span class="m">${VAT_RATE}% (inbegrepen)</span><span class="r">${euro(t.vat)}</span>
 <span class="tot">Totaal</span><span></span><span class="r tot">${euro(t.total)}</span>
 <hr>
+${
+  order.payment_method
+    ? html`<span>Betaalwijze</span><span class="m">${
+        order.payment_method === "online"
+          ? html`Online via MultiSafepay${order.psp_mode === "test" ? html` <span class="b attention plain">TEST</span>` : ""}${order.psp_method ? ` · ${methodName(order.psp_method)}` : ""}${
+              order.psp_status ? ` · status ${order.psp_status}` : ""
+            }${order.psp_transaction ? ` · transactie ${order.psp_transaction}` : ""}`
+          : "Overschrijving"
+      }</span><span></span>`
+    : ""
+}
 <span>Betaald door klant</span><span class="m">${order.paid_at ? `overschrijving ${when(order.paid_at)}` : html`mededeling <code>${order.ogm}</code>`}</span><span class="r">${euro(paid)}</span>
 ${order.paid_at && Math.abs(paid - order.total) > 0.005 ? html`<span class="warn">Verschil</span><span></span><span class="r warn">${euro(round2(paid - order.total))}</span>` : ""}
 </div></div>${payStep}</section>`;
@@ -584,7 +601,7 @@ ${order.assigned_to ? html`<div class="sec"><h3>Toegewezen aan</h3><p style="mar
   const menu = html`<details class="menu"><summary class="btn ghost">Meer acties ${icon("chevron")}</summary><div class="pop">
 <a href="${post}/bevestiging.pdf" target="_blank">Bestelbevestiging (PDF)</a>
 ${EDITABLE.includes(status) && !invoices.results.length ? html`<a href="${post}?bewerk=1">Artikelen bewerken</a>` : ""}
-${status === "bevestigd" && canMail ? html`<form method="post" action="${post}">${hidden("resend")}<button>Betaalverzoek opnieuw mailen</button></form>` : ""}
+${status === "bevestigd" && canMail && order.payment_method !== "online" ? html`<form method="post" action="${post}">${hidden("resend")}<button>Betaalverzoek opnieuw mailen</button></form>` : ""}
 ${!hasOpenInvoice && ["betaald", "klaar", "geleverd", "bevestigd"].includes(status) ? html`<form method="post" action="${post}">${hidden("invoice")}<input type="hidden" name="mail" value="${canMail ? "1" : ""}"><button>Factuur maken${canMail ? " en mailen" : ""}</button></form>` : ""}
 ${order.request_id ? html`<a href="${ctx.base}/aanvragen/${order.request_id}">Oorspronkelijke aanvraag</a>` : ""}
 ${
@@ -713,6 +730,15 @@ export async function orderPost(ctx: Ctx, id: number, form: FormData): Promise<R
         } catch (error) {
           throw mailFailed(error);
         }
+      }
+      return seeOther(ctx, `/bestellingen/${id}`, "saved");
+    }
+    case "psp-sync": {
+      if (!order.psp_order_id) throw new HttpError(400, "Deze bestelling heeft geen online betaling.");
+      try {
+        await syncPayment(ctx.checkout, ctx.db, order);
+      } catch (error) {
+        throw new HttpError(502, `MultiSafepay gaf geen antwoord: ${(error as Error).message}`);
       }
       return seeOther(ctx, `/bestellingen/${id}`, "saved");
     }

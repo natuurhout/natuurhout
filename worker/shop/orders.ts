@@ -61,6 +61,15 @@ export type OrderRow = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Checkout v2 (worker/shop/checkout.ts); null on older and manual orders. */
+  payment_method?: string | null;
+  checkout_token?: string | null;
+  psp_mode?: string | null;
+  psp_order_id?: string | null;
+  psp_status?: string | null;
+  psp_transaction?: string | null;
+  psp_method?: string | null;
+  psp_attempts?: number;
 };
 export type LineRow = {
   id: number;
