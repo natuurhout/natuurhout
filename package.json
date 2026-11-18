@@ -7,6 +7,7 @@
     "build": "next build",
     "postbuild": "node scripts/flatten-rsc.mjs",
     "start": "wrangler dev",
+    "dev:beheer": "wrangler dev --host localhost",
     "deploy": "npm run build && wrangler deploy",
     "cf:types": "wrangler types worker/worker-configuration.d.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p worker",
@@ -20,6 +21,7 @@
   "dependencies": {
     "lucide-react": "^1.32.0",
     "next": "^16.3.4",
+    "qrcode-generator": "2.0.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

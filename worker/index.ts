@@ -10,15 +10,26 @@
  *      list, matched like Next does (case-insensitive, optional trailing slash);
  *   3. POST /api/offerte/ (worker/offerte.ts, formerly the Next route handler).
  *
+ * beheer.natuurhout.be is the CRM (worker/admin/), behind Cloudflare Access;
+ * locally it answers at http://localhost:<port>/__beheer/ (needs
+ * ADMIN_DEV_EMAIL in .dev.vars).
+ *
  * Everything else goes to the static assets unchanged (404 → out/404.html);
  * raw *.html paths and /404/ answer 404 like on Vercel.
  */
+import { NO_OVERRIDES } from "../src/lib/catalog-overrides";
+import { loadCatalog } from "./shop/catalog";
 import nextConfig from "../next.config";
+import { ADMIN_HOST, handleAdmin, type AdminEnv } from "./admin";
 import { POST, type OfferteEnv } from "./offerte";
+import { publishSite, type PublishEnv } from "./shop/publish";
 
-interface Env extends OfferteEnv {
+interface Env extends OfferteEnv, AdminEnv, PublishEnv {
   ASSETS: Fetcher;
 }
+
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
+const LOCAL_ADMIN_BASE = "/__beheer";
 
 type Redirect = { source: string; destination: string; permanent?: boolean };
 type CompiledRedirect = {
@@ -77,8 +88,18 @@ function withSecurityHeaders(response: Response): Response {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    // A backend save or a website order can change what the site shows (price,
+    // name, sold out): start a site rebuild right away when it did.
+    const sync = () => ctx.waitUntil(publishSite(env).catch((error) => console.error("Site sync check failed", error)));
+
+    const local = LOCAL_HOSTS.has(url.hostname) && (url.pathname === LOCAL_ADMIN_BASE || url.pathname.startsWith(`${LOCAL_ADMIN_BASE}/`));
+    if (url.hostname === ADMIN_HOST || local) {
+      const response = await handleAdmin(request, env, url, local ? LOCAL_ADMIN_BASE : "", local);
+      if (request.method === "POST") sync();
+      return response;
+    }
 
     // Apex → www (canonical host, see src/lib/site.ts).
     if (url.hostname === "natuurhout.be") {
@@ -87,6 +108,7 @@ export default {
     }
 
     const response = withSecurityHeaders(await handle(request, env, url));
+    if (request.method === "POST" && url.pathname === "/api/offerte/") sync();
 
     // The workers.dev staging copy must never be indexed, whatever the built HTML says.
     if (url.hostname.endsWith(".workers.dev")) {
@@ -95,6 +117,12 @@ export default {
       return guarded;
     }
     return response;
+  },
+
+  // Every 5 minutes (wrangler.jsonc triggers): retry a site rebuild that was
+  // missed or failed, so the site never stays behind the backend.
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(publishSite(env, { retry: true }).then((state) => console.log("Site sync:", state)));
   },
 } satisfies ExportedHandler<Env>;
 
@@ -120,6 +148,13 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
       destination,
     );
     return redirect(`${target}${url.search}`);
+  }
+
+  // Backend catalogue edits, published for the site build (scripts/sync-catalog.mjs).
+  if (path === "/api/catalogus/") {
+    if (!env.DB) return Response.json(NO_OVERRIDES);
+    const { overrides } = await loadCatalog(env.DB);
+    return Response.json(overrides, { headers: { "Cache-Control": "no-store" } });
   }
 
   if (path === "/api/offerte/") {

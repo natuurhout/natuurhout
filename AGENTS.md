@@ -33,9 +33,8 @@ Before pushing, run all four:
 3. `npm run build`
 4. `npm run migration:audit:built`
 
-Cutover to Cloudflare Workers prepared 2026-11-09 (zone, DNS, custom domains,
-indexable build deployed); it goes live when the natuurhout.be nameservers at
-Combell are changed to Cloudflare. Until then WordPress at Combell still answers.
+LIVE on Cloudflare Workers since 2026-11-17: the natuurhout.be nameservers at
+Combell point to Cloudflare (bill/iris.ns.cloudflare.com); WordPress is retired.
 
 ## Hosting: Cloudflare Workers
 
@@ -64,15 +63,14 @@ historical).
 - **Domains:** `wrangler.jsonc` routes `www.natuurhout.be` + `natuurhout.be`
   as custom domains (zone natuurhout.be on the FX Media Cloudflare account,
   created 2026-11-09). The Worker 301s the apex to www. Mail stays at
-  Microsoft 365 (MX/SPF/DMARC copied into the zone). The workers.dev URL
-  gets `X-Robots-Tag: noindex` from the Worker; set `workers_dev: false`
-  once the nameserver switch at Combell is verified.
+  Microsoft 365 (MX/SPF/DMARC copied into the zone). `workers_dev` is
+  `false` since 2026-11-17, so there is no duplicate copy on workers.dev.
 - **Quote mail (2026-11-09):** Cloudflare Email Sending via the `EMAIL`
   binding (`send_email` in `wrangler.jsonc`, sender `offerte@natuurhout.be`),
-  no API key, Resend removed. The domain must be onboarded once the zone is
-  active: `npx wrangler email sending enable natuurhout.be` (adds the DKIM/SPF
-  records). Until then the binding rejects the sender, the route answers 503
-  `not-configured` and the page opens the customer's mail program. Optional
+  no API key, Resend removed. Email Sending is enabled for natuurhout.be
+  (2026-11-17; DKIM `cf-bounce._domainkey`, return path `cf-bounce`). If the
+  binding ever rejects the sender, the route answers 503 `not-configured` and
+  the page opens the customer's mail program. Optional
   vars: `QUOTE_TO`, `QUOTE_FROM`.
 - **Build-time env:** `SITE_INDEXING_ENABLED` is read during the build (static
   export). `.env.production` (committed) sets it to `true`, so `npm run build`
@@ -91,3 +89,50 @@ historical).
   the old site resolve). Security headers are set in `worker/index.ts`.
 - `npm run typecheck` also checks the Worker (`worker/tsconfig.json`). After
   changing `wrangler.jsonc`, run `npm run cf:types`.
+
+## Backend: CRM at beheer.natuurhout.be (2026-11-17)
+
+- **What:** the Worker serves a small CRM on `beheer.natuurhout.be` (`worker/admin/`):
+  sidebar with Overzicht, Aanvragen (+ Offertes/Bestellingen views; every form sent to
+  `/api/offerte/` is saved, plus manual ones), Taken (follow-up tasks with due dates),
+  Klanten (+ CSV export), Producten (read-only price list from `src/lib/catalog.ts`),
+  Activiteit and Instellingen. Server-rendered HTML with plain forms, Dutch UI, no JS.
+  `worker/index.ts` dispatches on the hostname, so the public site never reaches it.
+- **Data:** Cloudflare D1, binding `DB`, database `natuurhout-crm` (id `4fa6e039-…`, created
+  2026-11-17, pinned in `wrangler.jsonc`). The Worker applies the schema
+  itself (`worker/crm/schema.ts`): to change it, append a migration, never edit a shipped one.
+  Saving a submission is best effort: it never blocks or replaces the quote e-mail.
+- **Login:** Cloudflare Access app "Natuurhout beheer (CRM)" on `beheer.natuurhout.be`
+  (FX Media Zero Trust org, team domain `fx-media.cloudflareaccess.com`, created 2026-11-17),
+  allow policy for info@natuurhout.be and info@fx-media.no (one-time code by e-mail).
+  Add a person in both the Access policy and `ADMIN_EMAILS`. The Worker
+  verifies the Access JWT as well (`worker/admin/auth.ts`, vars `ACCESS_TEAM_DOMAIN`,
+  `ACCESS_AUD`, optional `ADMIN_EMAILS` in `wrangler.jsonc`); with those empty the admin
+  refuses everyone. POSTs must be same-origin.
+- **Locally:** put `ADMIN_DEV_EMAIL=you@example.com` in `.dev.vars` (gitignored), then
+  `npm run build && npm run dev:beheer` and open http://localhost:8787/__beheer/.
+  The dev login only works on localhost, never on a deployed Worker.
+- **Webshop backend (2026-11-18, `worker/shop/` + `worker/admin/shop-*.ts`):** Bestellingen,
+  Facturen, Producten, Voorraad, Rapporten. A website order (`/api/offerte/`, kind
+  `bestelling`, lines carry the variant `id`) becomes an order, priced again with the live
+  catalogue (never trust the page's price). Flow: nieuw → Bevestigen (PDF payment request
+  mailed: iBanFirst IBAN from Instellingen, Belgian structured reference +++…+++, EPC QR) →
+  Betaling ontvangen (invoice, gapless number per year `YYYY-NNNN`, PDF mailed) → klaar →
+  geleverd; annuleren gives counted stock back and makes a credit note when invoiced.
+  Payments are bank transfers, marked paid by hand (no iBanFirst API link yet).
+  Invoices are never edited or deleted: correct with a credit note. PDFs are drawn by
+  `worker/shop/pdf.ts` (no browser). Prices incl. 21% btw.
+- **Catalogue edits:** Producten/Voorraad store overrides in D1 on top of the site's catalogue
+  (`src/lib/catalog-overrides.ts`, applied last in `src/lib/catalog.ts`; `baseProducts` is
+  without them). Checkout uses D1 at once; the site gets them via `/api/catalogus/` →
+  `scripts/sync-catalog.mjs` → `src/data/catalog-overrides.json`, run by the deploy workflow.
+  The Worker starts that workflow itself (`worker/shop/publish.ts`, GitHub workflow_dispatch with
+  the Worker secret `GITHUB_DEPLOY_TOKEN`: fine-grained token of the `natuurhout` account, this
+  repo only, "Actions: read and write") whenever the backend differs from the catalogue bundled
+  in the deployed Worker, so the site follows in ~2 minutes; a 5-minute Worker cron retries
+  failed runs and Producten/Voorraad show whether the site is up to date. The workflow's own
+  15-minute schedule is only a backup (GitHub delays it). So that file is
+  written by a bot: **pull before you push**, and don't edit it by hand. Code-level price
+  rules (`price-updates.ts`, `promotions.ts`) still work; a backend edit wins over them.
+- **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` has no D1 permission. That is
+  fine as long as `database_id` stays pinned in `wrangler.jsonc`; without it the deploy fails.

@@ -2,6 +2,7 @@
   // Natuurhout — static Next.js export (./out) served as Workers static assets.
   // worker/index.ts runs first for every request: trailing-slash + next.config.ts redirects (308s,
   // same as Next on Vercel) and POST /api/offerte/ (quote requests → Cloudflare Email Sending). See AGENTS.md "Hosting".
+  // beheer.natuurhout.be: the CRM (worker/admin/, D1 database below, login via Cloudflare Access).
   // Build: `npm run build`. Deploy: `npm run deploy`. No secrets.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "natuurhout",
@@ -23,11 +24,26 @@
   // Production domains (Cloudflare zone natuurhout.be). The apex 301s to www in worker/index.ts.
   "routes": [
     { "pattern": "www.natuurhout.be", "custom_domain": true },
-    { "pattern": "natuurhout.be", "custom_domain": true }
+    { "pattern": "natuurhout.be", "custom_domain": true },
+    // The CRM (worker/admin/). Protected by a Cloudflare Access application on this hostname.
+    { "pattern": "beheer.natuurhout.be", "custom_domain": true }
   ],
-  // Keep the workers.dev staging URL until the Combell nameserver switch is verified, then set false.
-  // The Worker sends X-Robots-Tag: noindex on *.workers.dev so the staging copy is never indexed.
-  "workers_dev": true,
+  // CRM database (created 2026-11-17). The id is pinned so the GitHub deploy token needs no D1
+  // permission. The Worker applies the schema itself (worker/crm/schema.ts).
+  "d1_databases": [{ "binding": "DB", "database_name": "natuurhout-crm", "database_id": "4fa6e039-6bd0-48e1-8705-5961de36d875" }],
+  // Every 5 minutes: if the site still shows an older catalogue than the backend, start the
+  // rebuild again (worker/shop/publish.ts). Secret GITHUB_DEPLOY_TOKEN starts the rebuilds.
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "vars": {
+    // Cloudflare Access for beheer.natuurhout.be (worker/admin/auth.ts). Empty = the admin refuses everyone.
+    // Access app "Natuurhout beheer (CRM)" on the FX Media Zero Trust org (created 2026-11-17).
+    "ACCESS_TEAM_DOMAIN": "fx-media.cloudflareaccess.com",
+    "ACCESS_AUD": "557860cf755ada7ed466c98ef752fff096391182050ef3636b675390425dea57",
+    // Extra allow-list on top of the Access policy (comma separated). Keep in sync with that policy.
+    "ADMIN_EMAILS": "info@natuurhout.be,info@fx-media.no"
+  },
+  // Off since the nameserver switch (2026-11-17): the site only lives on natuurhout.be.
+  "workers_dev": false,
   "preview_urls": false,
   "observability": { "enabled": true }
 }

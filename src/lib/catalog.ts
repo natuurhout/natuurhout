@@ -2,6 +2,8 @@ import productsData from "@/data/products.json";
 import collectionsData from "@/data/collections.json";
 import { PROMO_COLLECTION, promotionCards, REMOVED_PRODUCTS, SALE, UNLISTED, withPromotionCollections, withPromotions } from "@/lib/promotions";
 import { withPriceUpdates } from "@/lib/price-updates";
+import { applyOverrides, hiddenHandles, type CatalogOverrides } from "@/lib/catalog-overrides";
+import overridesData from "@/data/catalog-overrides.json";
 import { renameDeep } from "@/lib/renames.mjs";
 import { REPLACED_SHOP_PHOTOS } from "@/lib/extra-photos";
 import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
@@ -76,7 +78,9 @@ function localShopLinks(html: string): string {
 }
 
 // Website promotions (src/lib/promotions.ts) are applied on top of the shop data.
-export const products = withPromotions(
+// baseProducts: everything except the backend edits; the Worker applies the live
+// edits from D1 on top of these (worker/shop/catalog.ts).
+export const baseProducts = withPromotions(
   withPriceUpdates(
     [...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
       ...product,
@@ -89,6 +93,10 @@ export const products = withPromotions(
     })),
   ),
 ).filter((product) => !(product.handle in REMOVED_PRODUCTS));
+/** Edits from the backend, as last published (src/lib/catalog-overrides.ts). */
+const overrides = overridesData as CatalogOverrides;
+const HIDDEN = hiddenHandles(overrides);
+export const products = applyOverrides(baseProducts, overrides);
 export const collections = withPromotionCollections(collectionsData as Collection[]).map((collection) => {
   const added = Object.entries(WEBSITE_PRODUCT_COLLECTIONS).filter(([, target]) => target === collection.handle).map(([handle]) => handle);
   return added.length ? { ...collection, products: [...collection.products, ...added] } : collection;
@@ -104,7 +112,7 @@ export function getProduct(handle: string): Product | undefined {
  * unique and never comes back (Xander). Product pages stay either way.
  */
 export function isListed(product: Product): boolean {
-  return !UNLISTED.has(product.handle) && !(product.sale && !product.available);
+  return !UNLISTED.has(product.handle) && !HIDDEN.has(product.handle) && !(product.sale && !product.available);
 }
 
 /** The products on sale: older rolls and products with a small flaw. */

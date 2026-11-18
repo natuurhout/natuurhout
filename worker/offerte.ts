@@ -7,6 +7,12 @@
  * confirmation with an overview of the request, whose Reply-To is
  * Natuurhout's inbox.
  *
+ * Every valid request is also saved in the CRM (worker/crm/, D1 binding DB),
+ * best effort: a database problem is logged and never costs the e-mail.
+ * An order (kind "bestelling") becomes an order in the webshop backend
+ * (worker/shop/place.ts), priced again with the live catalogue; the e-mails
+ * then show those prices.
+ *
  * Served by the Cloudflare Worker (worker/index.ts) at /api/offerte/.
  * Env (Worker vars, optional):
  *   QUOTE_TO    default info@natuurhout.be (comma separated)
@@ -20,9 +26,13 @@
  */
 
 import { confirmationMail, internalMail, parsePhotos, parseQuote, type Mail } from "../src/lib/quote-email";
+import { saveSubmission, setMailStatus, type MailStatus } from "./crm/store";
+import { placeWebsiteOrder, setOrderMailStatus } from "./shop/place";
 
 export interface OfferteEnv {
   EMAIL: SendEmail;
+  /** CRM database (beheer.natuurhout.be). Optional: without it the mail flow works as before. */
+  DB?: D1Database;
   QUOTE_TO?: string;
   QUOTE_FROM?: string;
 }
@@ -81,7 +91,38 @@ export async function POST(request: Request, env: OfferteEnv) {
     return Response.json({ error: "Te veel aanvragen kort na elkaar. Probeer het later opnieuw." }, { status: 429 });
   }
 
+  const photos = quote.kind === "vraag" ? parsePhotos(body) : [];
+
+  // Into the CRM first, so the request is on record whatever the mail does.
+  let requestId: number | null = null;
+  let orderId: number | null = null;
+  if (env.DB) {
+    try {
+      if (quote.kind === "bestelling") {
+        const placed = await placeWebsiteOrder(env.DB, quote);
+        orderId = placed.order.id;
+        quote.lines = placed.lines;
+        quote.total = placed.order.total;
+        quote.text = `Bestelling ${placed.order.number}\n\n${quote.text}`;
+      } else {
+        requestId = await saveSubmission(env.DB, quote, photos.length);
+      }
+    } catch (error) {
+      console.error("CRM: request not saved", error);
+    }
+  }
+  const mailStatus = async (status: MailStatus) => {
+    if (!env.DB) return;
+    try {
+      if (orderId !== null) await setOrderMailStatus(env.DB, orderId, status);
+      else if (requestId !== null) await setMailStatus(env.DB, requestId, status);
+    } catch (error) {
+      console.error("CRM: mail status not saved", error);
+    }
+  };
+
   if (!env.EMAIL) {
+    await mailStatus("niet-ingesteld");
     return Response.json({ error: "not-configured" }, { status: 503 });
   }
 
@@ -102,15 +143,18 @@ export async function POST(request: Request, env: OfferteEnv) {
   // 1. The request itself, to Natuurhout. This one must not be lost.
   try {
     // Photos of the situation go to Natuurhout only, never back to the customer.
-    await send(inbox, quote.email, internalMail(quote, quote.kind === "vraag" ? parsePhotos(body) : []));
+    await send(inbox, quote.email, internalMail(quote, photos));
   } catch (error) {
     if (NOT_CONFIGURED.has(code(error))) {
       console.warn("Email Sending not set up for the sender domain:", code(error), (error as Error).message);
+      await mailStatus("niet-ingesteld");
       return Response.json({ error: "not-configured" }, { status: 503 });
     }
     console.error("Email Sending rejected the quote request", code(error), error);
+    await mailStatus("mislukt");
     return Response.json({ error: "send-failed" }, { status: 502 });
   }
+  await mailStatus("verstuurd");
 
   // 2. Confirmation to the customer. Best effort: the request already arrived,
   // so a failure here is logged, never shown as a failed request.

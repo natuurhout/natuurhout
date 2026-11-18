@@ -7,7 +7,8 @@
  * clipped here and HTML-escaped wherever it is rendered.
  */
 
-export type QuoteLine = { group: string; label: string; detail: string; qty: number; unit: number | null };
+/** id: the variant id (orders from the price lists), priced again by the server. */
+export type QuoteLine = { id?: number; group: string; label: string; detail: string; qty: number; unit: number | null };
 
 export type Quote = {
   /**
@@ -96,7 +97,8 @@ export function parseQuote(body: Record<string, unknown>): Quote | { error: stri
     const label = str(l.label, 300);
     const qty = num(l.qty, 100_000);
     if (!label || qty === null) continue;
-    lines.push({ group: str(l.group, 60) || "Overige", label, detail: str(l.detail, 300), qty, unit: num(l.unit, 100_000) });
+    const id = typeof l.id === "number" && Number.isSafeInteger(l.id) ? l.id : undefined;
+    lines.push({ id, group: str(l.group, 60) || "Overige", label, detail: str(l.detail, 300), qty, unit: num(l.unit, 100_000) });
   }
 
   const page = str(body.page, 200);

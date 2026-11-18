@@ -15,7 +15,8 @@ import { trackLead } from "@/lib/tracking";
  * delivery term.
  */
 
-export type RequestLine = { group: string; label: string; detail: string; qty: number; unit: number };
+/** id: the variant id, so the server prices the order itself (worker/shop/). */
+export type RequestLine = { id?: number; group: string; label: string; detail: string; qty: number; unit: number };
 
 const ADDRESS = "info@natuurhout.be";
 const input =
