@@ -45,7 +45,7 @@ export function MaterialTable({ lines }: { lines: Line[] }) {
                     )}
                     {l.order && (
                       <span className="ml-2 inline-block rounded-full bg-accent/10 px-2 py-0.5 align-middle text-[11px] font-semibold text-accent-deep">
-                        {l.order.badge === "Uitverkocht" ? "Uitverkocht · op bestelling" : l.order.badge}
+                        {l.order.badge}
                       </span>
                     )}
                     {l.detail && <span className="block text-xs text-ink/55">{l.detail}</span>}
@@ -96,7 +96,7 @@ function DeliveryTerms({ lines }: { lines: Line[] }) {
         <div className="flex gap-2">
           <Clock aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent-deep" />
           <div>
-            <strong className="text-ink">Uitverkocht of op bestelling:</strong> u vraagt deze artikelen gewoon mee aan; prijs en
+            <strong className="text-ink">Op bestelling:</strong> u vraagt deze artikelen gewoon mee aan; prijs en
             levertermijn bevestigen we in uw offerte.
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-ink/65">
               {notes.map((note) => (

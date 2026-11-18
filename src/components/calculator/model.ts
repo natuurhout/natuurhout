@@ -324,7 +324,7 @@ export type Line = {
   qty: number;
   unit: number | null; // null = price on request
   url?: string;
-  /** Not in stock: still requested, "Uitverkocht"/"Op bestelling" with the delivery term (src/lib/made-to-order.ts). */
+  /** Not in stock: still requested, "Op bestelling"/"Op aanvraag" with the delivery term (src/lib/made-to-order.ts). */
   order?: { badge: string; note: string };
 };
 

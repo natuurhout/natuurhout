@@ -208,7 +208,7 @@ export function OrderNote({ handle }: { handle: string }) {
   );
 }
 
-/** "€97,00/rol · uitverkocht, op bestelling" */
+/** "€97,00/rol · op bestelling" */
 export function soldOutSuffix(available: boolean): string {
-  return available ? "" : " · uitverkocht, op bestelling";
+  return available ? "" : " · op bestelling";
 }

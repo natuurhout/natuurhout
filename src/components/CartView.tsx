@@ -86,7 +86,7 @@ export default function CartView() {
                     {formatPrice(line.unit)} per stuk
                     {!line.available && (
                       <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 font-semibold text-accent-deep">
-                        {orderTerm(line.handle).badge === "Uitverkocht" ? "Uitverkocht · op bestelling" : orderTerm(line.handle).badge}
+                        {orderTerm(line.handle).badge}
                       </span>
                     )}
                   </p>

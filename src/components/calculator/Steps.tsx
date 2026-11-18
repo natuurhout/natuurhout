@@ -783,7 +783,7 @@ function GateEditor({ data, gate, index, total, set, remove }: {
                       <div className="mt-2 flex flex-wrap gap-2">
                         {hw.latches.map((l) => (
                           <Chip key={l.variantId} active={latch?.variantId === l.variantId} onClick={() => set({ latch: l.variantId })}>
-                            {l.title} ({formatPrice(l.price)}{l.available ? "" : ", uitverkocht"})
+                            {l.title} ({formatPrice(l.price)}{l.available ? "" : ", op bestelling"})
                           </Chip>
                         ))}
                         <Chip active={gate.latch === "none"} onClick={() => set({ latch: "none" })}>Geen sluiting</Chip>

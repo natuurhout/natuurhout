@@ -36,8 +36,8 @@ const TERMS: Record<string, OrderTerm> = {
 };
 
 const BACK_ORDER: OrderTerm = {
-  badge: "Uitverkocht",
-  note: "Tijdelijk uitverkocht — u kunt het toch aanvragen. Normaal komt er elke 4 à 5 weken een vracht met nieuwe voorraad; uitzonderlijk duurt het langer door drukte of productie. We bevestigen de levertermijn per mail.",
+  badge: "Op bestelling",
+  note: "Niet op voorraad — u kunt het gewoon bestellen. Normaal komt er elke 4 à 5 weken een vracht met nieuwe voorraad; uitzonderlijk duurt het langer door drukte of productie. We bevestigen de levertermijn per mail.",
 };
 
 export function orderTerm(handle: string): OrderTerm {
