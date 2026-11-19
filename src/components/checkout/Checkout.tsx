@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Landmark, Lock, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
+import { DeliveryMinimum } from "@/components/DeliveryCheck";
 import { setCartQty, useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { ADDRESS, PHONE } from "@/lib/contact";
@@ -225,7 +226,9 @@ export default function Checkout() {
                     ? quote.delivery.price === 0
                       ? "Gratis"
                       : formatPrice(quote.delivery.price)
-                    : <span className="text-red-700">Niet via de webshop</span>}
+                    : short > 0 && quote.minimum !== null
+                      ? <span className="text-amber-800">Vanaf {formatPrice(quote.minimum)}</span>
+                      : <span className="text-red-700">Niet via de webshop</span>}
           </dd>
         </div>
         <div className="flex items-baseline justify-between border-t border-line pt-3">
@@ -234,12 +237,6 @@ export default function Checkout() {
         </div>
         {quote && <p className="text-right text-xs text-ink/55">incl. {formatPrice(quote.vat)} btw (21%)</p>}
       </dl>
-      {quote && quote.minimum !== null && short > 0 && (
-        <p role="status" className="rounded-xl border border-amber-500/40 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-          Het minimum bestelbedrag {delivery ? `voor levering naar ${quote.delivery?.label ?? "uw adres"}` : "om af te halen"} is <strong>{formatPrice(quote.minimum)}</strong>.
-          Voeg nog <strong>{formatPrice(short)}</strong> aan producten toe{delivery ? ", of kies afhalen in Zele" : ""}.
-        </p>
-      )}
     </div>
   );
 
@@ -283,7 +280,12 @@ export default function Checkout() {
                 <Field label="Gemeente *" error={shown.city}>
                   <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
                 </Field>
-                {quote && /^\d{4}$/.test(postcode) && !quote.deliverable && (
+                {quote && /^\d{4}$/.test(postcode) && short > 0 && (
+                  <div className="sm:col-span-3">
+                    <DeliveryMinimum result={quote} onPickup={() => setDelivery(false)} />
+                  </div>
+                )}
+                {quote && /^\d{4}$/.test(postcode) && !quote.deliverable && short === 0 && (
                   <p className="text-sm text-red-700 sm:col-span-3">
                     {quote.delivery?.reason || "Naar deze postcode leveren we niet via de webshop."} Kies afhalen in Zele, of{" "}
                     <Link href="/offerte-aanvragen/" className="font-semibold underline">

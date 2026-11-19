@@ -20,7 +20,7 @@
 import { ensureSchema, now } from "../crm/schema";
 import { upsertContact } from "../crm/store";
 import { loadCatalog, variantLabel } from "./catalog";
-import { deliveryQuote, getCheckoutSettings, minimumFor } from "./delivery";
+import { deliveryQuote, getCheckoutSettings } from "./delivery";
 import { createPayment, getPayment, methodName, mspKey, MspError, validSignature, type MspEnv, type MspMode } from "./msp";
 import { createOrder, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
 import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid";
@@ -59,7 +59,10 @@ type Priced = {
   subtotal: number;
   /** null when the customer picks up; otherwise the delivery quote (ok or why not). */
   delivery: { ok: boolean; price: number; label: string; km: number | null; reason: string } | null;
-  /** Minimum order value that applies (products incl. btw), and how much is still missing. */
+  /**
+   * The delivery band's minimum order value (products incl. btw) and how much
+   * is still missing; below it delivery is not offered (pickup always is).
+   */
   minimum: number | null;
   short: number;
   total: number;
@@ -102,15 +105,16 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
   }
   const subtotal = round2(lines.reduce((t, l) => t + l.qty * l.unit, 0));
   let delivery: Priced["delivery"] = null;
-  let minimum = wantsDelivery ? null : (minimumFor(settings, null)?.min ?? null);
+  let minimum: number | null = null;
+  let short = 0;
   if (wantsDelivery) {
     const q = deliveryQuote(settings, postcode, city, { subtotal, lines: lines.map((l) => ({ handle: l.handle, qty: l.qty })) });
     delivery = q.ok
       ? { ok: true, price: q.price, label: `${postcode} ${q.place}`, km: q.km, reason: "" }
       : { ok: false, price: 0, label: q.place ? `${postcode} ${q.place}` : postcode, km: q.km ?? null, reason: q.reason };
-    if (q.ok) minimum = q.minimum;
+    minimum = q.minimum ?? null;
+    short = q.ok ? 0 : (q.short ?? 0);
   }
-  const short = minimum !== null && subtotal < minimum ? round2(minimum - subtotal) : 0;
   return { lines, invalid, subtotal, delivery, minimum, short, total: round2(subtotal + (delivery?.ok ? delivery.price : 0)) };
 }
 
@@ -249,12 +253,11 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
   const p = await price(db, parseBasket(body), wantsDelivery, customer.postcode, customer.city);
   if (p.invalid.length) return json({ error: "Enkele producten kunnen niet online besteld worden. Haal ze uit uw winkelmandje en vraag er een offerte voor.", invalid: p.invalid }, 400);
   if (!p.lines.length) return json({ error: "Uw winkelmandje is leeg." }, 400);
-  if (wantsDelivery && !p.delivery?.ok) return json({ error: `${p.delivery?.reason || "Naar deze postcode leveren we niet via de webshop."} Kies afhalen in Zele of vraag een offerte.` }, 400);
-
-  if (p.short > 0)
+  if (wantsDelivery && !p.delivery?.ok)
     return json(
       {
-        error: `Het minimum bestelbedrag ${wantsDelivery ? `voor levering naar ${p.delivery?.label ?? customer.postcode}` : "om af te halen"} is € ${p.minimum!.toFixed(2).replace(".", ",")}. Voeg nog € ${p.short.toFixed(2).replace(".", ",")} aan producten toe.`,
+        // Below the band's minimum the reason already says what to do.
+        error: p.short > 0 ? p.delivery!.reason : `${p.delivery?.reason || "Naar deze postcode leveren we niet via de webshop."} Kies afhalen in Zele of vraag een offerte.`,
       },
       400,
     );

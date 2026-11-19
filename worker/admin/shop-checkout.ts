@@ -1,7 +1,8 @@
 /*
  * Backend tab "Checkout": everything the checkout (/afrekenen/) charges and
  * how it gets paid. Delivery: price per distance band (road km from Zele per
- * postcode), maximum distance, free delivery above an amount, rounding, and
+ * postcode) with an optional minimum order value per band (below it no
+ * delivery; pickup always), maximum distance, free delivery above an amount, rounding, and
  * rules (surcharges, discounts, free, pickup only) run top to bottom.
  * Payment: MultiSafepay test/live. A tester shows the price for a postcode
  * with every step. The engine is worker/shop/delivery.ts.
@@ -17,7 +18,6 @@ import {
   lookupPostcode,
   saveCheckoutSettings,
   type Band,
-  type MinRow,
   type Rule,
 } from "../shop/delivery";
 import { mspKey } from "../shop/msp";
@@ -42,7 +42,6 @@ export async function checkoutPage(ctx: Ctx): Promise<Response> {
   const keys = { test: Boolean(mspKey(ctx.checkout, "test")), live: Boolean(mspKey(ctx.checkout, "live")) };
   const bandRows: (Band | null)[] = [...s.bands, null, null, null];
   const ruleRows: (Rule | null)[] = [...s.rules, null, null];
-  const minRows: (MinRow | null)[] = [...s.minimums, null, null];
   const refs = REFERENCE.map(([pc, name]) => ({ pc, name, hit: lookupPostcode(pc) })).filter((r) => r.hit);
 
   // Tester: ?pc=&stad=&bedrag=&collectie=&aantal=
@@ -71,31 +70,20 @@ export async function checkoutPage(ctx: Ctx): Promise<Response> {
 <form class="card" method="post" action="${ctx.base}/checkout"><input type="hidden" name="action" value="bands">
 <h2>Prijs per afstand</h2>
 <p class="muted small" style="margin-top:-6px">Afstand = rijafstand vanaf ${DISTANCE_INFO.yard} naar de postcode van de klant (${DISTANCE_INFO.count} Belgische postcodes). De eerste schijf waar de afstand in past, telt: vaste prijs + eventueel een bedrag per km.</p>
-<div class="scroll"><table class="editor"><thead><tr><th>Tot en met (km)</th><th>Vaste prijs (€)</th><th>+ per km (€)</th><th></th></tr></thead><tbody>
+<p class="muted small"><strong>Minimum voor levering:</strong> bestelbedrag (producten incl. btw, zonder levering) dat de klant in die schijf minstens moet halen. Daaronder kan hij levering niet kiezen en zien winkelmandje en afrekenpagina hoeveel er nog bij moet. Afhalen in Zele kan altijd. Leeg = geen minimum.</p>
+<div class="scroll"><table class="editor"><thead><tr><th>Tot en met (km)</th><th>Vaste prijs (€)</th><th>+ per km (€)</th><th>Minimum voor levering (€)</th><th></th></tr></thead><tbody>
 ${bandRows.map(
   (b) => html`<tr><td><input name="b_upto" inputmode="decimal" value="${b ? show(b.upTo) : ""}" placeholder="bv. 15" style="width:100px"></td>
 <td><input name="b_price" inputmode="decimal" value="${b ? show(b.price) : ""}" placeholder="bv. 35" style="width:110px"></td>
 <td><input name="b_perkm" inputmode="decimal" value="${b && b.perKm ? show(b.perKm) : ""}" placeholder="0" style="width:90px"></td>
-<td class="muted small">${b ? `tot ${show(b.upTo)} km: ${euro(b.price)}${b.perKm ? ` + ${euro(b.perKm)}/km` : ""}` : ""}</td></tr>`,
+<td><input name="b_min" inputmode="decimal" value="${b && b.min ? show(b.min) : ""}" placeholder="geen" style="width:110px"></td>
+<td class="muted small">${b ? `tot ${show(b.upTo)} km: ${euro(b.price)}${b.perKm ? ` + ${euro(b.perKm)}/km` : ""}${b.min ? ` · levering vanaf ${euro(b.min)}` : ""}` : ""}</td></tr>`,
 )}</tbody></table></div>
 <p class="muted small">Rij leegmaken = schijf weg. Na opslaan komen er nieuwe lege rijen bij.</p>
 <div class="fields"><label>Maximale afstand (km, leeg = laatste schijf)<input name="max_km" inputmode="decimal" value="${show(s.maxKm)}" placeholder="bv. 80"></label>
 <label>Gratis levering vanaf bestelbedrag (€, leeg = nooit)<input name="free_above" inputmode="decimal" value="${show(s.freeAbove)}" placeholder="bv. 750"></label></div>
 <label class="check"><input type="checkbox" name="round" value="1" ${s.roundUp ? raw("checked") : ""}> Afronden naar boven op hele euro's</label>
 <div class="actions" style="justify-content:flex-end"><button>Opslaan</button></div></form>
-
-<form class="card" method="post" action="${ctx.base}/checkout"><input type="hidden" name="action" value="minimums">
-<h2>Minimum bestelbedrag</h2>
-<p class="muted small" style="margin-top:-6px">Onder dit bedrag kan de klant niet afrekenen: de leveringskost wordt wel berekend, maar de knop blijft dicht en de klant ziet hoeveel er nog bij moet. Bedrag = producten incl. btw, zonder levering. De eerste rij waar de afstand in past, telt.</p>
-<div class="scroll"><table class="editor"><thead><tr><th>Levering tot en met (km)</th><th>Minimum (€)</th><th></th></tr></thead><tbody>
-${minRows.map(
-  (m, i) => html`<tr><td><input name="m_upto" inputmode="decimal" value="${m ? show(m.upTo) : ""}" placeholder="${i === 0 ? "bv. 40" : "bv. 150"}" style="width:110px"></td>
-<td><input name="m_min" inputmode="decimal" value="${m ? show(m.min) : ""}" placeholder="${i === 0 ? "bv. 120" : "bv. 200"}" style="width:110px"></td>
-<td class="muted small">${m ? (i === 0 ? `0 – ${show(m.upTo)} km: minimum ${euro(m.min)}` : `${show(minRows[i - 1]!.upTo)} – ${show(m.upTo)} km: minimum ${euro(m.min)}`) : ""}</td></tr>`,
-)}</tbody></table></div>
-<div class="fields"><label>Minimum bij afhalen in Zele (€, leeg = geen)<input name="pickup_min" inputmode="decimal" value="${show(s.pickupMin)}"></label></div>
-<div class="actions" style="justify-content:flex-end"><button>Opslaan</button></div></form>
-
 </div>
 
 <div>
@@ -143,15 +131,16 @@ ${ruleRows.map(
 export async function checkoutPost(ctx: Ctx, form: FormData): Promise<Response> {
   const action = field(form, "action");
   if (action === "bands") {
-    const upto = form.getAll("b_upto").map(String), price = form.getAll("b_price").map(String), perkm = form.getAll("b_perkm").map(String);
+    const upto = form.getAll("b_upto").map(String), price = form.getAll("b_price").map(String), perkm = form.getAll("b_perkm").map(String), mins = form.getAll("b_min").map(String);
     const bands: Band[] = [];
     upto.forEach((u, i) => {
-      const [a, b, c] = [u.trim(), (price[i] ?? "").trim(), (perkm[i] ?? "").trim()];
-      if (!a && !b && !c) return;
+      const [a, b, c, d] = [u.trim(), (price[i] ?? "").trim(), (perkm[i] ?? "").trim(), (mins[i] ?? "").trim()];
+      if (!a && !b && !c && !d) return;
       if (!a || !b) throw new HttpError(400, `Schijf ${i + 1}: vul "tot en met km" en de vaste prijs in.`);
       const km = money(a, `Schijf ${i + 1} km`);
       if (km <= 0) throw new HttpError(400, `Schijf ${i + 1}: km moet groter dan 0 zijn.`);
-      bands.push({ upTo: km, price: money(b, `Schijf ${i + 1} prijs`), perKm: c ? money(c, `Schijf ${i + 1} per km`) : 0 });
+      const min = d ? money(d, `Schijf ${i + 1} minimum`) : 0;
+      bands.push({ upTo: km, price: money(b, `Schijf ${i + 1} prijs`), perKm: c ? money(c, `Schijf ${i + 1} per km`) : 0, min: min > 0 ? min : null });
     });
     if (new Set(bands.map((b) => b.upTo)).size !== bands.length) throw new HttpError(400, "Twee schijven met dezelfde km-grens.");
     const max = field(form, "max_km", 10), free = field(form, "free_above", 12);
@@ -188,20 +177,6 @@ export async function checkoutPost(ctx: Ctx, form: FormData): Promise<Response> 
     });
     rows.sort((a, b) => a.pos - b.pos);
     await saveCheckoutSettings(ctx.db, { rules: rows.map(({ pos: _pos, ...r }) => r) });
-    return seeOther(ctx, "/checkout", "saved");
-  }
-  if (action === "minimums") {
-    const upto = form.getAll("m_upto").map(String), min = form.getAll("m_min").map(String);
-    const minimums: MinRow[] = [];
-    upto.forEach((u, i) => {
-      const [a, b] = [u.trim(), (min[i] ?? "").trim()];
-      if (!a && !b) return;
-      if (!a || !b) throw new HttpError(400, `Minimum ${i + 1}: vul de km en het bedrag in.`);
-      minimums.push({ upTo: money(a, `Minimum ${i + 1} km`), min: money(b, `Minimum ${i + 1} bedrag`) });
-    });
-    if (new Set(minimums.map((m) => m.upTo)).size !== minimums.length) throw new HttpError(400, "Twee rijen met dezelfde km-grens.");
-    const pickup = field(form, "pickup_min", 12);
-    await saveCheckoutSettings(ctx.db, { minimums, pickupMin: pickup ? money(pickup, "Minimum bij afhalen") || null : null });
     return seeOther(ctx, "/checkout", "saved");
   }
   if (action === "msp") {

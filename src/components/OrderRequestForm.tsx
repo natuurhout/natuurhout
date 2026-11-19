@@ -2,6 +2,7 @@
 
 import { Send } from "lucide-react";
 import { useRef, useState } from "react";
+import { DeliveryMinimum, useDeliveryQuote } from "@/components/DeliveryCheck";
 import { formatPrice } from "@/lib/catalog";
 import { trackLead } from "@/lib/tracking";
 
@@ -12,7 +13,9 @@ import { trackLead } from "@/lib/tracking";
  * customer) and the customer gets a confirmation with the overview.
  * Natuurhout confirms by mail with payment details and the pick-up or
  * delivery arrangement, and for products not in stock ("op bestelling") the
- * delivery term.
+ * delivery term. Delivery follows the checkout's distance bands: below a
+ * band's minimum order value it cannot be chosen (DeliveryMinimum); pickup
+ * in Zele always can.
  */
 
 /** id: the variant id, so the server prices the order itself (worker/shop/). */
@@ -52,6 +55,11 @@ export default function OrderRequestForm({
   const [confirmed, setConfirmed] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const set = (patch: Partial<typeof f>) => setF((s) => ({ ...s, ...patch }));
+
+  // Only priced webshop variants count towards the delivery minimum.
+  const priced = lines.flatMap((l) => (typeof l.id === "number" && l.id > 0 ? [{ id: l.id, qty: l.qty }] : []));
+  const deliveryCheck = useDeliveryQuote(priced, f.postcode, f.city, f.delivery);
+  const belowMinimum = f.delivery && deliveryCheck !== null && deliveryCheck.short > 0;
 
   const errors: Record<string, string> = {};
   if (!f.name.trim()) errors.name = "Vul uw naam in.";
@@ -101,6 +109,7 @@ export default function OrderRequestForm({
       formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
       return;
     }
+    if (belowMinimum) return;
     const page = window.location.pathname;
     setStatus("sending");
     try {
@@ -203,7 +212,13 @@ export default function OrderRequestForm({
           <Field label="Gemeente *" error={shown.city}>
             <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
           </Field>
-          <p className="text-xs text-ink/55 sm:col-span-3">De leveringskosten hangen af van de locatie; we laten ze u weten.</p>
+          {belowMinimum && deliveryCheck ? (
+            <div className="sm:col-span-3">
+              <DeliveryMinimum result={deliveryCheck} onPickup={() => set({ delivery: false })} />
+            </div>
+          ) : (
+            <p className="text-xs text-ink/55 sm:col-span-3">De leveringskosten hangen af van de locatie; we laten ze u weten.</p>
+          )}
         </div>
       )}
       <Field label="Opmerking">
@@ -249,7 +264,7 @@ export default function OrderRequestForm({
       )}
       <button
         type="submit"
-        disabled={status === "sending"}
+        disabled={status === "sending" || belowMinimum}
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep disabled:opacity-60 sm:w-auto"
       >
         <Send className="h-4 w-4" />

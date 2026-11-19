@@ -4,14 +4,17 @@
  *
  *   distance  road km from the yard in Zele per Belgian postcode
  *             (data/be-postcodes.json, scripts/build-delivery-distances.mjs)
- *   bands     "up to N km: € fixed + € per km", the first band that fits counts
+ *   bands     "up to N km: € fixed + € per km", the first band that fits counts;
+ *             each band can set a minimum order value for delivery (products
+ *             incl. btw, without delivery): below it delivery is not offered
+ *             and the customer sees how much is missing
  *   max km    further than this (or past the last band): no delivery via the webshop
  *   rules     run top to bottom: when <condition> then <effect>, e.g.
  *             "more than 40 poles: + € 25", "order from € 750: free",
  *             "contains gates: pickup or quote only"
  *   free above / round up to whole euros
  *
- * Pickup in Zele is always free. Nothing here trusts the browser: the
+ * Pickup in Zele is always free and always possible. Nothing here trusts the browser: the
  * checkout calls deliveryQuote() with the server-priced basket.
  */
 
@@ -19,9 +22,8 @@ import distances from "./data/be-postcodes.json";
 import { collections } from "../../src/lib/catalog";
 import type { MspMode } from "./msp";
 
-export type Band = { upTo: number; price: number; perKm: number };
-/** Minimum order value (products incl. btw, without delivery) for deliveries up to `upTo` km. */
-export type MinRow = { upTo: number; min: number };
+/** `min`: minimum order value (products incl. btw, without delivery) to deliver in this band; null = none. */
+export type Band = { upTo: number; price: number; perKm: number; min: number | null };
 export const RULE_WHEN = {
   always: "Altijd",
   total_min: "Bestelbedrag vanaf (€)",
@@ -55,9 +57,6 @@ export type CheckoutSettings = {
   freeAbove: number | null;
   roundUp: boolean;
   rules: Rule[];
-  minimums: MinRow[];
-  /** Minimum order value for pickup in Zele (null: none). */
-  pickupMin: number | null;
   mspMode: MspMode;
 };
 
@@ -66,7 +65,7 @@ const POSTCODES = (distances as { postcodes: Record<string, PostcodeRow> }).post
 export const DISTANCE_INFO = { yard: (distances as { yard: { label: string } }).yard.label, about: (distances as { _about: string })._about, count: Object.keys(POSTCODES).length };
 export const COLLECTIONS = collections.map((c) => ({ handle: c.handle, title: c.title, products: new Set(c.products) }));
 
-const KEYS = ["delivery_bands", "delivery_max_km", "delivery_free_above", "delivery_round", "delivery_rules", "delivery_minimums", "pickup_min", "msp_mode"] as const;
+const KEYS = ["delivery_bands", "delivery_max_km", "delivery_free_above", "delivery_round", "delivery_rules", "msp_mode"] as const;
 
 function parseJson<T>(raw: string | undefined, ok: (x: unknown) => x is T): T[] {
   try {
@@ -90,19 +89,16 @@ export async function getCheckoutSettings(db: D1Database): Promise<CheckoutSetti
   const bands = parseJson(v.get("delivery_bands"), (b): b is Band => {
     const x = b as Band;
     return Boolean(x) && x.upTo > 0 && x.price >= 0 && x.perKm >= 0;
-  }).sort((a, b) => a.upTo - b.upTo);
+  })
+    // Bands saved before the minimum existed have no `min`.
+    .map((b) => ({ ...b, min: typeof b.min === "number" && b.min > 0 ? b.min : null }))
+    .sort((a, b) => a.upTo - b.upTo);
   const rules = parseJson(v.get("delivery_rules"), (r): r is Rule => {
     const x = r as Rule;
     return Boolean(x) && x.when in RULE_WHEN && x.effect in RULE_EFFECT;
   });
-  const minimums = parseJson(v.get("delivery_minimums"), (m): m is MinRow => {
-    const x = m as MinRow;
-    return Boolean(x) && x.upTo > 0 && x.min >= 0;
-  }).sort((a, b) => a.upTo - b.upTo);
   return {
     bands,
-    minimums,
-    pickupMin: num(v.get("pickup_min")),
     maxKm: num(v.get("delivery_max_km")),
     freeAbove: num(v.get("delivery_free_above")),
     roundUp: v.get("delivery_round") === "1",
@@ -119,8 +115,6 @@ export async function saveCheckoutSettings(db: D1Database, s: Partial<CheckoutSe
   if ("freeAbove" in s) stmts.push(put("delivery_free_above", s.freeAbove ? String(s.freeAbove) : ""));
   if ("roundUp" in s) stmts.push(put("delivery_round", s.roundUp ? "1" : ""));
   if (s.rules) stmts.push(put("delivery_rules", JSON.stringify(s.rules)));
-  if (s.minimums) stmts.push(put("delivery_minimums", JSON.stringify([...s.minimums].sort((a, b) => a.upTo - b.upTo))));
-  if ("pickupMin" in s) stmts.push(put("pickup_min", s.pickupMin ? String(s.pickupMin) : ""));
   if (s.mspMode) stmts.push(put("msp_mode", s.mspMode));
   if (stmts.length) await db.batch(stmts);
 }
@@ -128,9 +122,12 @@ export async function saveCheckoutSettings(db: D1Database, s: Partial<CheckoutSe
 export type Basket = { subtotal: number; lines: { handle: string; qty: number }[] };
 export type DeliveryQuote =
   | { ok: true; price: number; km: number; place: string; steps: string[]; minimum: number | null }
-  | { ok: false; reason: string; km?: number; place?: string; steps: string[] };
+  /** `minimum`/`short`: only when the order is below the band's minimum for delivery. */
+  | { ok: false; reason: string; km?: number; place?: string; steps: string[]; minimum?: number; short?: number };
 
 const euro = (n: number) => `€ ${n.toFixed(2).replace(".", ",")}`;
+/** "€200" for whole euros, "€12,50" otherwise (customer-facing messages). */
+export const euroShort = (n: number) => `€${Number.isInteger(n) ? String(n) : n.toFixed(2).replace(".", ",")}`;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Distance and place for a postcode; `city` picks the matching place name when it is one of them. */
@@ -166,13 +163,6 @@ function matches(rule: Rule, km: number, basket: Basket): boolean {
   }
 }
 
-/** Minimum order value for a delivery distance (km) or for pickup (null). */
-export function minimumFor(s: CheckoutSettings, km: number | null): { min: number; upTo: number | null } | null {
-  if (km === null) return s.pickupMin ? { min: s.pickupMin, upTo: null } : null;
-  const row = s.minimums.find((m) => km <= m.upTo);
-  return row && row.min > 0 ? { min: row.min, upTo: row.upTo } : null;
-}
-
 export function deliveryQuote(s: CheckoutSettings, postcode: string, city: string, basket: Basket): DeliveryQuote {
   const steps: string[] = [];
   const where = lookupPostcode(postcode, city);
@@ -184,6 +174,20 @@ export function deliveryQuote(s: CheckoutSettings, postcode: string, city: strin
   if (s.maxKm !== null && km > s.maxKm) return quoteOnly(`Dat is verder dan ${s.maxKm} km.`);
   const band = s.bands.find((b) => km <= b.upTo);
   if (!band) return quoteOnly(`Dat is verder dan ${s.bands[s.bands.length - 1].upTo} km.`);
+  if (band.min !== null && basket.subtotal < band.min) {
+    const short = round2(band.min - basket.subtotal);
+    steps.push(`Minimum bestelbedrag voor levering tot ${band.upTo} km: ${euro(band.min)}, nog ${euro(short)} te gaan: geen levering`);
+    return {
+      ok: false,
+      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${postcode} ${place}. Levering op deze afstand kan vanaf ${euroShort(band.min)}. Afhalen in Zele kan altijd.`,
+      km,
+      place,
+      steps,
+      minimum: band.min,
+      short,
+    };
+  }
+  if (band.min !== null) steps.push(`Minimum bestelbedrag voor levering tot ${band.upTo} km: ${euro(band.min)} (gehaald)`);
   let price = band.price + band.perKm * km;
   steps.push(`Schijf tot ${band.upTo} km: ${euro(band.price)}${band.perKm ? ` + ${euro(band.perKm)} × ${String(km).replace(".", ",")} km` : ""} = ${euro(round2(price))}`);
 
@@ -215,7 +219,5 @@ export function deliveryQuote(s: CheckoutSettings, postcode: string, city: strin
     price = Math.ceil(price);
     steps.push(`Afgerond naar ${euro(price)}`);
   }
-  const minimum = minimumFor(s, km);
-  if (minimum) steps.push(`Minimum bestelbedrag tot ${minimum.upTo} km: ${euro(minimum.min)}${basket.subtotal < minimum.min ? ` (nog ${euro(round2(minimum.min - basket.subtotal))} te gaan)` : " (gehaald)"}`);
-  return { ok: true, price, km, place, steps, minimum: minimum?.min ?? null };
+  return { ok: true, price, km, place, steps, minimum: band.min };
 }
