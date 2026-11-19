@@ -68,13 +68,13 @@ export default function OrderRequestForm({
     fromBox.current = place;
     setF((s) => {
       const untouched = !s.postcode.trim() || (last !== null && s.postcode === last.postcode && s.city === last.city);
-      return untouched ? { ...s, postcode: place.postcode, city: place.city || s.city } : s;
+      return untouched ? { ...s, postcode: place.postcode, city: place.city } : s;
     });
   }, [place]);
 
   // Only priced webshop variants count towards the delivery minimum.
   const priced = lines.flatMap((l) => (typeof l.id === "number" && l.id > 0 ? [{ id: l.id, qty: l.qty }] : []));
-  const deliveryCheck = useDeliveryQuote(priced, f.postcode, f.city);
+  const { result: deliveryCheck } = useDeliveryQuote(priced, f.postcode, f.city);
   const deliveryBlocked = deliveryCheck !== null && !deliveryCheck.deliverable;
   const belowMinimum = f.delivery && deliveryBlocked;
   useEffect(() => {

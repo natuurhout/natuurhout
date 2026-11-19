@@ -110,7 +110,7 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
   if (wantsDelivery) {
     const q = deliveryQuote(settings, postcode, city, { subtotal, lines: lines.map((l) => ({ handle: l.handle, qty: l.qty })) });
     delivery = q.ok
-      ? { ok: true, price: q.price, label: `${postcode} ${q.place}`, km: q.km, reason: "" }
+      ? { ok: true, price: q.price, label: q.place ? `${postcode} ${q.place}` : postcode, km: q.km, reason: "" }
       : { ok: false, price: 0, label: q.place ? `${postcode} ${q.place}` : postcode, km: q.km ?? null, reason: q.reason };
     minimum = q.minimum ?? null;
     short = q.ok ? 0 : (q.short ?? 0);
@@ -263,7 +263,7 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
     );
   const lines: NewLine[] = p.lines.map(({ id: _id, image: _image, ...l }) => l);
   if (wantsDelivery && p.delivery?.ok && p.delivery.price > 0)
-    lines.push({ variant_id: null, handle: "", product: "Levering", label: `Levering ${p.delivery.label} (${String(p.delivery.km).replace(".", ",")} km)`, qty: 1, unit: p.delivery.price, note: "" });
+    lines.push({ variant_id: null, handle: "", product: "Levering", label: `Levering ${p.delivery.label === customer.postcode ? `${customer.postcode} ${customer.city}` : p.delivery.label} (${String(p.delivery.km).replace(".", ",")} km)`, qty: 1, unit: p.delivery.price, note: "" });
 
   const at = now();
   const contactId = await upsertContact(db, customer, at);

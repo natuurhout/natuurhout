@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Store, Truck } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 
@@ -26,9 +26,56 @@ export type DeliveryResult = {
   short: number;
 };
 
-/** Asks the Worker for delivery to `postcode` (4 digits) for these lines; null while unknown. */
-export function useDeliveryQuote(lines: { id: number; qty: number }[], postcode: string, city: string, enabled = true): DeliveryResult | null {
+/**
+ * POST /api/afrekenen/prijs/, tried a second time after a short pause when it
+ * fails (not when aborted). Throws the HTTP status (0: no connection).
+ */
+export async function postPrice<T>(body: unknown, signal: AbortSignal): Promise<T> {
+  let status = 0;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 1200));
+    if (signal.aborted) break;
+    try {
+      const r = await fetch("/api/afrekenen/prijs/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal,
+        cache: "no-store",
+      });
+      if (r.ok) return (await r.json()) as T;
+      status = r.status;
+    } catch (error) {
+      if (signal.aborted) break;
+      status = 0;
+      void error;
+    }
+  }
+  throw new PriceError(signal.aborted ? -1 : status);
+}
+export class PriceError extends Error {
+  constructor(public status: number) {
+    super(`price ${status}`);
+  }
+}
+
+/** Why a price could not be fetched, for the customer. */
+export const priceFailure = (status: number) =>
+  `Dat lukte niet${status > 0 ? ` (fout ${status})` : " (geen verbinding)"}. Probeer opnieuw of bel ons.`;
+
+export type DeliveryQuoteState = {
+  /** null while unknown (no 4-digit postcode yet, or the first answer is on its way). */
+  result: DeliveryResult | null;
+  /** The HTTP status of the last failed attempt (0: no connection), or null. */
+  failed: number | null;
+  retry: () => void;
+};
+
+/** Asks the Worker for delivery to `postcode` (4 digits) for these lines. */
+export function useDeliveryQuote(lines: { id: number; qty: number }[], postcode: string, city: string, enabled = true): DeliveryQuoteState {
   const [result, setResult] = useState<DeliveryResult | null>(null);
+  const [failed, setFailed] = useState<number | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const key = JSON.stringify(lines);
   const pc = postcode.trim();
   const ready = enabled && /^\d{4}$/.test(pc) && lines.length > 0;
@@ -36,27 +83,45 @@ export function useDeliveryQuote(lines: { id: number; qty: number }[], postcode:
   useEffect(() => {
     if (!ready) {
       setResult(null);
+      setFailed(null);
       return;
     }
     const ctrl = new AbortController();
     const timer = setTimeout(() => {
-      fetch("/api/afrekenen/prijs/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines: JSON.parse(key), delivery: true, postcode: pc, city: city.trim() }),
-        signal: ctrl.signal,
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((q: DeliveryResult | null) => setResult(q))
-        .catch(() => {});
-    }, 300);
+      postPrice<DeliveryResult>({ lines: JSON.parse(key), delivery: true, postcode: pc, city: city.trim() }, ctrl.signal)
+        .then((q) => {
+          setResult(q);
+          setFailed(null);
+        })
+        .catch((e: unknown) => {
+          if (e instanceof PriceError && e.status >= 0) setFailed(e.status);
+        });
+    }, 350);
     return () => {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [ready, key, pc, city]);
+  }, [ready, key, pc, city, attempt]);
 
-  return ready ? result : null;
+  const retry = useCallback(() => {
+    setFailed(null);
+    setAttempt((n) => n + 1);
+  }, []);
+  // An answer for another postcode is not shown as this one's.
+  const current = ready && result?.delivery?.label.startsWith(pc) ? result : null;
+  return { result: current, failed: ready ? failed : null, retry };
+}
+
+/** "Dat lukte niet (fout 403). … [Opnieuw proberen]" */
+export function PriceFailure({ status, onRetry, className = "" }: { status: number; onRetry: () => void; className?: string }) {
+  return (
+    <p role="alert" className={`text-red-700 ${className}`}>
+      {priceFailure(status)}{" "}
+      <button type="button" onClick={onRetry} className="font-semibold underline underline-offset-2 hover:text-ink">
+        Opnieuw proberen
+      </button>
+    </p>
+  );
 }
 
 /** Below the band's minimum: what is missing, a progress bar, and that pickup always works. */
@@ -125,17 +190,19 @@ export function DeliveryEstimator({
 }) {
   const [postcode, setPostcode] = useState("");
   const [city, setCity] = useState("");
-  const result = useDeliveryQuote(lines, postcode, city);
+  const { result, failed, retry } = useDeliveryQuote(lines, postcode, city);
   const ready = /^\d{4}$/.test(postcode.trim());
   const field =
     "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15";
 
   const d = result?.delivery;
   // Hand on the place that belongs to the postcode (as the Worker found it), not a stale typed one.
-  const resolved = d?.label.startsWith(postcode.trim()) ? d.label.slice(postcode.trim().length).trim() : "";
+  // ("" when several places share the postcode and none was typed).
+  const answered = Boolean(d);
+  const resolved = d ? d.label.slice(postcode.trim().length).trim() : "";
   useEffect(() => {
-    if (ready && resolved) onPostcode?.(postcode.trim(), resolved);
-  }, [ready, postcode, resolved, onPostcode]);
+    if (ready && answered) onPostcode?.(postcode.trim(), resolved);
+  }, [ready, answered, postcode, resolved, onPostcode]);
 
   return (
     <section aria-labelledby="leveringskost" className="mt-4 rounded-card border border-line bg-white p-4 sm:p-5">
@@ -157,7 +224,9 @@ export function DeliveryEstimator({
       </div>
 
       <div className="mt-3" aria-live="polite">
-        {!ready ? null : !result || !d ? (
+        {!ready ? null : failed !== null && !result ? (
+          <PriceFailure status={failed} onRetry={retry} className="text-sm" />
+        ) : !result || !d ? (
           <p className="text-sm text-ink/55">Even berekenen…</p>
         ) : result.short > 0 ? (
           <DeliveryMinimum result={result} />

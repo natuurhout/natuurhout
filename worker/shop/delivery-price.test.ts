@@ -83,3 +83,9 @@ test("the minimum counts at the exact amount", () => {
 test("free delivery wins over band and region", () => {
   assert.equal(price(quote(90, "2000", 2800)), 0);
 });
+
+test("without a place the messages name only the postcode", () => {
+  const q = priceDelivery(settings, { postcode: "8000", place: "", km: 78 }, { subtotal: 100, lines: [] });
+  assert.equal(q.ok, false);
+  if (!q.ok) assert.equal(q.reason, "Nog €200 bijbestellen voor levering naar 8000. Levering op deze afstand kan vanaf €300. Afhalen in Zele kan altijd.");
+});

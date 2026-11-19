@@ -115,7 +115,9 @@ export function lookupPostcode(postcode: string, city = ""): { km: number; place
   const row = /^\d{4}$/.test(pc) ? POSTCODES[pc] : undefined;
   if (!row) return null;
   const typed = city.trim().toLowerCase();
-  const place = row.n.find((n) => n.toLowerCase() === typed) ?? row.n[0];
+  // Several places share a postcode (8000: Koolkerke, Brugge): name one only
+  // when it is the only one or the customer typed it, never a guess.
+  const place = row.n.find((n) => n.toLowerCase() === typed) ?? (row.n.length === 1 ? row.n[0] : "");
   return { km: row.km, place, places: row.n };
 }
 

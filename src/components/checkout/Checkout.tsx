@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Landmark, Lock, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
-import { DeliveryLine, DeliveryMinimum, useDeliveryQuote } from "@/components/DeliveryCheck";
+import { DeliveryLine, DeliveryMinimum, PriceError, PriceFailure, postPrice, useDeliveryQuote, type DeliveryResult } from "@/components/DeliveryCheck";
 import { setCartQty, useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { ADDRESS, PHONE } from "@/lib/contact";
@@ -102,31 +102,45 @@ export default function Checkout() {
   const city = f.city.trim();
 
   // Server prices + delivery, refreshed when the basket, delivery or postcode changes.
+  const [quoteFailed, setQuoteFailed] = useState<number | null>(null);
+  const [quoteAttempt, setQuoteAttempt] = useState(0);
   useEffect(() => {
     if (!cart.length) return;
     const ctrl = new AbortController();
     const timer = setTimeout(() => {
-      fetch("/api/afrekenen/prijs/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines: JSON.parse(basketKey), delivery, postcode, city }),
-        signal: ctrl.signal,
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((q: Quote | null) => q && setQuote(q))
-        .catch(() => {});
-    }, 250);
+      postPrice<Quote>({ lines: JSON.parse(basketKey), delivery, postcode, city }, ctrl.signal)
+        .then((q) => {
+          setQuote(q);
+          setQuoteFailed(null);
+        })
+        .catch((e: unknown) => {
+          if (e instanceof PriceError && e.status >= 0) setQuoteFailed(e.status);
+        });
+    }, 300);
     return () => {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [basketKey, delivery, postcode, city, cart.length]);
+  }, [basketKey, delivery, postcode, city, cart.length, quoteAttempt]);
+  const retryQuote = () => {
+    setQuoteFailed(null);
+    setQuoteAttempt((n) => n + 1);
+  };
 
   // Can we deliver to this postcode for this basket? Asked as soon as the
   // postcode is known, whatever is chosen: below the minimum order value (or
   // too far) "Leveren" is greyed out and pickup is chosen; pickup always works.
-  const availability = useDeliveryQuote(basket, postcode, city);
+  // With "Leveren" chosen the quote above already answers it (one request,
+  // not two); with pickup chosen it is asked separately.
+  const pickupCheck = useDeliveryQuote(basket, postcode, city, !delivery);
+  const fromQuote: DeliveryResult | null =
+    delivery && /^\d{4}$/.test(postcode) && quote?.delivery?.label.startsWith(postcode) ? quote : null;
+  const availability = delivery ? fromQuote : pickupCheck.result;
+  const availabilityFailed = delivery ? quoteFailed : pickupCheck.failed;
+  const retryAvailability = delivery ? retryQuote : pickupCheck.retry;
   const deliveryBlocked = availability !== null && !availability.deliverable;
+  // The delivery box shows the failure itself (then not again under the total).
+  const boxFailed = /^\d{4}$/.test(postcode) && availabilityFailed !== null && !availability;
   // Once delivery is possible again (another postcode, more in the basket),
   // "Leveren" comes back, unless the customer chose pickup themselves.
   const autoPickup = useRef(false);
@@ -147,14 +161,16 @@ export default function Checkout() {
   // The place the Worker found for the postcode fills an empty Gemeente, and
   // keeps following the postcode as long as the customer has not typed their own.
   const autoCity = useRef("");
+  // ("" when several places share the postcode and none was typed: then the customer types it).
   const placeLabel = availability?.delivery?.label ?? "";
-  const found = postcode && placeLabel.startsWith(postcode) ? placeLabel.slice(postcode.length).trim() : "";
+  const answeredHere = postcode !== "" && placeLabel.startsWith(postcode);
+  const found = answeredHere ? placeLabel.slice(postcode.length).trim() : "";
   useEffect(() => {
-    if (!found) return;
+    if (!answeredHere) return;
     const last = autoCity.current;
     autoCity.current = found;
     setF((s) => (!s.city.trim() || s.city === last ? { ...s, city: found } : s));
-  }, [found]);
+  }, [answeredHere, found, postcode]);
 
   const errors: Record<string, string> = {};
   if (!EMAIL.test(f.email.trim())) errors.email = "Vul een geldig e-mailadres in.";
@@ -278,6 +294,8 @@ export default function Checkout() {
         <div aria-live="polite" className="mt-2 text-xs leading-5 text-ink/65">
           {!/^\d{4}$/.test(postcode) ? (
             <p>Vul uw postcode in: u ziet meteen wat levering kost en of er een minimumbedrag geldt.</p>
+          ) : boxFailed ? (
+            <PriceFailure status={availabilityFailed} onRetry={retryAvailability} />
           ) : !availability?.delivery ? (
             <p>Even berekenen…</p>
           ) : availability.delivery.ok ? (
@@ -336,6 +354,7 @@ export default function Checkout() {
         </div>
         {quote && <p className="text-right text-xs text-ink/55">incl. {formatPrice(quote.vat)} btw (21%)</p>}
       </dl>
+      {quoteFailed !== null && !(delivery && boxFailed) && <PriceFailure status={quoteFailed} onRetry={retryQuote} className="text-sm" />}
     </div>
   );
 

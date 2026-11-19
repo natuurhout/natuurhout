@@ -113,7 +113,8 @@ function matches(rule: Rule, km: number, basket: Basket, inCollection: InCollect
 
 export function priceDelivery(s: PriceSettings, where: Where, basket: Basket, inCollection: InCollection = () => false): DeliveryQuote {
   const { postcode, place, km } = where;
-  const steps: string[] = [`${postcode} ${place}: ${km.toLocaleString("nl-BE")} km vanaf Zele`];
+  const at = place ? `${postcode} ${place}` : postcode;
+  const steps: string[] = [`${at}: ${km.toLocaleString("nl-BE")} km vanaf Zele`];
   const pickupOnly = (reason: string) => ({ ok: false as const, reason, km, place, steps });
   const bands = [...s.bands].sort((a, b) => a.upTo - b.upTo);
   if (!bands.length) return pickupOnly("Levering via de webshop is nog niet ingesteld.");
@@ -121,7 +122,7 @@ export function priceDelivery(s: PriceSettings, where: Where, basket: Basket, in
   const band = km <= reach ? bands.find((b) => km <= b.upTo) : undefined;
   if (!band) {
     steps.push(`Verder dan ${reach} km: geen levering`);
-    return pickupOnly(`We leveren tot ${reach} km van Zele; ${postcode} ${place} ligt op ${Math.round(km)} km. Afhalen in Zele kan altijd.`);
+    return pickupOnly(`We leveren tot ${reach} km van Zele; ${at} ligt op ${Math.round(km)} km. Afhalen in Zele kan altijd.`);
   }
 
   // 2. Minimum order value for this distance.
@@ -131,7 +132,7 @@ export function priceDelivery(s: PriceSettings, where: Where, basket: Basket, in
     steps.push(`Minimum bestelbedrag voor levering op ${km.toLocaleString("nl-BE")} km: ${euro(minimum)}, nog ${euro(short)} te gaan: geen levering`);
     return {
       ok: false,
-      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${postcode} ${place}. Levering op deze afstand kan vanaf ${euroShort(minimum)}. Afhalen in Zele kan altijd.`,
+      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${at}. Levering op deze afstand kan vanaf ${euroShort(minimum)}. Afhalen in Zele kan altijd.`,
       km,
       place,
       steps,
