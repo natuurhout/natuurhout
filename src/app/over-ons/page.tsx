@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import { getLegacyPageByPath, type LegacyBlock } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
 
@@ -10,7 +11,8 @@ import { QUOTE_HREF } from "@/lib/navigation";
  * "Over ons", rebuilt (handbuilt-routes.json, preserveContent): the text now
  * opens the page and the photos sit between the sections, instead of a wall
  * of 150px thumbnails above the text. Every heading, paragraph, photo and
- * photo link of the frozen snapshot is still on the page, verbatim.
+ * photo link of the frozen snapshot is still on the page, verbatim. A photo
+ * opens large in a pop-up (PhotoLightbox) with the others, not in a new tab.
  */
 const page = getLegacyPageByPath("/over-ons/");
 
@@ -44,6 +46,9 @@ const WORKSHOP: Photo[] = [
   photo("2015/02/8613561581_dea58309f2.jpg", "Lossen van een vracht kastanjehout"),
 ];
 
+/** Every linked photo in page order: each opens the pop-up viewer at its place. */
+const ALL: Photo[] = [...STOCK, MAKER, DELIVERY, ...WORKSHOP];
+
 /*
  * The team (portraits supplied by Natuurhout, public/fotos/team/). Add a name
  * and role per person to show them under the photo.
@@ -74,7 +79,7 @@ function Paragraphs({ blocks }: { blocks: LegacyBlock[] }) {
 
 function Figure({ photo: p, className = "", sizes }: { photo: Photo; className?: string; sizes: string }) {
   return (
-    <a href={p.src} target="_blank" rel="noopener" className={`group relative block overflow-hidden rounded-card bg-brand-soft ${className}`}>
+    <a href={p.src} data-lightbox-index={ALL.indexOf(p)} className={`group relative block cursor-zoom-in overflow-hidden rounded-card bg-brand-soft ${className}`}>
       <Image src={p.src} alt={p.alt} fill sizes={sizes} className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
     </a>
   );
@@ -194,6 +199,7 @@ export default function AboutPage() {
           </Link>
         </div>
       </div>
+      <PhotoLightbox photos={ALL} />
     </div>
   );
 }
