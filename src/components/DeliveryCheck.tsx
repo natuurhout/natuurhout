@@ -109,3 +109,76 @@ export function DeliveryLine({ result }: { result: DeliveryResult }) {
     </p>
   );
 }
+
+/*
+ * "Leveringskost berekenen" in the winkelmandje: a postcode (and optionally
+ * the municipality) gives the delivery price for the basket right away, and
+ * the minimum order value for delivery there, reached or not. `onPostcode`
+ * hands the postcode on (the order form below starts from it).
+ */
+export function DeliveryEstimator({
+  lines,
+  onPostcode,
+}: {
+  lines: { id: number; qty: number }[];
+  onPostcode?: (postcode: string, city: string) => void;
+}) {
+  const [postcode, setPostcode] = useState("");
+  const [city, setCity] = useState("");
+  const result = useDeliveryQuote(lines, postcode, city);
+  const ready = /^\d{4}$/.test(postcode.trim());
+  const field =
+    "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15";
+
+  const d = result?.delivery;
+  // Hand on the place that belongs to the postcode (as the Worker found it), not a stale typed one.
+  const resolved = d?.label.startsWith(postcode.trim()) ? d.label.slice(postcode.trim().length).trim() : "";
+  useEffect(() => {
+    if (ready && resolved) onPostcode?.(postcode.trim(), resolved);
+  }, [ready, postcode, resolved, onPostcode]);
+
+  return (
+    <section aria-labelledby="leveringskost" className="mt-4 rounded-card border border-line bg-white p-4 sm:p-5">
+      <h2 id="leveringskost" className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+        <Truck aria-hidden className="h-5 w-5 text-accent" /> Leveringskost berekenen
+      </h2>
+      <p className="mt-1 text-sm text-ink/60">Vul uw postcode in: u ziet meteen wat levering kost en of er een minimumbedrag geldt.</p>
+      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-2.5">
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium text-ink">Postcode</span>
+          <input className={field} inputMode="numeric" maxLength={4} autoComplete="postal-code" placeholder="bv. 9000" value={postcode} onChange={(e) => setPostcode(e.target.value.replace(/\D/g, ""))} />
+        </label>
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium text-ink">
+            Gemeente <span className="font-normal text-ink/50">(optioneel)</span>
+          </span>
+          <input className={field} autoComplete="address-level2" value={city} onChange={(e) => setCity(e.target.value)} />
+        </label>
+      </div>
+
+      <div className="mt-3" aria-live="polite">
+        {!ready ? null : !result || !d ? (
+          <p className="text-sm text-ink/55">Even berekenen…</p>
+        ) : result.short > 0 ? (
+          <DeliveryMinimum result={result} />
+        ) : d.ok ? (
+          <div className="rounded-xl bg-brand-soft/60 px-4 py-3 text-sm leading-6 text-ink/80">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-3">
+              <span>
+                Levering naar <strong className="text-ink">{d.label}</strong>
+                {d.km !== null ? ` (± ${Math.round(d.km)} km)` : ""}
+              </span>
+              <strong className="text-lg text-ink">{d.price === 0 ? "Gratis" : formatPrice(d.price)}</strong>
+            </p>
+            <p className="mt-0.5 text-ink/65">
+              {result.minimum !== null ? `Minimum voor levering hier: ${euroShort(result.minimum)}, dat haalt u.` : "Geen minimumbedrag voor levering hier."}
+            </p>
+          </div>
+        ) : (
+          <DeliveryLine result={result} />
+        )}
+        {ready && <p className="mt-2 flex items-center gap-1.5 text-xs text-ink/55"><Store aria-hidden className="h-3.5 w-3.5" /> Afhalen in Zele is altijd gratis.</p>}
+      </div>
+    </section>
+  );
+}

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ArrowLeft, Clock, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { DeliveryEstimator } from "@/components/DeliveryCheck";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
@@ -10,8 +11,9 @@ import { orderTerm } from "@/lib/made-to-order";
 
 /*
  * /winkelmandje/: everything chosen on the price lists, with quantities to
- * change, and one order form that sends it all (OrderRequestForm). Once the
- * order arrived, the basket empties.
+ * change, a "Leveringskost berekenen" box (price and minimum for a postcode,
+ * DeliveryEstimator) and one order form that sends it all (OrderRequestForm),
+ * which starts from that postcode. Once the order arrived, the basket empties.
  */
 
 // Request-only price lists that live on another product's page.
@@ -39,6 +41,9 @@ function Qty({ line }: { line: CartLine }) {
 export default function CartView() {
   const cart = useCart();
   const [sent, setSent] = useState<{ onOrder: boolean } | null>(null);
+  const [place, setPlace] = useState<{ postcode: string; city: string } | null>(null);
+  const onPostcode = useCallback((postcode: string, city: string) => setPlace({ postcode, city }), []);
+  const priced = cart.filter((l) => l.id > 0).map((l) => ({ id: l.id, qty: l.qty }));
   const onOrder = cart.filter((l) => !l.available);
   const notes = [...new Set(onOrder.map((l) => orderTerm(l.handle).note))];
   const requestLines: RequestLine[] = cart.map((l) => ({
@@ -111,7 +116,7 @@ export default function CartView() {
             </span>
             <span className="text-xl font-semibold tabular-nums">{formatPrice(cartTotal(cart))}</span>
           </div>
-          <p className="mt-2 text-xs leading-5 text-ink/55">Levering mogelijk: de kosten hangen af van de locatie. Afhalen kan in Zele.</p>
+          <DeliveryEstimator lines={priced} onPostcode={onPostcode} />
           {notes.length > 0 && (
             <div className="mt-4 flex gap-2 rounded-xl border border-accent/25 bg-accent/5 px-3.5 py-3 text-sm leading-6 text-ink/80">
               <Clock aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent-deep" />
@@ -139,6 +144,7 @@ export default function CartView() {
         <OrderRequestForm
           lines={requestLines}
           onOrder={sent ? sent.onOrder : onOrder.length > 0}
+          place={place}
           onSent={() => {
             setSent({ onOrder: onOrder.length > 0 });
             clearCart();

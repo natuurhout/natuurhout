@@ -41,12 +41,15 @@ export default function OrderRequestForm({
   lines,
   onOrder,
   onSent,
+  place,
 }: {
   lines: RequestLine[];
   /** Some lines are not in stock. */
   onOrder: boolean;
   /** After the order arrived (the winkelmandje empties itself). */
   onSent?: () => void;
+  /** Postcode the customer already gave (the winkelmandje's delivery cost box): fills an empty postcode. */
+  place?: { postcode: string; city: string } | null;
 }) {
   const [f, setF] = useState({ name: "", email: "", phone: "", delivery: false, street: "", postcode: "", city: "", remarks: "" });
   const [agreed, setAgreed] = useState(false);
@@ -56,6 +59,17 @@ export default function OrderRequestForm({
   const [confirmed, setConfirmed] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const set = (patch: Partial<typeof f>) => setF((s) => ({ ...s, ...patch }));
+  // Follow the delivery cost box while the customer has not typed another postcode here.
+  const fromBox = useRef<{ postcode: string; city: string } | null>(null);
+  useEffect(() => {
+    if (!place) return;
+    setF((s) => {
+      const last = fromBox.current;
+      const untouched = !s.postcode.trim() || (last !== null && s.postcode === last.postcode && s.city === last.city);
+      return untouched ? { ...s, postcode: place.postcode, city: place.city || s.city } : s;
+    });
+    fromBox.current = place;
+  }, [place]);
 
   // Only priced webshop variants count towards the delivery minimum.
   const priced = lines.flatMap((l) => (typeof l.id === "number" && l.id > 0 ? [{ id: l.id, qty: l.qty }] : []));
