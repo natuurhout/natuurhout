@@ -132,9 +132,15 @@ historical).
   built by `scripts/build-delivery-distances.mjs` from GeoNames + OSRM; rerun only if the yard
   moves): distance bands, max km, free-above, rounding and rules (surcharges, discounts, free,
   pickup only) are set in the backend tab **Checkout** (`worker/admin/shop-checkout.ts`, with a
-  tester). No bands = pickup only. Each band has an optional minimum order value for delivery
-  (products incl. btw, without delivery; column "Minimum voor levering"): below it delivery cannot be
-  chosen and the winkelmandje's order form and /afrekenen/ show "Nog €X bijbestellen…" with a
+  tester). No bands = pickup only. The card "Prijs per afstand" also holds the minimum order value
+  per distance (own km rows; products incl. btw, without delivery), the region corrections per
+  postcode range (added to the band price, may be negative) and "Leveringsprijs nooit onder".
+  Calculation order: max distance → minimum → band + region → rules → free above (wins) → floor →
+  rounding. The pure calculation is `worker/shop/delivery-price.ts`, tested by `npm test`
+  (`delivery-price.test.ts`, Node's test runner, also run by the deploy workflow). Migration 6 wrote
+  the November 2026 values once (`worker/shop/delivery-defaults.ts`); the backend owns them since.
+  Below the minimum (or past the maximum distance) "Leveren" is greyed out as soon as the postcode
+  is known, and the winkelmandje's order form and /afrekenen/ show "Nog €X bijbestellen…" with a
   progress bar (`src/components/DeliveryCheck.tsx`, via `/api/afrekenen/prijs/`). Pickup in Zele has
   no minimum and is always possible.
   A payment only counts when MultiSafepay's API says `completed` (webhook

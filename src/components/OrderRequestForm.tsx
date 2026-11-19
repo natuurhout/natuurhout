@@ -1,8 +1,8 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { useRef, useState } from "react";
-import { DeliveryMinimum, useDeliveryQuote } from "@/components/DeliveryCheck";
+import { useEffect, useRef, useState } from "react";
+import { DeliveryLine, DeliveryMinimum, useDeliveryQuote } from "@/components/DeliveryCheck";
 import { formatPrice } from "@/lib/catalog";
 import { trackLead } from "@/lib/tracking";
 
@@ -13,9 +13,10 @@ import { trackLead } from "@/lib/tracking";
  * customer) and the customer gets a confirmation with the overview.
  * Natuurhout confirms by mail with payment details and the pick-up or
  * delivery arrangement, and for products not in stock ("op bestelling") the
- * delivery term. Delivery follows the checkout's distance bands: below a
- * band's minimum order value it cannot be chosen (DeliveryMinimum); pickup
- * in Zele always can.
+ * delivery term. Delivery follows the checkout's settings: as soon as the
+ * postcode is known, "Leveren" is greyed out below the minimum order value
+ * for that distance (DeliveryMinimum shows what is missing) or past the
+ * maximum distance; pickup in Zele always works.
  */
 
 /** id: the variant id, so the server prices the order itself (worker/shop/). */
@@ -58,8 +59,12 @@ export default function OrderRequestForm({
 
   // Only priced webshop variants count towards the delivery minimum.
   const priced = lines.flatMap((l) => (typeof l.id === "number" && l.id > 0 ? [{ id: l.id, qty: l.qty }] : []));
-  const deliveryCheck = useDeliveryQuote(priced, f.postcode, f.city, f.delivery);
-  const belowMinimum = f.delivery && deliveryCheck !== null && deliveryCheck.short > 0;
+  const deliveryCheck = useDeliveryQuote(priced, f.postcode, f.city);
+  const deliveryBlocked = deliveryCheck !== null && !deliveryCheck.deliverable;
+  const belowMinimum = f.delivery && deliveryBlocked;
+  useEffect(() => {
+    if (deliveryBlocked) setF((s) => (s.delivery ? { ...s, delivery: false } : s));
+  }, [deliveryBlocked]);
 
   const errors: Record<string, string> = {};
   if (!f.name.trim()) errors.name = "Vul uw naam in.";
@@ -190,8 +195,9 @@ export default function OrderRequestForm({
                 key={o.label}
                 type="button"
                 aria-pressed={f.delivery === o.value}
+                disabled={o.value && deliveryBlocked}
                 onClick={() => set({ delivery: o.value })}
-                className={`flex-1 rounded-full border px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex-1 rounded-full border px-3 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:border-line disabled:bg-ink/[0.04] disabled:text-ink/40 ${
                   f.delivery === o.value ? "border-accent bg-accent text-white" : "border-brand/25 bg-white hover:border-accent"
                 }`}
               >
@@ -201,24 +207,23 @@ export default function OrderRequestForm({
           </div>
         </div>
       </div>
+      {/* Postcode first: it tells whether delivery is possible, also before "Leveren" is picked. */}
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
+        <Field label={f.delivery ? "Postcode *" : "Postcode"} error={shown.postcode}>
+          <input className={input} inputMode="numeric" maxLength={4} autoComplete="postal-code" value={f.postcode} aria-invalid={Boolean(shown.postcode)} onChange={(e) => set({ postcode: e.target.value })} />
+        </Field>
+        <Field label={f.delivery ? "Gemeente *" : "Gemeente"} error={shown.city}>
+          <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
+        </Field>
+      </div>
+      {deliveryCheck && deliveryCheck.short > 0 && <DeliveryMinimum result={deliveryCheck} />}
+      {deliveryCheck && !deliveryCheck.deliverable && deliveryCheck.short === 0 && <DeliveryLine result={deliveryCheck} />}
       {f.delivery && (
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)]">
+        <div className="grid gap-3">
           <Field label="Straat en nummer *" error={shown.street}>
             <input className={input} autoComplete="street-address" value={f.street} aria-invalid={Boolean(shown.street)} onChange={(e) => set({ street: e.target.value })} />
           </Field>
-          <Field label="Postcode *" error={shown.postcode}>
-            <input className={input} inputMode="numeric" autoComplete="postal-code" value={f.postcode} aria-invalid={Boolean(shown.postcode)} onChange={(e) => set({ postcode: e.target.value })} />
-          </Field>
-          <Field label="Gemeente *" error={shown.city}>
-            <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
-          </Field>
-          {belowMinimum && deliveryCheck ? (
-            <div className="sm:col-span-3">
-              <DeliveryMinimum result={deliveryCheck} onPickup={() => set({ delivery: false })} />
-            </div>
-          ) : (
-            <p className="text-xs text-ink/55 sm:col-span-3">De leveringskosten hangen af van de locatie; we laten ze u weten.</p>
-          )}
+          <p className="text-xs text-ink/55">De leveringskosten hangen af van de locatie; we laten ze u weten.</p>
         </div>
       )}
       <Field label="Opmerking">

@@ -1,71 +1,48 @@
 /*
- * Delivery price for the checkout, set in the backend (Checkout tab) and kept
- * in the D1 settings table:
+ * Delivery for the checkout, set in the backend (Checkout tab) and kept in
+ * the D1 settings table:
  *
  *   distance  road km from the yard in Zele per Belgian postcode
  *             (data/be-postcodes.json, scripts/build-delivery-distances.mjs)
- *   bands     "up to N km: € fixed + € per km", the first band that fits counts;
- *             each band can set a minimum order value for delivery (products
- *             incl. btw, without delivery): below it delivery is not offered
- *             and the customer sees how much is missing
- *   max km    further than this (or past the last band): no delivery via the webshop
- *   rules     run top to bottom: when <condition> then <effect>, e.g.
- *             "more than 40 poles: + € 25", "order from € 750: free",
- *             "contains gates: pickup or quote only"
- *   free above / round up to whole euros
+ *   bands     "up to N km: € fixed (+ € per km)", the first band that fits counts
+ *   max km    further than this (or past the last band): no delivery, pickup only
+ *   minimums  minimum order value per distance (products incl. btw, without
+ *             delivery): below it no delivery, and how much is missing
+ *   regions   postcode from–to: correction in € on the band price
+ *   rules     run top to bottom: when <condition> then <effect>
+ *   free above / minimum delivery price / round up to whole euros
  *
- * Pickup in Zele is always free and always possible. Nothing here trusts the browser: the
- * checkout calls deliveryQuote() with the server-priced basket.
+ * The calculation itself is delivery-price.ts (pure, tested by `npm test`).
+ * Pickup in Zele is always free and always possible. Nothing here trusts the
+ * browser: the checkout calls deliveryQuote() with the server-priced basket.
  */
 
 import distances from "./data/be-postcodes.json";
 import { collections } from "../../src/lib/catalog";
 import type { MspMode } from "./msp";
+import { priceDelivery, RULE_EFFECT, RULE_WHEN, type Band, type Basket, type DeliveryQuote, type MinBand, type PriceSettings, type Region, type Rule } from "./delivery-price";
 
-/** `min`: minimum order value (products incl. btw, without delivery) to deliver in this band; null = none. */
-export type Band = { upTo: number; price: number; perKm: number; min: number | null };
-export const RULE_WHEN = {
-  always: "Altijd",
-  total_min: "Bestelbedrag vanaf (€)",
-  total_max: "Bestelbedrag lager dan (€)",
-  km_min: "Afstand vanaf (km)",
-  km_max: "Afstand minder dan (km)",
-  collection: "Product uit collectie in mandje",
-  qty_min: "Aantal stuks vanaf",
-} as const;
-export const RULE_EFFECT = {
-  add: "+ vast bedrag (€)",
-  per_km: "+ bedrag per km (€)",
-  percent: "+ percentage van de levering (%)",
-  discount: "- vast bedrag (€)",
-  free: "Gratis levering",
-  pickup_only: "Niet leveren (afhalen of offerte)",
-} as const;
-export type Rule = {
-  label: string;
-  when: keyof typeof RULE_WHEN;
-  value: number;
-  /** For "collection" (required) and "qty_min" (optional: count only that collection). */
-  collection: string;
-  effect: keyof typeof RULE_EFFECT;
-  amount: number;
-  active: boolean;
-};
-export type CheckoutSettings = {
-  bands: Band[];
-  maxKm: number | null;
-  freeAbove: number | null;
-  roundUp: boolean;
-  rules: Rule[];
-  mspMode: MspMode;
-};
+export { RULE_EFFECT, RULE_WHEN, euroShort } from "./delivery-price";
+export type { Band, Basket, DeliveryQuote, MinBand, Region, Rule } from "./delivery-price";
+
+export type CheckoutSettings = PriceSettings & { mspMode: MspMode };
 
 type PostcodeRow = { n: string[]; km: number; est?: 1 };
 const POSTCODES = (distances as { postcodes: Record<string, PostcodeRow> }).postcodes;
 export const DISTANCE_INFO = { yard: (distances as { yard: { label: string } }).yard.label, about: (distances as { _about: string })._about, count: Object.keys(POSTCODES).length };
 export const COLLECTIONS = collections.map((c) => ({ handle: c.handle, title: c.title, products: new Set(c.products) }));
 
-const KEYS = ["delivery_bands", "delivery_max_km", "delivery_free_above", "delivery_round", "delivery_rules", "msp_mode"] as const;
+const KEYS = [
+  "delivery_bands",
+  "delivery_max_km",
+  "delivery_free_above",
+  "delivery_round",
+  "delivery_rules",
+  "delivery_min_bands",
+  "delivery_regions",
+  "delivery_min_price",
+  "msp_mode",
+] as const;
 
 function parseJson<T>(raw: string | undefined, ok: (x: unknown) => x is T): T[] {
   try {
@@ -88,14 +65,21 @@ export async function getCheckoutSettings(db: D1Database): Promise<CheckoutSetti
   const v = new Map(results.map((r) => [r.key, r.value]));
   const bands = parseJson(v.get("delivery_bands"), (b): b is Band => {
     const x = b as Band;
-    return Boolean(x) && x.upTo > 0 && x.price >= 0 && x.perKm >= 0;
+    return Boolean(x) && x.upTo > 0 && x.price >= 0 && (x.perKm ?? 0) >= 0;
   })
-    // Bands saved before the minimum existed have no `min`.
-    .map((b) => ({ ...b, min: typeof b.min === "number" && b.min > 0 ? b.min : null }))
+    .map((b) => ({ upTo: b.upTo, price: b.price, perKm: b.perKm || 0 }))
     .sort((a, b) => a.upTo - b.upTo);
   const rules = parseJson(v.get("delivery_rules"), (r): r is Rule => {
     const x = r as Rule;
     return Boolean(x) && x.when in RULE_WHEN && x.effect in RULE_EFFECT;
+  });
+  const minimums = parseJson(v.get("delivery_min_bands"), (m): m is MinBand => {
+    const x = m as MinBand;
+    return Boolean(x) && x.upTo > 0 && x.min >= 0;
+  }).sort((a, b) => a.upTo - b.upTo);
+  const regions = parseJson(v.get("delivery_regions"), (r): r is Region => {
+    const x = r as Region;
+    return Boolean(x) && Number.isInteger(x.from) && Number.isInteger(x.to) && x.from <= x.to && Number.isFinite(x.amount);
   });
   return {
     bands,
@@ -103,6 +87,9 @@ export async function getCheckoutSettings(db: D1Database): Promise<CheckoutSetti
     freeAbove: num(v.get("delivery_free_above")),
     roundUp: v.get("delivery_round") === "1",
     rules,
+    minimums,
+    regions,
+    minPrice: num(v.get("delivery_min_price")),
     mspMode: v.get("msp_mode") === "live" ? "live" : "test",
   };
 }
@@ -115,20 +102,12 @@ export async function saveCheckoutSettings(db: D1Database, s: Partial<CheckoutSe
   if ("freeAbove" in s) stmts.push(put("delivery_free_above", s.freeAbove ? String(s.freeAbove) : ""));
   if ("roundUp" in s) stmts.push(put("delivery_round", s.roundUp ? "1" : ""));
   if (s.rules) stmts.push(put("delivery_rules", JSON.stringify(s.rules)));
+  if (s.minimums) stmts.push(put("delivery_min_bands", JSON.stringify([...s.minimums].sort((a, b) => a.upTo - b.upTo))));
+  if (s.regions) stmts.push(put("delivery_regions", JSON.stringify(s.regions)));
+  if ("minPrice" in s) stmts.push(put("delivery_min_price", s.minPrice ? String(s.minPrice) : ""));
   if (s.mspMode) stmts.push(put("msp_mode", s.mspMode));
   if (stmts.length) await db.batch(stmts);
 }
-
-export type Basket = { subtotal: number; lines: { handle: string; qty: number }[] };
-export type DeliveryQuote =
-  | { ok: true; price: number; km: number; place: string; steps: string[]; minimum: number | null }
-  /** `minimum`/`short`: only when the order is below the band's minimum for delivery. */
-  | { ok: false; reason: string; km?: number; place?: string; steps: string[]; minimum?: number; short?: number };
-
-const euro = (n: number) => `€ ${n.toFixed(2).replace(".", ",")}`;
-/** "€200" for whole euros, "€12,50" otherwise (customer-facing messages). */
-export const euroShort = (n: number) => `€${Number.isInteger(n) ? String(n) : n.toFixed(2).replace(".", ",")}`;
-const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Distance and place for a postcode; `city` picks the matching place name when it is one of them. */
 export function lookupPostcode(postcode: string, city = ""): { km: number; place: string; places: string[] } | null {
@@ -140,84 +119,11 @@ export function lookupPostcode(postcode: string, city = ""): { km: number; place
   return { km: row.km, place, places: row.n };
 }
 
-function matches(rule: Rule, km: number, basket: Basket): boolean {
-  const inCollection = (handle: string) => {
-    if (!rule.collection) return true;
-    return COLLECTIONS.find((c) => c.handle === rule.collection)?.products.has(handle) ?? false;
-  };
-  switch (rule.when) {
-    case "always":
-      return true;
-    case "total_min":
-      return basket.subtotal >= rule.value;
-    case "total_max":
-      return basket.subtotal < rule.value;
-    case "km_min":
-      return km >= rule.value;
-    case "km_max":
-      return km < rule.value;
-    case "collection":
-      return Boolean(rule.collection) && basket.lines.some((l) => inCollection(l.handle));
-    case "qty_min":
-      return basket.lines.filter((l) => inCollection(l.handle)).reduce((t, l) => t + l.qty, 0) >= rule.value;
-  }
-}
+const inCollection = (collection: string, handle: string) => COLLECTIONS.find((c) => c.handle === collection)?.products.has(handle) ?? false;
 
 export function deliveryQuote(s: CheckoutSettings, postcode: string, city: string, basket: Basket): DeliveryQuote {
-  const steps: string[] = [];
-  const where = lookupPostcode(postcode, city);
-  if (!where) return { ok: false, reason: "Onbekende Belgische postcode.", steps };
-  const { km, place } = where;
-  steps.push(`${postcode} ${place}: ${km.toLocaleString("nl-BE")} km vanaf Zele`);
-  const quoteOnly = (reason: string) => ({ ok: false as const, reason, km, place, steps });
-  if (!s.bands.length) return quoteOnly("Levering via de webshop is nog niet ingesteld.");
-  if (s.maxKm !== null && km > s.maxKm) return quoteOnly(`Dat is verder dan ${s.maxKm} km.`);
-  const band = s.bands.find((b) => km <= b.upTo);
-  if (!band) return quoteOnly(`Dat is verder dan ${s.bands[s.bands.length - 1].upTo} km.`);
-  if (band.min !== null && basket.subtotal < band.min) {
-    const short = round2(band.min - basket.subtotal);
-    steps.push(`Minimum bestelbedrag voor levering tot ${band.upTo} km: ${euro(band.min)}, nog ${euro(short)} te gaan: geen levering`);
-    return {
-      ok: false,
-      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${postcode} ${place}. Levering op deze afstand kan vanaf ${euroShort(band.min)}. Afhalen in Zele kan altijd.`,
-      km,
-      place,
-      steps,
-      minimum: band.min,
-      short,
-    };
-  }
-  if (band.min !== null) steps.push(`Minimum bestelbedrag voor levering tot ${band.upTo} km: ${euro(band.min)} (gehaald)`);
-  let price = band.price + band.perKm * km;
-  steps.push(`Schijf tot ${band.upTo} km: ${euro(band.price)}${band.perKm ? ` + ${euro(band.perKm)} × ${String(km).replace(".", ",")} km` : ""} = ${euro(round2(price))}`);
-
-  for (const rule of s.rules) {
-    if (!rule.active || !matches(rule, km, basket)) continue;
-    const name = rule.label || RULE_EFFECT[rule.effect];
-    if (rule.effect === "pickup_only") {
-      steps.push(`Regel "${name}": niet leveren`);
-      return quoteOnly(rule.label || "Deze bestelling leveren we niet via de webshop.");
-    }
-    if (rule.effect === "free") {
-      price = 0;
-      steps.push(`Regel "${name}": gratis`);
-      break;
-    }
-    const before = price;
-    if (rule.effect === "add") price += rule.amount;
-    if (rule.effect === "per_km") price += rule.amount * km;
-    if (rule.effect === "percent") price += (price * rule.amount) / 100;
-    if (rule.effect === "discount") price -= rule.amount;
-    steps.push(`Regel "${name}": ${euro(round2(before))} → ${euro(round2(Math.max(0, price)))}`);
-  }
-  if (s.freeAbove !== null && basket.subtotal >= s.freeAbove && price > 0) {
-    price = 0;
-    steps.push(`Bestelling vanaf ${euro(s.freeAbove)}: gratis levering`);
-  }
-  price = Math.max(0, round2(price));
-  if (s.roundUp && price % 1) {
-    price = Math.ceil(price);
-    steps.push(`Afgerond naar ${euro(price)}`);
-  }
-  return { ok: true, price, km, place, steps, minimum: band.min };
+  const pc = postcode.replace(/\s/g, "");
+  const where = lookupPostcode(pc, city);
+  if (!where) return { ok: false, reason: "Onbekende Belgische postcode.", steps: [] };
+  return priceDelivery(s, { postcode: pc, place: where.place, km: where.km }, basket, inCollection);
 }

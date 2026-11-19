@@ -59,6 +59,9 @@ jobs:
       - name: Typecheck
         if: github.event_name != 'schedule' || steps.sync.outputs.changed == 'true'
         run: npm run typecheck
+      - name: Test
+        if: github.event_name != 'schedule' || steps.sync.outputs.changed == 'true'
+        run: npm test
       - name: Deploy
         if: github.event_name != 'schedule' || steps.sync.outputs.changed == 'true'
         run: npm run deploy

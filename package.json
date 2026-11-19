@@ -11,6 +11,7 @@
     "deploy": "npm run build && wrangler deploy",
     "cf:types": "wrangler types worker/worker-configuration.d.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p worker",
+    "test": "node --test worker/shop/*.test.ts",
     "migration:extract": "node scripts/extract-legacy-content.mjs",
     "migration:audit": "node scripts/audit-migration.mjs",
     "migration:assets": "node scripts/fetch-legacy-assets.mjs",

@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import { Store, Truck } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 
+/** "€135" for whole euros, "€12,50" otherwise. */
+const euroShort = (n: number) => `€${Number.isInteger(n) ? String(n) : n.toFixed(2).replace(".", ",")}`;
+
 /*
  * Delivery for a basket and a postcode, from the Worker (/api/afrekenen/prijs/,
  * worker/shop/delivery.ts): the price, or why there is no delivery. Each
- * distance band can have a minimum order value: below it delivery cannot be
- * chosen and DeliveryMinimum shows how much is missing, with a progress bar.
- * Pickup in Zele is always possible. Used by the winkelmandje (also inside
- * its order form) and by /afrekenen/.
+ * distance has a minimum order value: below it delivery cannot be chosen
+ * (the option is greyed out) and DeliveryMinimum shows how much is missing,
+ * with a progress bar; past the maximum distance only pickup is possible.
+ * Pickup in Zele always is. Used by the winkelmandje's order form and by
+ * /afrekenen/, as soon as the postcode is known; it follows the basket live.
  */
 
 export type DeliveryResult = {
@@ -75,9 +79,11 @@ export function DeliveryMinimum({ result, onPickup }: { result: DeliveryResult; 
       >
         <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${done}%` }} />
       </div>
-      <p className="mt-1.5 flex justify-between text-xs text-amber-900/80">
-        <span>{formatPrice(result.subtotal)}</span>
-        <span>levering vanaf {formatPrice(result.minimum)}</span>
+      <p className="mt-1.5 flex justify-between text-xs font-medium text-amber-900/80">
+        <span className="tabular-nums">
+          {euroShort(result.subtotal)} / {euroShort(result.minimum)}
+        </span>
+        <span>nog {euroShort(result.short)}</span>
       </p>
       {onPickup && (
         <button type="button" onClick={onPickup} className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-deep underline underline-offset-2 hover:text-ink">
@@ -92,7 +98,10 @@ export function DeliveryMinimum({ result, onPickup }: { result: DeliveryResult; 
 export function DeliveryLine({ result }: { result: DeliveryResult }) {
   const d = result.delivery;
   if (!d || (result.minimum !== null && result.short > 0)) return null;
-  if (!d.ok) return <p className="text-sm text-red-700">{d.reason || "Naar deze postcode leveren we niet via de webshop."} Afhalen in Zele kan altijd.</p>;
+  if (!d.ok) {
+    const reason = d.reason || "Naar deze postcode leveren we niet via de webshop.";
+    return <p className="text-sm text-red-700">{/afhalen/i.test(reason) ? reason : `${reason} Afhalen in Zele kan altijd.`}</p>;
+  }
   return (
     <p className="text-sm text-ink/75">
       Levering naar <strong className="text-ink">{d.label}</strong>

@@ -9,6 +9,8 @@
  * reorder one that has shipped; it has already run on the live database).
  */
 
+import { DELIVERY_SETTINGS_2026_11 } from "../shop/delivery-defaults";
+
 const MIGRATIONS: string[][] = [
   // 1: contacts, requests (form submissions and manual entries), notes, users.
   [
@@ -206,6 +208,21 @@ const MIGRATIONS: string[][] = [
     `ALTER TABLE orders ADD COLUMN psp_attempts INTEGER NOT NULL DEFAULT 0`,
     `CREATE INDEX orders_psp ON orders (psp_order_id)`,
   ],
+  // 6: delivery prices of November 2026 (worker/shop/delivery-defaults.ts): distance
+  // bands, maximum 300 km, free from € 2800, never under € 20, minimum order value per
+  // distance and region corrections. Written once; after that the backend (Checkout)
+  // is where they change.
+  Object.entries({
+    delivery_bands: JSON.stringify(DELIVERY_SETTINGS_2026_11.bands),
+    delivery_max_km: String(DELIVERY_SETTINGS_2026_11.maxKm),
+    delivery_free_above: String(DELIVERY_SETTINGS_2026_11.freeAbove),
+    delivery_min_price: String(DELIVERY_SETTINGS_2026_11.minPrice),
+    delivery_min_bands: JSON.stringify(DELIVERY_SETTINGS_2026_11.minimums),
+    delivery_regions: JSON.stringify(DELIVERY_SETTINGS_2026_11.regions),
+  }).map(
+    ([key, value]) =>
+      `INSERT INTO settings (key, value) VALUES ('${key}', '${value.replaceAll("'", "''")}') ON CONFLICT (key) DO UPDATE SET value = excluded.value`,
+  ),
 ];
 
 let ready: Promise<void> | undefined;

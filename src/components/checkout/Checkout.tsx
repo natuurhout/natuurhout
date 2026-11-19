@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Landmark, Lock, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
-import { DeliveryMinimum } from "@/components/DeliveryCheck";
+import { DeliveryLine, DeliveryMinimum, useDeliveryQuote } from "@/components/DeliveryCheck";
 import { setCartQty, useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { ADDRESS, PHONE } from "@/lib/contact";
@@ -42,14 +42,34 @@ function Field({ label, error, children, className = "" }: { label: string; erro
   );
 }
 
-function Choice({ checked, onSelect, icon, title, children }: { checked: boolean; onSelect: () => void; icon: React.ReactNode; title: string; children?: React.ReactNode }) {
+function Choice({
+  checked,
+  onSelect,
+  icon,
+  title,
+  disabled = false,
+  children,
+}: {
+  checked: boolean;
+  onSelect: () => void;
+  icon: React.ReactNode;
+  title: string;
+  /** Greyed out and not selectable (e.g. delivery below the minimum order value). */
+  disabled?: boolean;
+  children?: React.ReactNode;
+}) {
   return (
     <label
-      className={`flex cursor-pointer gap-3 border px-4 py-3.5 text-sm transition-colors first:rounded-t-xl last:rounded-b-xl [&+&]:-mt-px ${
-        checked ? "relative z-10 border-accent bg-accent/5" : "border-line bg-white hover:bg-ink/[0.02]"
+      aria-disabled={disabled}
+      className={`flex gap-3 border px-4 py-3.5 text-sm transition-colors first:rounded-t-xl last:rounded-b-xl [&+&]:-mt-px ${
+        disabled
+          ? "cursor-not-allowed border-line bg-ink/[0.03] opacity-60"
+          : checked
+            ? "relative z-10 cursor-pointer border-accent bg-accent/5"
+            : "cursor-pointer border-line bg-white hover:bg-ink/[0.02]"
       }`}
     >
-      <input type="radio" checked={checked} onChange={onSelect} className="mt-0.5 h-4 w-4 flex-none accent-accent" />
+      <input type="radio" checked={checked && !disabled} disabled={disabled} onChange={onSelect} className="mt-0.5 h-4 w-4 flex-none accent-accent" />
       <span className="flex-1">
         <span className="flex items-center gap-2 font-medium text-ink">
           {icon}
@@ -101,6 +121,15 @@ export default function Checkout() {
       ctrl.abort();
     };
   }, [basketKey, delivery, postcode, city, cart.length]);
+
+  // Can we deliver to this postcode for this basket? Asked as soon as the
+  // postcode is known, whatever is chosen: below the minimum order value (or
+  // too far) "Leveren" is greyed out and pickup is chosen; pickup always works.
+  const availability = useDeliveryQuote(basket, postcode, city);
+  const deliveryBlocked = availability !== null && !availability.deliverable;
+  useEffect(() => {
+    if (deliveryBlocked) setDelivery(false);
+  }, [deliveryBlocked]);
 
   const errors: Record<string, string> = {};
   if (!EMAIL.test(f.email.trim())) errors.email = "Vul een geldig e-mailadres in.";
@@ -257,44 +286,47 @@ export default function Checkout() {
 
         <section>
           <h2 className="font-display text-xl font-semibold">Levering</h2>
-          <div className="mt-3">
-            <Choice checked={delivery} onSelect={() => setDelivery(true)} icon={<Truck className="h-4 w-4 text-accent" />} title="Leveren">
-              Met onze eigen wagen; we bellen om een moment af te spreken.
+          <p className="mt-1 text-sm text-ink/60">Vul uw postcode in: dan ziet u meteen of en voor hoeveel we leveren. Afhalen in Zele kan altijd.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
+            <Field label={delivery ? "Postcode *" : "Postcode"} error={shown.postcode}>
+              <input className={input} inputMode="numeric" maxLength={4} autoComplete="postal-code" value={f.postcode} aria-invalid={Boolean(shown.postcode)} onChange={(e) => set({ postcode: e.target.value })} />
+            </Field>
+            <Field label={delivery ? "Gemeente *" : "Gemeente"} error={shown.city}>
+              <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
+            </Field>
+          </div>
+          <div className="mt-4">
+            <Choice
+              checked={delivery}
+              onSelect={() => setDelivery(true)}
+              disabled={deliveryBlocked}
+              icon={<Truck className="h-4 w-4 text-accent" />}
+              title={availability?.delivery?.ok ? `Leveren · ${availability.delivery.price === 0 ? "gratis" : formatPrice(availability.delivery.price)}` : "Leveren"}
+            >
+              {deliveryBlocked ? "Niet mogelijk voor deze bestelling: zie hieronder." : "Met onze eigen wagen; we bellen om een moment af te spreken."}
             </Choice>
             <Choice checked={!delivery} onSelect={() => setDelivery(false)} icon={<Store className="h-4 w-4 text-accent" />} title="Afhalen in Zele (gratis)">
               {ADDRESS.street}, {ADDRESS.city}. We laten weten wanneer het klaarstaat.
             </Choice>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)]">
-            <Field label="Naam *" error={shown.name} className="sm:col-span-3">
+          {availability && availability.short > 0 && (
+            <div className="mt-3">
+              <DeliveryMinimum result={availability} />
+            </div>
+          )}
+          {availability && !availability.deliverable && availability.short === 0 && (
+            <div className="mt-3">
+              <DeliveryLine result={availability} />
+            </div>
+          )}
+          <div className="mt-4 grid gap-3">
+            <Field label="Naam *" error={shown.name}>
               <input className={input} autoComplete="name" value={f.name} aria-invalid={Boolean(shown.name)} onChange={(e) => set({ name: e.target.value })} />
             </Field>
             {delivery && (
-              <>
-                <Field label="Straat en nummer *" error={shown.street}>
-                  <input className={input} autoComplete="street-address" value={f.street} aria-invalid={Boolean(shown.street)} onChange={(e) => set({ street: e.target.value })} />
-                </Field>
-                <Field label="Postcode *" error={shown.postcode}>
-                  <input className={input} inputMode="numeric" maxLength={4} autoComplete="postal-code" value={f.postcode} aria-invalid={Boolean(shown.postcode)} onChange={(e) => set({ postcode: e.target.value })} />
-                </Field>
-                <Field label="Gemeente *" error={shown.city}>
-                  <input className={input} autoComplete="address-level2" value={f.city} aria-invalid={Boolean(shown.city)} onChange={(e) => set({ city: e.target.value })} />
-                </Field>
-                {quote && /^\d{4}$/.test(postcode) && short > 0 && (
-                  <div className="sm:col-span-3">
-                    <DeliveryMinimum result={quote} onPickup={() => setDelivery(false)} />
-                  </div>
-                )}
-                {quote && /^\d{4}$/.test(postcode) && !quote.deliverable && short === 0 && (
-                  <p className="text-sm text-red-700 sm:col-span-3">
-                    {quote.delivery?.reason || "Naar deze postcode leveren we niet via de webshop."} Kies afhalen in Zele, of{" "}
-                    <Link href="/offerte-aanvragen/" className="font-semibold underline">
-                      vraag een offerte
-                    </Link>{" "}
-                    met levering.
-                  </p>
-                )}
-              </>
+              <Field label="Straat en nummer *" error={shown.street}>
+                <input className={input} autoComplete="street-address" value={f.street} aria-invalid={Boolean(shown.street)} onChange={(e) => set({ street: e.target.value })} />
+              </Field>
             )}
           </div>
           <label className="mt-4 flex items-center gap-2 text-sm text-ink/75">
