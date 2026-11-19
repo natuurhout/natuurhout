@@ -127,9 +127,34 @@ export default function Checkout() {
   // too far) "Leveren" is greyed out and pickup is chosen; pickup always works.
   const availability = useDeliveryQuote(basket, postcode, city);
   const deliveryBlocked = availability !== null && !availability.deliverable;
+  // Once delivery is possible again (another postcode, more in the basket),
+  // "Leveren" comes back, unless the customer chose pickup themselves.
+  const autoPickup = useRef(false);
+  const choose = (wantDelivery: boolean) => {
+    autoPickup.current = false;
+    setDelivery(wantDelivery);
+  };
   useEffect(() => {
-    if (deliveryBlocked) setDelivery(false);
-  }, [deliveryBlocked]);
+    if (deliveryBlocked && delivery) {
+      autoPickup.current = true;
+      setDelivery(false);
+    } else if (!deliveryBlocked && availability && autoPickup.current) {
+      autoPickup.current = false;
+      setDelivery(true);
+    }
+  }, [deliveryBlocked, availability, delivery]);
+
+  // The place the Worker found for the postcode fills an empty Gemeente, and
+  // keeps following the postcode as long as the customer has not typed their own.
+  const autoCity = useRef("");
+  const placeLabel = availability?.delivery?.label ?? "";
+  const found = postcode && placeLabel.startsWith(postcode) ? placeLabel.slice(postcode.length).trim() : "";
+  useEffect(() => {
+    if (!found) return;
+    const last = autoCity.current;
+    autoCity.current = found;
+    setF((s) => (!s.city.trim() || s.city === last ? { ...s, city: found } : s));
+  }, [found]);
 
   const errors: Record<string, string> = {};
   if (!EMAIL.test(f.email.trim())) errors.email = "Vul een geldig e-mailadres in.";
@@ -235,6 +260,51 @@ export default function Checkout() {
           );
         })}
       </ul>
+      <div className="rounded-xl border border-line bg-white p-3.5">
+        <label className="flex items-center justify-between gap-3 text-sm">
+          <span className="flex items-center gap-1.5 font-semibold text-ink">
+            <Truck aria-hidden className="h-4 w-4 text-accent" /> Leveringskost berekenen
+          </span>
+          <input
+            className="w-24 rounded-lg border border-line px-2.5 py-1.5 text-center text-sm tabular-nums outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="Postcode"
+            aria-label="Postcode voor de leveringskost"
+            value={f.postcode}
+            onChange={(e) => set({ postcode: e.target.value.replace(/\D/g, "") })}
+          />
+        </label>
+        <div aria-live="polite" className="mt-2 text-xs leading-5 text-ink/65">
+          {!/^\d{4}$/.test(postcode) ? (
+            <p>Vul uw postcode in: u ziet meteen wat levering kost en of er een minimumbedrag geldt.</p>
+          ) : !availability?.delivery ? (
+            <p>Even berekenen…</p>
+          ) : availability.delivery.ok ? (
+            <>
+              <p className="flex items-baseline justify-between gap-3">
+                <span>
+                  Naar <strong className="text-ink">{placeLabel}</strong>
+                  {availability.delivery.km !== null ? ` (± ${Math.round(availability.delivery.km)} km)` : ""}
+                </span>
+                <strong className="whitespace-nowrap text-sm text-ink tabular-nums">
+                  {availability.delivery.price === 0 ? "Gratis" : formatPrice(availability.delivery.price)}
+                </strong>
+              </p>
+              <p>{availability.minimum !== null ? `Minimum voor levering hier: ${formatPrice(availability.minimum)}, dat haalt u.` : "Geen minimumbedrag voor levering hier."}</p>
+            </>
+          ) : availability.short > 0 && availability.minimum !== null ? (
+            <p className="text-amber-800">
+              Levering naar <strong>{placeLabel}</strong> kan vanaf {formatPrice(availability.minimum)}: nog <strong>{formatPrice(availability.short)}</strong> bijbestellen.
+            </p>
+          ) : (
+            <p className="text-red-700">{availability.delivery.reason.replace(/\s*Afhalen in Zele kan altijd\.?/i, "") || "Naar deze postcode leveren we niet via de webshop."}</p>
+          )}
+          <p className="mt-1 flex items-center gap-1 text-ink/55">
+            <Store aria-hidden className="h-3.5 w-3.5" /> Afhalen in Zele is altijd gratis.
+          </p>
+        </div>
+      </div>
       <dl className="space-y-2 border-t border-line pt-4 text-sm">
         <div className="flex justify-between">
           <dt className="text-ink/70">Subtotaal</dt>
@@ -298,14 +368,14 @@ export default function Checkout() {
           <div className="mt-4">
             <Choice
               checked={delivery}
-              onSelect={() => setDelivery(true)}
+              onSelect={() => choose(true)}
               disabled={deliveryBlocked}
               icon={<Truck className="h-4 w-4 text-accent" />}
               title={availability?.delivery?.ok ? `Leveren · ${availability.delivery.price === 0 ? "gratis" : formatPrice(availability.delivery.price)}` : "Leveren"}
             >
               {deliveryBlocked ? "Niet mogelijk voor deze bestelling: zie hieronder." : "Met onze eigen wagen; we bellen om een moment af te spreken."}
             </Choice>
-            <Choice checked={!delivery} onSelect={() => setDelivery(false)} icon={<Store className="h-4 w-4 text-accent" />} title="Afhalen in Zele (gratis)">
+            <Choice checked={!delivery} onSelect={() => choose(false)} icon={<Store className="h-4 w-4 text-accent" />} title="Afhalen in Zele (gratis)">
               {ADDRESS.street}, {ADDRESS.city}. We laten weten wanneer het klaarstaat.
             </Choice>
           </div>

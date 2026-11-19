@@ -63,12 +63,13 @@ export default function OrderRequestForm({
   const fromBox = useRef<{ postcode: string; city: string } | null>(null);
   useEffect(() => {
     if (!place) return;
+    // Read the previous place now: the updater below runs later, after the ref moved on.
+    const last = fromBox.current;
+    fromBox.current = place;
     setF((s) => {
-      const last = fromBox.current;
       const untouched = !s.postcode.trim() || (last !== null && s.postcode === last.postcode && s.city === last.city);
       return untouched ? { ...s, postcode: place.postcode, city: place.city || s.city } : s;
     });
-    fromBox.current = place;
   }, [place]);
 
   // Only priced webshop variants count towards the delivery minimum.
