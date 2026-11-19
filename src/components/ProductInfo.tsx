@@ -264,13 +264,13 @@ export function productInfoTabs({
           label: "Foto's",
           content: (
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {photos.map((photo) => (
+              {/* Same photos, same order as the gallery: they open its pop-up (PhotoLightbox). */}
+              {photos.map((photo, i) => (
                 <li key={photo.src}>
                   <a
                     href={photo.href}
-                    target="_blank"
-                    rel="noopener"
-                    className="group block overflow-hidden rounded-card border border-line bg-white"
+                    data-lightbox-index={i}
+                    className="group block cursor-zoom-in overflow-hidden rounded-card border border-line bg-white"
                   >
                     <span className="relative block aspect-square overflow-hidden bg-brand-soft/40">
                       <Image

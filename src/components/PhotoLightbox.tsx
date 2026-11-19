@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 export type LightboxPhoto = { src: string; alt: string };
@@ -11,9 +12,11 @@ export type LightboxPhoto = { src: string; alt: string };
  * to its full-size file (`<a href data-lightbox-index>`), so the photos still
  * open without JavaScript; with it, a click opens this pop-up instead: the
  * photo large, arrows (and swipe, and the arrow keys) for the others, and a
- * row of thumbnails below to jump straight to one.
+ * row of thumbnails below to jump straight to one. Used on the project pages
+ * and on the product pages (gallery and "Foto's" tab); `onChange` lets a
+ * gallery follow the photo the visitor ended on.
  */
-export default function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
+export default function PhotoLightbox({ photos, onChange }: { photos: LightboxPhoto[]; onChange?: (index: number) => void }) {
   const [index, setIndex] = useState<number | null>(null);
   const opener = useRef<HTMLElement | null>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -63,6 +66,10 @@ export default function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
     };
   }, [open, close, go]);
 
+  useEffect(() => {
+    if (index !== null) onChange?.(index);
+  }, [index, onChange]);
+
   // Keep the current thumbnail in view.
   useEffect(() => {
     if (index === null) return;
@@ -72,7 +79,9 @@ export default function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
   if (index === null) return null;
   const photo = photos[index];
 
-  return (
+  // Rendered on <body>: inside a sticky column (the product gallery) the
+  // viewer would otherwise sit under the sticky header.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -158,6 +167,7 @@ export default function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
           ))}
         </ul>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
