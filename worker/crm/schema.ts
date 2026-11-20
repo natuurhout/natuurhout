@@ -241,9 +241,21 @@ const MIGRATIONS: string[][] = [
     51176454914379: 30, // 180cm / 4.5/5cm
     53687747051851: 20, // 180cm / 7.5/8cm
   }),
+  // 8: stock count of the kastanje premium poorten (/project/franse-poorten/), 20 November
+  // 2026. 90x100 and 100x100 are in stock but were not counted, so they are left alone.
+  stockCount("kastanje-poorten", "telling 2026-11-20", {
+    51176451998027: 0, // 100cm / 120cm
+    51176452030795: 5, // 100cm / 150cm
+    51176452063563: 10, // 120cm / 100cm
+    51176452096331: 10, // 120cm / 120cm
+    51176452129099: 5, // 120cm / 150cm
+    51176452161867: 0, // 150cm / 100cm
+    51176452194635: 1, // 180cm / 100cm
+    51176452227403: 4, // 180cm / 150cm
+  }),
 ];
 
-/** SQL for a one-time stock count (see migration 7). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 and 8). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [

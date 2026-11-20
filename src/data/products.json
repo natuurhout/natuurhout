@@ -2453,7 +2453,7 @@
     "title": "100cm / 120cm",
     "price": "195.00",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 51176452030795,
@@ -2467,14 +2467,14 @@
     "title": "120cm / 100cm",
     "price": "195.00",
     "compare_at": null,
-    "available": false
+    "available": true
    },
    {
     "id": 51176452096331,
     "title": "120cm / 120cm",
     "price": "205.00",
     "compare_at": null,
-    "available": false
+    "available": true
    },
    {
     "id": 51176452129099,
@@ -2488,7 +2488,7 @@
     "title": "150cm / 100cm",
     "price": "225.00",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 51176452194635,
