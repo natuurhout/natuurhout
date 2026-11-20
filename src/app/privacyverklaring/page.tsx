@@ -80,12 +80,55 @@ export default function PrivacyPage() {
       </p>
 
       <h2>Hoe lang we gegevens bewaren</h2>
-      <ul>
-        <li><strong>Vragen en offerteaanvragen</strong> zonder bestelling: tot twee jaar na het laatste contact.</li>
-        <li><strong>Bestellingen en facturen:</strong> zolang de boekhoudkundige en fiscale wetgeving dat vereist (in België tot tien jaar).</li>
-        <li><strong>Statistieken:</strong> volgens de bewaartermijn die in Google Analytics is ingesteld.</li>
-        <li><strong>Uw cookiekeuze en winkelmandje</strong> staan in uw eigen browser; u kunt ze daar altijd wissen.</li>
-      </ul>
+      <p>
+        We bewaren gegevens niet langer dan nodig, en zolang de wet het verplicht. De termijn hangt af van het document en telt vanaf de datum die
+        erop staat.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Wat</th><th>Datum op het document</th><th>Hoe lang we het bewaren</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Vraag of offerteaanvraag (contactformulier, calculator, offerte, mail, WhatsApp)</td>
+            <td>Datum van uw aanvraag; een offerte is 14 dagen geldig vanaf haar datum (algemene voorwaarden, art. 2)</td>
+            <td>Tot 2 jaar na het laatste contact, zodat we bij een latere vraag of bestelling verder kunnen. Wordt het een bestelling, dan geldt de termijn hieronder.</td>
+          </tr>
+          <tr>
+            <td>Bestelling en bestelbevestiging</td>
+            <td>Besteldatum; de bevestiging vermeldt de vervaldatum van de betaling (standaard 8 dagen)</td>
+            <td>Samen met de factuur (zie hieronder). Een bestelling die vervalt of geannuleerd wordt zonder factuur: tot 2 jaar na de annulering.</td>
+          </tr>
+          <tr>
+            <td>Factuur en creditnota, met de gegevens die erop staan (naam, adres, eventueel bedrijf en btw-nummer)</td>
+            <td>Factuurdatum</td>
+            <td>
+              10 jaar, te rekenen vanaf 1 januari van het jaar na de factuurdatum. Een factuur van 20 november 2026 bewaren we dus tot en met 31
+              december 2036. Dat is de wettelijke fiscale bewaartermijn (art. 60 Btw-wetboek en art. 315 WIB 92, sinds 2023); de boekhouding zelf
+              bewaren we minstens 7 jaar.
+            </td>
+          </tr>
+          <tr>
+            <td>Betaalgegevens (bedrag, betaalmethode, status)</td>
+            <td>Datum van de betaling</td>
+            <td>Zoals de factuur waar ze bij horen.</td>
+          </tr>
+          <tr>
+            <td>Statistieken (Google Analytics)</td>
+            <td>Datum van uw bezoek</td>
+            <td>Volgens de bewaartermijn in Google Analytics (2 tot 14 maanden); de cookie _ga zelf verloopt na 2 jaar.</td>
+          </tr>
+          <tr>
+            <td>Uw cookiekeuze en winkelmandje</td>
+            <td>-</td>
+            <td>In uw eigen browser, tot u ze wijzigt of wist (zie het <Link href="/cookiebeleid-eu/">cookiebeleid</Link>).</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Na die termijn wissen of anonimiseren we de gegevens. Gegevens die we wettelijk moeten bewaren, gebruiken we in die tijd alleen nog voor
+        die wettelijke verplichting en voor de wettelijke garantie op uw aankoop.
+      </p>
 
       <h2>Uw rechten</h2>
       <p>U hebt het recht om:</p>

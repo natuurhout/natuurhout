@@ -102,8 +102,8 @@ export default function TermsPage() {
           online bestelling die na drie dagen niet betaald is, vervalt.
         </li>
         <li>
-          <strong>Overschrijving:</strong> u krijgt meteen ons rekeningnummer, een gestructureerde mededeling en een QR-code. We maken de bestelling
-          klaar zodra de betaling binnen is.
+          <strong>Overschrijving:</strong> u krijgt meteen ons rekeningnummer, een gestructureerde mededeling en een QR-code. Betaal vóór de
+          vervaldatum op de bestelbevestiging (standaard 8 dagen). We maken de bestelling klaar zodra de betaling binnen is.
         </li>
       </ul>
       <p>U krijgt de factuur per e-mail zodra de betaling binnen is. De producten blijven onze eigendom tot ze volledig betaald zijn.</p>

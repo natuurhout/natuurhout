@@ -61,7 +61,10 @@ export default function DataRequestPage() {
 
       <h2>Goed om te weten</h2>
       <ul>
-        <li>Facturen en boekhoudstukken moeten we wettelijk bewaren; die kunnen we pas wissen als de bewaartermijn voorbij is.</li>
+        <li>
+          Facturen moeten we wettelijk 10 jaar bewaren (vanaf 1 januari na de factuurdatum); die kunnen we pas wissen als die termijn voorbij is.
+          Zie de <Link href="/privacyverklaring/">bewaartermijnen in onze privacyverklaring</Link>.
+        </li>
         <li>
           Uw toestemming voor statistiek- en marketingcookies trekt u zelf in via “Cookie-instellingen” onderaan elke pagina (zie ons{" "}
           <Link href="/cookiebeleid-eu/">cookiebeleid</Link>).
