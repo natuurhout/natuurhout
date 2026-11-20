@@ -230,19 +230,19 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
           }}
           className="absolute inset-x-0 top-full z-50 border-t-4 border-accent bg-white text-ink shadow-[0_24px_50px_-28px_rgba(36,39,41,0.45)]"
         >
-          <div className="mx-auto grid max-w-[1400px] gap-8 px-8 py-8 xl:grid-cols-[1fr_280px]">
+          <div className="mx-auto max-w-[1400px] px-8 py-8">
             <div>
-              <div className="grid grid-cols-5 gap-x-6 gap-y-6 xl:gap-x-8">
+              <div className="grid grid-cols-3 gap-x-8 gap-y-7 xl:grid-cols-6 xl:gap-x-7">
                 {productMenu.map((group) => (
                   <div key={group.title}>
-                    <h2 className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.14em] text-ink">
+                    <h2 className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.1em] text-ink [hyphens:manual]">
                       <Link
                         href={groupHref(group)}
                         onClick={() => setMegaOpen(false)}
                         aria-current={pathname === groupHref(group) ? "page" : undefined}
                         className="group/kop inline-flex items-center gap-1.5 transition-colors hover:text-accent-deep"
                       >
-                        {group.title}
+                        {group.menuTitle ?? group.title}
                         <ArrowRight aria-hidden className="h-3.5 w-3.5 shrink-0 text-accent transition-transform group-hover/kop:translate-x-0.5" />
                       </Link>
                     </h2>
@@ -265,24 +265,25 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
                   </div>
                 ))}
               </div>
-              <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2">
-                <Link href="/producten/" onClick={() => setMegaOpen(false)} className="inline-flex items-center gap-2 text-sm font-bold text-accent-deep hover:text-ink">
-                  Bekijk alle producten <ArrowRight aria-hidden className="h-4 w-4" />
-                </Link>
-                <Link href="/shop/" onClick={() => setMegaOpen(false)} className="inline-flex items-center gap-2 text-sm font-bold text-accent-deep hover:text-ink">
-                  Alle prijzen in de catalogus <ArrowRight aria-hidden className="h-4 w-4" />
-                </Link>
+              <div className="mt-7 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+                <div className="flex flex-wrap gap-x-8 gap-y-2">
+                  <Link href="/producten/" onClick={() => setMegaOpen(false)} className="inline-flex items-center gap-2 text-sm font-bold text-accent-deep hover:text-ink">
+                    Bekijk alle producten <ArrowRight aria-hidden className="h-4 w-4" />
+                  </Link>
+                  <Link href="/shop/" onClick={() => setMegaOpen(false)} className="inline-flex items-center gap-2 text-sm font-bold text-accent-deep hover:text-ink">
+                    Alle prijzen in de catalogus <ArrowRight aria-hidden className="h-4 w-4" />
+                  </Link>
+                </div>
+                {/* The calculator as a strip under the columns: six product groups need the full width. */}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-sm bg-brand-soft px-5 py-3.5">
+                  <p className="text-sm leading-6 text-ink/75">
+                    <strong className="font-bold text-ink">Afsluitingscalculator:</strong> kies houtsoort, hoogte en lengte, en krijg meteen een richtprijs met materiaallijst.
+                  </p>
+                  <Link href="/calculator/" onClick={() => setMegaOpen(false)} className={`${primaryButton} w-fit shrink-0 px-5 py-2.5 text-sm`}>
+                    Start de calculator <ArrowRight aria-hidden className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
-            </div>
-
-            <div className="hidden flex-col justify-between rounded-sm bg-brand-soft p-7 xl:flex">
-              <div>
-                <h2 className="text-xl font-bold text-ink">Afsluitingscalculator</h2>
-                <p className="mt-3 text-sm leading-6 text-ink/75">Kies houtsoort, hoogte en lengte. Ontvang meteen een richtprijs met aanbevolen materiaallijst.</p>
-              </div>
-              <Link href="/calculator/" onClick={() => setMegaOpen(false)} className={`${primaryButton} mt-7 w-fit px-5 py-3 text-sm`}>
-                Start de calculator <ArrowRight aria-hidden className="h-4 w-4" />
-              </Link>
             </div>
           </div>
         </div>

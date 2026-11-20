@@ -21,6 +21,9 @@ metadata, images, or configuration. Heed deprecation notices.
   `src/data/collections.json`; catalogue routes live below `/shop/`. This site
   replaces `natuurhout.shop` (Oct 2026): never link to it; orders are sent from
   the price lists as order requests (`OrderRequestForm`).
+  Several webshop products can be shown as one product with a choice
+  (`src/lib/merged-products.ts`, e.g. the grondboren under `/shop/grondboor/`;
+  variant ids stay the same, old URLs redirect in `next.config.ts`).
 - Legacy media is mirrored at its original path below
   `public/wp-content/uploads/`. Never reintroduce WordPress hotlinks.
 

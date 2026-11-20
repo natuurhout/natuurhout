@@ -29,7 +29,7 @@ export const HEKWERK_PLAATSEN = `
       <h3>Zelf voorzien</h3>
       <ul>
         <li>Boormachine + bits</li>
-        <li>Spade of <a href="/shop/grondboor-kopie/">grondboor</a> <span class="nh-badge">te huur of te koop</span></li>
+        <li>Spade of <a href="/shop/grondboor/">grondboor</a> <span class="nh-badge">te huur of te koop</span></li>
         <li><a href="/shop/tuin-voorhamer/">Slaghamer</a> <span class="nh-badge">te huur of te koop</span></li>
         <li>Spantouw + paaltjes</li>
         <li>Waterpas</li>

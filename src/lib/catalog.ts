@@ -7,6 +7,7 @@ import overridesData from "@/data/catalog-overrides.json";
 import { renameDeep } from "@/lib/renames.mjs";
 import { REPLACED_SHOP_PHOTOS } from "@/lib/extra-photos";
 import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
+import { MERGED_HANDLES, withMerges } from "@/lib/merged-products";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
 // from natuurhout.shop (Shopify products.json, fetched 2026-08-17) per
@@ -64,7 +65,7 @@ export const productPage = (product: { handle: string }) => `/shop/${product.han
 // product's page here, anything else the shop overview.
 const SHOP_LINK = /https?:\/\/(?:www\.)?natuurhout\.shop(\/[^"'\s<>]*)?/g;
 // Old shop handles still linked from the copy.
-const OLD_HANDLES: Record<string, string> = { "kastanje-hekwerk-copy": "robinia-hekwerk" };
+const OLD_HANDLES: Record<string, string> = { "kastanje-hekwerk-copy": "robinia-hekwerk", ...MERGED_HANDLES };
 const KNOWN_HANDLES = new Set([...(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => product.handle));
 function localShopLinks(html: string): string {
   return html
@@ -82,7 +83,8 @@ function localShopLinks(html: string): string {
 // edits from D1 on top of these (worker/shop/catalog.ts).
 export const baseProducts = withPromotions(
   withPriceUpdates(
-    [...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
+    // Several webshop products shown as one (src/lib/merged-products.ts).
+    withMerges([...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
       ...product,
       bodyHtml: localShopLinks(product.bodyHtml),
       images: product.images.map((image) => {
@@ -90,7 +92,7 @@ export const baseProducts = withPromotions(
         const replaced = REPLACED_SHOP_PHOTOS[product.handle]?.[file];
         return replaced ? { ...image, ...replaced, width: 1600, height: 1600 } : image;
       }),
-    })),
+    }))),
   ),
 ).filter((product) => !(product.handle in REMOVED_PRODUCTS));
 /** Edits from the backend, as last published (src/lib/catalog-overrides.ts). */
@@ -99,7 +101,9 @@ const HIDDEN = hiddenHandles(overrides);
 export const products = applyOverrides(baseProducts, overrides);
 export const collections = withPromotionCollections(collectionsData as Collection[]).map((collection) => {
   const added = Object.entries(WEBSITE_PRODUCT_COLLECTIONS).filter(([, target]) => target === collection.handle).map(([handle]) => handle);
-  return added.length ? { ...collection, products: [...collection.products, ...added] } : collection;
+  // A merged product takes the place of its first part (src/lib/merged-products.ts).
+  const handles = [...new Set([...collection.products, ...added].map((handle) => MERGED_HANDLES[handle] ?? handle))];
+  return { ...collection, products: handles };
 });
 
 export function getProduct(handle: string): Product | undefined {

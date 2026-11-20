@@ -66,6 +66,8 @@ export default async function ProductGroupPage({ params }: Props) {
       <h1 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl">{group.title}</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink/70">{group.intro}</p>
 
+      {/* A group of shop products only (Plaatsingsmateriaal): the product cards below are the links. */}
+      {!group.links.every((link) => link.href.startsWith("/shop/")) && (
       <section aria-labelledby="groep-producten" className="mt-10">
         <h2 id="groep-producten" className="sr-only">Productpagina&apos;s</h2>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
@@ -95,6 +97,7 @@ export default async function ProductGroupPage({ params }: Props) {
           ))}
         </ul>
       </section>
+      )}
 
       {items.length > 0 && (
         <section aria-labelledby="groep-prijzen" className="mt-16">

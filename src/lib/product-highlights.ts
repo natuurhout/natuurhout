@@ -425,20 +425,12 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
   // ── Plaatsing en materiaal ─────────────────────────────────────────────
   grondboor: {
     plus: [
+      ["Kies uw boor", "grondboor ø7,5 of ø9 cm (1250 mm lang), of spiraalboor ø8 cm."],
       ["Precies passende gaten", "voor ronde palen: ze staan sneller en steviger."],
-      ["Spiraal van 8 cm", "de boorkop van 32 cm haalt de aarde in één keer boven."],
-      ["Stevig staal", "ook geschikt voor harde grond."],
+      ["Spiraalboor", "de boorkop van 32 cm haalt de aarde in één keer boven."],
+      ["Ook te huur", "de grondboor ø7,5 / ø9 cm: €10, met €50 borg die u terugkrijgt."],
     ],
-    uses: ["Gaten voor hekwerkpalen", "Voorboren voor poortpalen", "Palen in harde of stenige grond"],
-  },
-  "grondboor-kopie": {
-    plus: [
-      ["Lang", "1250 mm: diepe gaten zonder veel inspanning."],
-      ["Ø 7,5 of 9 cm", "voor palen van kastanje en robinia."],
-      ["Brede handgreep", "350 mm voor een goede grip."],
-      ["Ook te huur", "€10, met €50 borg die u terugkrijgt."],
-    ],
-    uses: ["Gaten voor kastanje of robinia palen", "Diepe gaten voor poortpalen", "Eenmalig project? Huur hem"],
+    uses: ["Gaten voor kastanje of robinia palen", "Diepe gaten voor poortpalen", "Palen in harde of stenige grond", "Eenmalig project? Huur hem"],
   },
   "tuin-voorhamer": {
     plus: [

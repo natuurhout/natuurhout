@@ -66,6 +66,8 @@ const nextConfig: NextConfig = {
     // Products taken off the website (src/lib/promotions.ts REMOVED_PRODUCTS).
     const removedProducts: Array<[string, string]> = [
       ["/shop/kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte", "/project/hazelaarrasterwerk/"],
+      // Shown as one product with a choice (src/lib/merged-products.ts).
+      ["/shop/grondboor-kopie", "/shop/grondboor/"],
     ];
     return [...live301s, ...migrationSeoRedirects, ...removedProducts].map(([source, destination]) => ({
       source,

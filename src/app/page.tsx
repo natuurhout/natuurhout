@@ -300,7 +300,6 @@ const homeSections: HomeSection[] = [
       "hekwerk-draadverbinders",
       "beslag-hang-sluitwerk",
       "grondboor",
-      "grondboor-kopie",
       "tuin-voorhamer",
       "lariks-planken-delen",
     ],

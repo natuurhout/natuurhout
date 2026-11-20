@@ -9,6 +9,8 @@ export type MenuGroup = {
   /** Overview page of the group: /assortiment/<slug>/ (group title is a link). */
   slug: string;
   intro: string;
+  /** The heading in the mega menu, where it differs (a soft hyphen for a narrow column). */
+  menuTitle?: string;
   /** Webshop products (handles) listed on the overview page, in this order. */
   products: string[];
   links: MenuLink[];
@@ -94,6 +96,22 @@ export const productMenu: MenuGroup[] = [
     links: [
       { href: "/project/moestuinbak/", label: "Plantenbakken" },
       { href: "/project/lariks-schaal-delen-2/", label: "Lariks schaaldelen" },
+    ],
+  },
+  {
+    title: "Plaatsingsmateriaal",
+    menuTitle: "Plaatsings\u00admateriaal",
+    slug: "plaatsingsmateriaal",
+    intro: "Alles om uw afsluiting zelf te plaatsen: houtschroeven, paalhouders, draadverbinders, hang- en sluitwerk en snelbeton, en gereedschap zoals slaghamers en grondboren.",
+    products: ["houtschroeven", "paalhouder-met-punt-rond", "hekwerk-draadverbinders", "beslag-hang-sluitwerk", "tuin-voorhamer", "grondboor", "snelbeton"],
+    links: [
+      { href: "/shop/houtschroeven/", label: "Houtschroeven" },
+      { href: "/shop/paalhouder-met-punt-rond/", label: "Paalhouders" },
+      { href: "/shop/hekwerk-draadverbinders/", label: "Draadverbinders" },
+      { href: "/shop/beslag-hang-sluitwerk/", label: "Hang- en sluitwerk" },
+      { href: "/shop/tuin-voorhamer/", label: "Slaghamers" },
+      { href: "/shop/grondboor/", label: "Grondboren" },
+      { href: "/shop/snelbeton/", label: "Snelbeton" },
     ],
   },
 ];
