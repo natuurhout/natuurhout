@@ -28,6 +28,8 @@ const HANG_SLUITWERK = {
   veersluiting: photo("veersluiting-veldpoort.jpg", "Veersluiting veldpoort: schuifgrendel met veer", true),
   overslagGrendel: photo("overslag-grendel-veldpoort.jpg", "Overslag grendel veldpoort: grendelstang met kogel, beugel, haak en schroeven"),
   grondpen: photo("grondpen.jpg", "Grondpen: L-vormige pen met twee geleiders"),
+  tuinheksluitingPen: photo("tuinheksluiting-met-pen.jpg", "Tuinheksluiting met pen op een kastanje poort: vanger op de paal, pen met kogel op de poort"),
+  tuinheksluitingNeus: photo("tuinheksluiting-met-neus.jpg", "Tuinheksluiting met neus: schuifgrendel met knop en vanger"),
 };
 
 export const PRODUCT_COPY: Record<string, Copy> = {
@@ -45,26 +47,29 @@ export const PRODUCT_COPY: Record<string, Copy> = {
       "<li><strong>Sluiting veldpoort met pen:</strong> de pen op de poort valt bij het dichtgaan vanzelf in de vanger.</li>",
       "<li><strong>Veersluiting veldpoort:</strong> een schuifgrendel met veer: trek de hendel terug, laat los en de pen schiet in het slot.</li>",
       "<li><strong>Overslag grendel veldpoort:</strong> grendelstang met kogel, beugel en haak, met de schroeven.</li>",
-      "<li><strong>Tuinheksluiting met pen</strong> of <strong>met neus:</strong> een eenvoudige sluiting voor een tuinhek of tuinpoort.</li>",
+      "<li><strong>Tuinheksluiting met pen:</strong> de vanger komt op de paal, de pen met kogel op de poort: de poort valt vanzelf in het slot.</li>",
+      "<li><strong>Tuinheksluiting met neus:</strong> een schuifgrendel met knop die in de vanger (neus) op de paal schuift.</li>",
       "</ul>",
       "<h3>Grondpen</h3>",
       "<p>Een L-vormige pen met twee geleiders: laat hem in de grond zakken en de poort blijft open of dicht staan, ook bij wind.</p>",
       "<p>Twijfelt u wat u nodig hebt voor uw poort? Bel of WhatsApp ons, we helpen u graag.</p>",
     ].join(""),
     images: [
+      // On a kastanje poort: the card photo.
+      HANG_SLUITWERK.tuinheksluitingPen,
       HANG_SLUITWERK.scharniersetVeldpoort,
       HANG_SLUITWERK.scharniersetTuinpoort,
+      HANG_SLUITWERK.tuinheksluitingNeus,
       HANG_SLUITWERK.sluitingMetPen,
       HANG_SLUITWERK.veersluiting,
       HANG_SLUITWERK.overslagGrendel,
       HANG_SLUITWERK.grondpen,
-      // Two webshop photos without a new version yet.
-      { src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/beslag-hangsluitwerk-152639.jpg?v=1740713418", width: 616, height: 616, alt: "Hang- en sluitwerk voor poorten" },
-      { src: "https://cdn.shopify.com/s/files/1/0905/4421/0251/files/beslag-hangsluitwerk-637413.jpg?v=1740713419", width: 500, height: 500, alt: "Hang- en sluitwerk voor poorten" },
     ],
     variantPhotos: {
       51355019477323: HANG_SLUITWERK.scharniersetVeldpoort.src, // Scharnieren set - Veldpoort
       51355019510091: HANG_SLUITWERK.scharniersetTuinpoort.src, // Scharnieren set - Tuinpoort
+      51355019542859: HANG_SLUITWERK.tuinheksluitingPen.src, // Tuinheksluiting met pen
+      51355019575627: HANG_SLUITWERK.tuinheksluitingNeus.src, // Tuinheksluiting met neus
       51355019608395: HANG_SLUITWERK.sluitingMetPen.src, // Sluiting veldpoort met pen
       51355019641163: HANG_SLUITWERK.veersluiting.src, // Veersluiting veldpoort
       51355019673931: HANG_SLUITWERK.overslagGrendel.src, // Overslag grendel veldpoort
