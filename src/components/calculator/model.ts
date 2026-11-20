@@ -22,6 +22,7 @@ import {
   validateCustomGate,
   type CalculatorData,
   type GateOption,
+  type Opt,
   type PoleOpt,
   type PickType,
   type PoleKind,
@@ -284,7 +285,7 @@ export function gateOption(data: CalculatorData, gate: Gate): GateOption | null 
   return data.gates.find((g) => g.handle === gate.handle) ?? null;
 }
 
-export type GateSize = { label: string; price: number | null; available: boolean; detail?: string };
+export type GateSize = { label: string; price: number | null; available: boolean; detail?: string; opt?: Opt };
 
 export function gateSize(data: CalculatorData, gate: Gate): GateSize | null {
   if (gate.handle === CUSTOM_GATE) {
@@ -307,7 +308,7 @@ export function gateSize(data: CalculatorData, gate: Gate): GateSize | null {
   if (!size) return null;
   const dims =
     size.height && size.width ? `${size.height} × ${size.width} cm (h × b)` : size.width ? `${size.width} cm breed` : "standaardmaat";
-  return { label: dims, price: size.price, available: size.available };
+  return { label: dims, price: size.price, available: size.available, opt: size };
 }
 
 /** Gates sold without posts that look best on a particular post (Xander: the robinia poort on sawn robinia). */
@@ -349,6 +350,9 @@ export function gateTitle(data: CalculatorData, gate: Gate): string {
 
 /* Material list ------------------------------------------------------ */
 
+/** The webshop variant a line is, at its webshop price: such lines can be ordered at once. */
+export type LineVariant = { id: number; handle: string; product: string; title: string; available: boolean };
+
 export type Line = {
   group: string;
   label: string;
@@ -358,7 +362,13 @@ export type Line = {
   url?: string;
   /** Not in stock: still requested, "Op bestelling"/"Op aanvraag" with the delivery term (src/lib/made-to-order.ts). */
   order?: { badge: string; note: string };
+  /** Missing: not a webshop variant as such (maatwerk, a fitted postsaver, a surcharge): quote only. */
+  variant?: LineVariant;
 };
+
+const variantOf = (handle: string, product: string, o: Opt): Pick<Line, "variant"> => ({
+  variant: { id: o.variantId, handle, product, title: o.title === "Default Title" ? "" : o.title.replace(/ \/ /g, " · "), available: o.available },
+});
 
 /** Sold-out choices stay in the list as "op bestelling": the quote confirms price and delivery term. */
 function onOrder(handle: string, available: boolean): Pick<Line, "order"> {
@@ -378,7 +388,8 @@ export function poleSize(kind: PoleOption["kind"], diameter: string): string {
 export function looseSaver(data: CalculatorData, diameter: string) {
   const key = postsaverKey(diameter);
   const opt = key ? data.loosePostsavers?.byKey[key] : undefined;
-  return key && opt ? { key, opt, url: data.loosePostsavers!.shopUrl } : null;
+  const own = data.loosePostsavers;
+  return key && opt && own ? { key, opt, url: own.shopUrl, handle: own.handle, title: own.title } : null;
 }
 
 /** A sleeve fitted by Natuurhout: the loose sleeve plus the fitting. */
@@ -440,7 +451,8 @@ function saverLines(group: string, mode: SaverMode, saver: PostSaver, qty: numbe
     return [{ group, label: `Postsaver aangebracht door Natuurhout op ${what}`, detail: `meerkost per paal (incl. aanbrengen)`, qty, unit: saver.mounted }];
   }
   if (mode === "loose" && saver.loose) {
-    return [{ group, label: `Losse postsaver ø${saver.loose.key} (zelf aanbrengen)`, qty, unit: saver.loose.opt.price, url: saver.loose.url }];
+    const loose = saver.loose;
+    return [{ group, label: `Losse postsaver ø${loose.key} (zelf aanbrengen)`, qty, unit: loose.opt.price, url: loose.url, ...variantOf(loose.handle, loose.title, loose.opt) }];
   }
   return [];
 }
@@ -468,6 +480,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         unit: r.roll.price,
         url: r.fence.shopUrl,
         ...onOrder(r.fence.handle, r.roll.available),
+        ...variantOf(r.fence.handle, r.fence.title, r.roll),
       });
     }
   }
@@ -483,6 +496,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         unit: s.size.price,
         url: s.option.shopUrl,
         ...onOrder(s.option.handle, s.size.available),
+        ...variantOf(s.option.handle, s.option.title, s.size),
       });
     }
   }
@@ -498,6 +512,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         unit: p.pole.price,
         url: p.product.shopUrl,
         ...onOrder(p.product.handle, p.pole.available),
+        ...variantOf(p.product.handle, p.product.title, p.pole),
       });
       lines.push(...saverLines("Palen", line.saver, postSaverFor(data, p.product.kind, p.pole), p.count, p.product.title.toLowerCase()));
     });
@@ -517,6 +532,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty: q.posts,
         unit: post.price + extra,
         url: pr.shopUrl,
+        ...(extra ? {} : variantOf(pr.handle, pr.title, post)),
       });
       lines.push({
         group: "Post & Rail",
@@ -525,6 +541,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty: q.rails,
         unit: pr.rail.price + extra,
         url: pr.shopUrl,
+        ...(extra ? {} : variantOf(pr.handle, pr.title, pr.rail)),
       });
     }
   }
@@ -548,6 +565,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         unit: size.price,
         url: gate.handle === CUSTOM_GATE ? undefined : option?.shopUrl,
         ...onOrder(gate.handle, size.available),
+        ...(size.opt && option ? variantOf(option.handle, option.title, size.opt) : {}),
       });
 
       if (postsIncluded(data, gate)) {
@@ -562,6 +580,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             unit: p.pole.price,
             url: p.product.shopUrl,
             ...onOrder(p.product.handle, p.pole.available),
+            ...variantOf(p.product.handle, p.product.title, p.pole),
           });
           lines.push(...saverLines(group, gate.saver, postSaverFor(data, p.product.kind, p.pole), POSTS_PER_GATE, "poortpaal"));
         }
@@ -572,12 +591,12 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         const hw = data.fieldGateHardware;
         if (gate.hinges) {
           hardware = true;
-          lines.push({ group, label: `Beslag: ${hw.hinges.title}`, detail: "per vleugel", qty: gate.leaves, unit: hw.hinges.price, url: hw.shopUrl });
+          lines.push({ group, label: `Beslag: ${hw.hinges.title}`, detail: "per vleugel", qty: gate.leaves, unit: hw.hinges.price, url: hw.shopUrl, ...variantOf(hw.handle, hw.title, hw.hinges) });
         }
         const latch = fieldGateLatch(data, gate);
-        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: hw.shopUrl, ...onOrder("beslag-hang-sluitwerk", latch.available) });
+        if (latch) lines.push({ group, label: `Beslag: ${latch.title}`, qty: 1, unit: latch.price, url: hw.shopUrl, ...onOrder(hw.handle, latch.available), ...variantOf(hw.handle, hw.title, latch) });
         if (hw.groundPin && gate.groundPins > 0) {
-          lines.push({ group, label: `Beslag: ${hw.groundPin.title}`, qty: gate.groundPins, unit: hw.groundPin.price, url: hw.shopUrl });
+          lines.push({ group, label: `Beslag: ${hw.groundPin.title}`, qty: gate.groundPins, unit: hw.groundPin.price, url: hw.shopUrl, ...variantOf(hw.handle, hw.title, hw.groundPin) });
         }
       }
       if (gate.black && hardware) {
@@ -598,6 +617,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
             unit: size.price,
             url: planter.shopUrl,
             ...onOrder(planter.handle, size.available),
+            ...variantOf(planter.handle, planter.title, size),
           });
         }
       }
@@ -618,6 +638,7 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
           unit: size.price,
           url: product.shopUrl,
           ...onOrder(product.handle, size.available),
+          ...variantOf(product.handle, product.title, size),
         });
       }
     }
@@ -630,6 +651,26 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
 export function pickProblem(data: CalculatorData, state: State, type: PickType): string | null {
   const any = data.picks[type].some((p) => p.sizes.some((z) => (state.picks[z.variantId] ?? 0) > 0));
   return any ? null : `Kies minstens één ${type === "palen" ? "paal" : "product"}.`;
+}
+
+/*
+ * "Meteen bestellen": the list as winkelmandje lines (one per variant). Lines
+ * that are no webshop variant as such (maatwerk, a fitted postsaver, black
+ * hardware, ...) are `blocked`: with any of those, the list goes as a quote.
+ */
+export function orderLines(lines: Line[]) {
+  const cart = new Map<number, { id: number; handle: string; product: string; label: string; unit: number; qty: number; available: boolean }>();
+  const blocked: Line[] = [];
+  for (const l of lines) {
+    if (!l.variant || l.unit === null) {
+      blocked.push(l);
+      continue;
+    }
+    const v = l.variant;
+    const had = cart.get(v.id);
+    cart.set(v.id, { id: v.id, handle: v.handle, product: v.product, label: v.title, unit: l.unit, qty: (had?.qty ?? 0) + l.qty, available: v.available });
+  }
+  return { cart: [...cart.values()], blocked };
 }
 
 export function total(lines: Line[]): number {

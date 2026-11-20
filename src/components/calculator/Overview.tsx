@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Check, Clock, Copy, Loader2, Mail, Truck } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRight, Check, Clock, Copy, Loader2, Mail, ShoppingCart, Truck } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
-import { contactErrors, lineDetail, quoteText, total, type Line, type State } from "@/components/calculator/model";
+import { addToCart } from "@/lib/cart";
+import { contactErrors, lineDetail, orderLines, quoteText, total, type Line, type State } from "@/components/calculator/model";
+import { DeliveryEstimator, DeliveryLine, DeliveryMinimum, useDeliveryQuote, withExtra } from "@/components/DeliveryCheck";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
 import type { StepProps } from "@/components/calculator/Steps";
 import { trackLead } from "@/lib/tracking";
@@ -110,6 +112,116 @@ function DeliveryTerms({ lines }: { lines: Line[] }) {
   );
 }
 
+/*
+ * "Meteen bestellen" (Xander, Nov 2026): the list goes into the winkelmandje
+ * as webshop lines and the customer goes on to /afrekenen/ (or to the
+ * winkelmandje while checkout is not set up). Lists with maatwerk or other
+ * quote-only lines can only be sent as an offerteaanvraag.
+ */
+function OrderNow({ lines, place, onPostcode }: { lines: Line[]; place: { postcode: string; city: string }; onPostcode: (postcode: string, city: string) => void }) {
+  const { cart, blocked } = orderLines(lines);
+  const extra = total(blocked);
+  const [ready, setReady] = useState<boolean | null>(null);
+  const [going, setGoing] = useState(false);
+  useEffect(() => {
+    fetch("/api/afrekenen/beschikbaar/", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((a: { ready?: boolean } | null) => setReady(Boolean(a?.ready)))
+      .catch(() => setReady(false));
+  }, []);
+  const canOrder = cart.length > 0 && blocked.length === 0;
+
+  function order() {
+    if (!canOrder) return;
+    setGoing(true);
+    addToCart(cart);
+    const pc = place.postcode.trim();
+    const query = /^\d{4}$/.test(pc) ? `?postcode=${pc}${place.city.trim() ? `&gemeente=${encodeURIComponent(place.city.trim())}` : ""}` : "";
+    window.location.href = `${ready ? "/afrekenen/" : "/winkelmandje/"}${query}`;
+  }
+
+  return (
+    <div className="border-t border-line pt-8">
+      <h2 className="font-display text-2xl font-semibold">Bestellen of offerte aanvragen</h2>
+      <p className="mt-1 text-sm text-ink/65">
+        Bestel deze materiaallijst meteen, of vraag er eerst een offerte voor aan per mail. Bereken hieronder alvast wat levering kost.
+      </p>
+
+      <DeliveryEstimator
+        lines={cart.map((l) => ({ id: l.id, qty: l.qty }))}
+        extra={extra}
+        initialPostcode={place.postcode}
+        initialCity={place.city}
+        onPostcode={onPostcode}
+        intro="Vul uw postcode in: u ziet meteen wat levering van deze materiaallijst kost en of er een minimumbedrag geldt."
+      />
+
+      <div className="mt-4 rounded-card border border-accent/40 bg-white p-4 sm:p-5">
+        <h3 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+          <ShoppingCart aria-hidden className="h-5 w-5 text-accent" /> Meteen bestellen
+        </h3>
+        {canOrder ? (
+          <>
+            <p className="mt-1 text-sm leading-6 text-ink/65">
+              We zetten deze materiaallijst in uw winkelmandje. Daarna kiest u afhalen in Zele of laten leveren
+              {ready ? " en betaalt u online of via overschrijving" : " en verstuurt u uw bestelling"}.
+            </p>
+            <button
+              type="button"
+              onClick={order}
+              disabled={going}
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-accent-deep disabled:opacity-70"
+            >
+              {going ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+              Meteen bestellen ({formatPrice(total(lines))})
+              <ArrowRight aria-hidden className="h-4 w-4" />
+            </button>
+          </>
+        ) : cart.length === 0 ? (
+          <p className="mt-1 text-sm leading-6 text-ink/65">Deze keuze maken we op maat: vraag hieronder uw offerte aan.</p>
+        ) : (
+          <div className="mt-1 text-sm leading-6 text-ink/65">
+            <p>Deze materiaallijst kunt u niet meteen bestellen, want deze posten maken of prijzen we op maat:</p>
+            <ul className="mt-1 list-disc pl-5">
+              {blocked.map((l, i) => (
+                <li key={`${l.label}-${i}`}>{l.label}</li>
+              ))}
+            </ul>
+            <p className="mt-1">Vraag hieronder uw offerte aan, of pas uw keuze aan in de vorige stappen.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Live delivery price for the address in the quote form. */
+function FormDelivery({ lines, postcode, city }: { lines: Line[]; postcode: string; city: string }) {
+  const { cart, blocked } = orderLines(lines);
+  const quote = useDeliveryQuote(
+    cart.map((l) => ({ id: l.id, qty: l.qty })),
+    postcode,
+    city,
+  );
+  const result = quote.result ? withExtra(quote.result, total(blocked)) : null;
+  const d = result?.delivery;
+  if (!result || !d) {
+    return (
+      <p className="text-xs text-ink/60 sm:col-span-3">
+        Vul uw postcode in: u ziet meteen wat levering kost. We bellen u om de levering af te spreken.
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-2 sm:col-span-3">
+      {result.short > 0 ? <DeliveryMinimum result={result} /> : <DeliveryLine result={result} />}
+      {d.ok && result.short === 0 && (
+        <p className="text-xs text-ink/60">We bevestigen de leveringskost in de offerte en bellen u om de levering af te spreken.</p>
+      )}
+    </div>
+  );
+}
+
 export function OverviewStep({ state, update, lines }: StepProps & { lines: Line[] }) {
   const [attempted, setAttempted] = useState(false);
   // sent = delivered to our inbox; mailto = handed to the customer's mail program
@@ -126,6 +238,18 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
   };
   const shown: Record<string, string | undefined> = attempted ? errors : {};
   const set = (patch: Partial<State["contact"]>) => update((s) => ({ ...s, contact: { ...s.contact, ...patch } }));
+  // The estimator's postcode fills the address form while that is still empty (or the same postcode).
+  const fromEstimator = useCallback(
+    (postcode: string, city: string) =>
+      update((s) => {
+        const own = s.contact.postcode.trim();
+        if (own && own !== postcode) return s;
+        const nextCity = city || s.contact.city;
+        if (own === postcode && s.contact.city === nextCity) return s;
+        return { ...s, contact: { ...s.contact, postcode, city: nextCity } };
+      }),
+    [update],
+  );
   const text = quoteText(state, lines);
   const subject = `Offerteaanvraag afsluiting – ${c.name.trim() || c.email.trim() || "natuurhout.be"}`;
 
@@ -200,11 +324,17 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
         <DeliveryTerms lines={lines} />
       </div>
 
+      <OrderNow
+        lines={lines}
+        place={{ postcode: c.postcode, city: c.city }}
+        onPostcode={fromEstimator}
+      />
+
       <div ref={formRef} className="relative space-y-7 border-t border-line pt-8">
         <div>
-          <h2 className="font-display text-2xl font-semibold">Offerte aanvragen</h2>
+          <h2 className="font-display text-2xl font-semibold">Liever eerst een offerte?</h2>
           <p className="mt-1 text-sm text-ink/65">
-            We sturen u een offerte op maat met deze materiaallijst. Voor een offerte volstaat uw e-mailadres; wilt u levering, dan
+            We sturen u een offerte per mail met deze materiaallijst. Voor een offerte volstaat uw e-mailadres; wilt u levering, dan
             vragen we ook uw naam, telefoonnummer en adres.
           </p>
         </div>
@@ -235,9 +365,7 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
               <Field label="Gemeente" required error={shown.city}>
                 {(p) => <input {...p} className={inputClass} autoComplete="address-level2" value={c.city} onChange={(e) => set({ city: e.target.value })} />}
               </Field>
-              <p className="text-xs text-ink/60 sm:col-span-3">
-                De leveringskosten bekijken we op basis van uw postcode en laten we u per mail weten. We bellen u om de levering af te spreken.
-              </p>
+              <FormDelivery lines={lines} postcode={c.postcode} city={c.city} />
             </div>
           )}
         </Question>

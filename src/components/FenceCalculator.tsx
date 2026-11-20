@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import type { CalculatorData } from "@/lib/calculator-pricing";
@@ -51,7 +51,7 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
   const lines = useMemo(() => buildLines(data, state), [data, state]);
   const sum = total(lines);
 
-  const update = (fn: (s: State) => State) => setState(fn);
+  const update = useCallback((fn: (s: State) => State) => setState(fn), []);
 
   // Links such as /calculator/?keuze=hekwerk (homepage) start with that
   // product chosen. Read after mount: the page itself is static.

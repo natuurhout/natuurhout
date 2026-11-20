@@ -171,7 +171,7 @@ function postRailPrices(): CalculatorData["postRail"] {
   const post3 = find(/post 3/i);
   const rail = find(/rail/i);
   if (!post2 || !post3 || !rail) return null;
-  return { post2: opt(post2), post3: opt(post3), rail: opt(rail), shopUrl: productPage(product) };
+  return { handle: product.handle, title: product.title, post2: opt(post2), post3: opt(post3), rail: opt(rail), shopUrl: productPage(product) };
 }
 
 const PLANTER_HANDLES = ["tuinbakken-hazelaar", "plantenbak-cortenstaal"];
@@ -193,6 +193,8 @@ function fieldGateHardware(): CalculatorData["fieldGateHardware"] {
   const latches = product.variants.filter((v) => /veldpoort/i.test(v.title) && /sluiting|grendel/i.test(v.title));
   const groundPin = product.variants.find((v) => /grondpen/i.test(v.title));
   return {
+    handle: product.handle,
+    title: product.title,
     hinges: opt(hinges),
     latches: latches.map(opt),
     groundPin: groundPin ? opt(groundPin) : null,
@@ -231,7 +233,7 @@ function loosePostsavers(): CalculatorData["loosePostsavers"] {
     const m = v.title.match(/ø\s*(\d+-\d+)\s*cm/i);
     if (m) byKey[`${m[1]}cm`] = opt(v);
   }
-  return Object.keys(byKey).length ? { byKey, shopUrl: productPage(product) } : null;
+  return Object.keys(byKey).length ? { handle: product.handle, title: product.title, byKey, shopUrl: productPage(product) } : null;
 }
 
 export function calculatorData(): CalculatorData {

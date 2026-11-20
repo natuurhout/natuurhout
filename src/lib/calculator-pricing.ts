@@ -48,11 +48,11 @@ export type PlanterOption = { handle: string; title: string; shopUrl: string; si
 export type PickType = "palen" | "lariks" | "hangsluitwerk" | "materiaal";
 export type PickOption = PlanterOption & { image?: string };
 
-export type PostRailPrices = { post2: Opt; post3: Opt; rail: Opt; shopUrl: string };
+export type PostRailPrices = { handle: string; title: string; post2: Opt; post3: Opt; rail: Opt; shopUrl: string };
 /** Field gates ship bare: the customer picks hinges, a latch and ground pins from the shop's beslag. */
-export type FieldGateHardware = { hinges: Opt; latches: Opt[]; groundPin: Opt | null; shopUrl: string };
+export type FieldGateHardware = { handle: string; title: string; hinges: Opt; latches: Opt[]; groundPin: Opt | null; shopUrl: string };
 /** Loose postsavers to fit yourself, by round-post diameter key ("8-10cm"). */
-export type LoosePostsavers = { byKey: Record<string, Opt>; shopUrl: string };
+export type LoosePostsavers = { handle: string; title: string; byKey: Record<string, Opt>; shopUrl: string };
 
 export type CalculatorData = {
   fences: FenceOption[];

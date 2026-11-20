@@ -26,7 +26,7 @@ export default function CalculatorPage() {
         <p className="mt-5 leading-relaxed text-ink/70">
           Stel uw afsluiting samen met hekwerk, palen en poort, of kies vlechtschermen, Post &amp; Rail,
           plantenbakken, lariks, losse palen, hang- en sluitwerk of plaatsingsmateriaal. U ziet meteen een richtprijs op
-          basis van de actuele webshopprijzen en vraagt in de laatste stap uw offerte aan.
+          basis van de actuele webshopprijzen en ziet in de laatste stap wat levering kost: bestel meteen of vraag een offerte aan.
         </p>
       </div>
       <div className="mt-10">

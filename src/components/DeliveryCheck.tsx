@@ -122,6 +122,32 @@ export function useDeliveryQuote(lines: { id: number; qty: number }[], postcode:
   return { result: current, failed: ready ? failed : null, retry };
 }
 
+/*
+ * The calculator's list can hold things the webshop does not price (maatwerk,
+ * a fitted postsaver, black hardware): `extra` is their value. The Worker
+ * only counts webshop variants, so add it here: it can reach the minimum, and
+ * then delivery costs what it would at the minimum (atMinimum).
+ */
+export function withExtra(result: DeliveryResult, extra: number): DeliveryResult {
+  if (!(extra > 0) || !result.delivery || result.minimum === null || result.short <= 0) return extra > 0 ? { ...result, subtotal: result.subtotal + extra } : result;
+  const subtotal = Math.round((result.subtotal + extra) * 100) / 100;
+  const short = Math.max(0, Math.round((result.minimum - subtotal) * 100) / 100);
+  const at = typeof result.atMinimum === "number" ? result.atMinimum : null;
+  if (short === 0 && at !== null) {
+    return { ...result, subtotal, short: 0, deliverable: true, delivery: { ...result.delivery, ok: true, price: at, reason: "" } };
+  }
+  const cost = at === null ? "" : at === 0 ? " en is dan gratis" : ` en kost dan ${euroShort(at)}`;
+  return {
+    ...result,
+    subtotal,
+    short,
+    delivery: {
+      ...result.delivery,
+      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${result.delivery.label}. Levering op deze afstand kan vanaf ${euroShort(result.minimum)}${cost}. Afhalen in Zele kan altijd.`,
+    },
+  };
+}
+
 /** "Dat lukte niet (fout 403). … [Opnieuw proberen]" */
 export function PriceFailure({ status, onRetry, className = "" }: { status: number; onRetry: () => void; className?: string }) {
   return (
@@ -194,13 +220,24 @@ export function DeliveryLine({ result }: { result: DeliveryResult }) {
 export function DeliveryEstimator({
   lines,
   onPostcode,
+  extra = 0,
+  initialPostcode = "",
+  initialCity = "",
+  intro = "Vul uw postcode in: u ziet meteen wat levering kost en of er een minimumbedrag geldt.",
 }: {
   lines: { id: number; qty: number }[];
   onPostcode?: (postcode: string, city: string) => void;
+  /** Value of lines the webshop does not price (see withExtra). */
+  extra?: number;
+  initialPostcode?: string;
+  initialCity?: string;
+  intro?: string;
 }) {
-  const [postcode, setPostcode] = useState("");
-  const [city, setCity] = useState("");
-  const { result, failed, retry } = useDeliveryQuote(lines, postcode, city);
+  const [postcode, setPostcode] = useState(initialPostcode);
+  const [city, setCity] = useState(initialCity);
+  const quote = useDeliveryQuote(lines, postcode, city);
+  const { failed, retry } = quote;
+  const result = quote.result && extra > 0 ? withExtra(quote.result, extra) : quote.result;
   const ready = /^\d{4}$/.test(postcode.trim());
   // Only request-only products (maatwerk): nothing to price, so nothing to wait for.
   const nothingPriced = lines.length === 0;
@@ -221,7 +258,7 @@ export function DeliveryEstimator({
       <h2 id="leveringskost" className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
         <Truck aria-hidden className="h-5 w-5 text-accent" /> Leveringskost berekenen
       </h2>
-      <p className="mt-1 text-sm text-ink/60">Vul uw postcode in: u ziet meteen wat levering kost en of er een minimumbedrag geldt.</p>
+      <p className="mt-1 text-sm text-ink/60">{intro}</p>
       <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-2.5">
         <label className="block text-sm">
           <span className="mb-1 block font-medium text-ink">Postcode</span>
