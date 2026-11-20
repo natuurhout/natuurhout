@@ -2176,7 +2176,7 @@
     "title": "150cm / 4.5/5cm (5m rol)",
     "price": "119.00",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 53687747019083,
@@ -2190,7 +2190,7 @@
     "title": "180cm / 4.5/5cm (5m rol)",
     "price": "139.00",
     "compare_at": null,
-    "available": false
+    "available": true
    },
    {
     "id": 53687747051851,

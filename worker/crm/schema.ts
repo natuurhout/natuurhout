@@ -223,7 +223,42 @@ const MIGRATIONS: string[][] = [
     ([key, value]) =>
       `INSERT INTO settings (key, value) VALUES ('${key}', '${value.replaceAll("'", "''")}') ON CONFLICT (key) DO UPDATE SET value = excluded.value`,
   ),
+  // 7: stock count of kastanje hekwerk, 20 November 2026 (rolls), as the Voorraad
+  // screen saves it: a stock move for the difference, then the counted stock (the
+  // site's availability follows it: 0 = op bestelling). Other columns are kept.
+  // 80cm was not counted. Written once; after that the backend is where it changes.
+  stockCount("kastanje-rasterwerk", "telling 2026-11-20", {
+    51176454717771: 3, // 60cm / 4.5/5cm
+    51176454947147: 60, // 60cm / 7.5/8cm
+    51176454783307: 50, // 90cm / 4.5/5cm
+    51176455012683: 35, // 90cm / 7.5/8cm
+    51176454816075: 60, // 100cm / 4.5/5cm
+    51176455045451: 25, // 100cm / 7.5/8cm
+    51176454848843: 60, // 120cm / 4.5/5cm
+    51176455078219: 55, // 120cm / 7.5/8cm
+    51176454881611: 0, // 150cm / 4.5/5cm
+    53687747019083: 18, // 150cm / 7.5/8cm
+    51176454914379: 30, // 180cm / 4.5/5cm
+    53687747051851: 20, // 180cm / 7.5/8cm
+  }),
 ];
+
+/** SQL for a one-time stock count (see migration 7). Counts are integers from code, never user input. */
+function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
+  const at = "2026-11-20T00:00:00.000Z";
+  return [
+    ...Object.entries(counts).flatMap(([id, stock]) => [
+      `INSERT INTO stock_moves (variant_id, delta, reason, author, created_at)
+       SELECT ${Number(id)}, ${stock} - COALESCE((SELECT stock FROM variant_overrides WHERE variant_id = ${Number(id)}), 0),
+         CASE WHEN (SELECT stock FROM variant_overrides WHERE variant_id = ${Number(id)}) IS NULL THEN 'telling gestart' ELSE 'correctie' END, '${author}', '${at}'
+       WHERE ${stock} IS NOT (SELECT stock FROM variant_overrides WHERE variant_id = ${Number(id)})`,
+      `INSERT INTO variant_overrides (variant_id, handle, available, stock, updated_by, updated_at)
+       VALUES (${Number(id)}, '${handle}', NULL, ${stock}, '${author}', '${at}')
+       ON CONFLICT (variant_id) DO UPDATE SET available = NULL, stock = excluded.stock, updated_by = excluded.updated_by, updated_at = excluded.updated_at`,
+    ]),
+    `INSERT INTO catalog_publish (id, changed_at) VALUES (1, '${at}') ON CONFLICT (id) DO UPDATE SET changed_at = excluded.changed_at`,
+  ];
+}
 
 let ready: Promise<void> | undefined;
 
