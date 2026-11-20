@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
       ["/shop/kastanje-hekwerk-1-00m-4-5cm-4-20m-lengte", "/project/hazelaarrasterwerk/"],
       // Shown as one product with a choice (src/lib/merged-products.ts).
       ["/shop/grondboor-kopie", "/shop/grondboor/"],
+      // The old WooCommerce account pages (no accounts any more, Nov 2026).
+      ["/view-order", "/contact/"],
+      ["/change-password", "/"],
+      ["/lost-password", "/"],
+      ["/logout", "/"],
     ];
     return [...live301s, ...migrationSeoRedirects, ...removedProducts].map(([source, destination]) => ({
       source,

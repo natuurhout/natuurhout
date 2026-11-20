@@ -33,6 +33,11 @@ metadata, images, or configuration. Heed deprecation notices.
   snapshot and the shop copy (the audit applies it too); the check mark ✓ stays. Approved new title/description/h1 of a
   rebuilt `/project/…` page come from `migration/handbuilt-routes.json`
   (`approvedSeo()` in `src/lib/legacy.ts`).
+- Legal pages (algemene voorwaarden, gebruiksvoorwaarden, privacyverklaring, cookiebeleid,
+  verzoek toegang tot data) are hand-built since Nov 2026 (`src/components/LegalPage.tsx`,
+  `src/app/<slug>/page.tsx`): keep them in step with the site (processors, cookies in
+  `src/lib/tracking.ts` / `src/lib/cart.ts`, payment and delivery) and update `LEGAL_UPDATED`.
+  The old WooCommerce account URLs redirect (`next.config.ts`).
 - Legacy media is mirrored at its original path below
   `public/wp-content/uploads/`. Never reintroduce WordPress hotlinks.
 

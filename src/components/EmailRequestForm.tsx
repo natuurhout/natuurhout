@@ -77,7 +77,10 @@ export default function EmailRequestForm({ kind }: Props) {
 
       <label className="mt-5 flex items-start gap-3 text-sm leading-6 text-ink/65">
         <input type="checkbox" required className="mt-1 h-4 w-4 accent-accent" />
-        Ik ga ermee akkoord dat Natuurhout mijn gegevens gebruikt om deze aanvraag te beantwoorden.
+        <span>
+          Ik ga ermee akkoord dat Natuurhout mijn gegevens gebruikt om deze aanvraag te beantwoorden (zie onze{" "}
+          <a href="/privacyverklaring/" target="_blank" className="underline underline-offset-2 hover:text-accent-deep">privacyverklaring</a>).
+        </span>
       </label>
 
       <button type="submit" className="mt-6 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent-deep">

@@ -19,7 +19,9 @@ import { siteIndexingEnabled } from "@/lib/site";
 type Props = { params: Promise<{ slug: string[] }> };
 
 export function generateStaticParams() {
-  const explicit = new Set(["/", "/producten/", "/aanbiedingen-2/", "/contact/", "/offerte-aanvragen/", "/over-ons/", "/houten-tuinpoorten/", "/landelijke-afsluiting/"]);
+  const explicit = new Set(["/", "/producten/", "/aanbiedingen-2/", "/contact/", "/offerte-aanvragen/", "/over-ons/", "/houten-tuinpoorten/", "/landelijke-afsluiting/",
+    // Legal pages, rewritten Nov 2026 (src/components/LegalPage.tsx).
+    "/algemene-voorwaarden-van-beho-comm-v/", "/gebruiksvoorwaarden/", "/privacyverklaring/", "/cookiebeleid-eu/", "/verzoek-toegang-tot-data/"]);
   return legacyPages
     .filter((page) => !explicit.has(page.pathname))
     .map((page) => ({ slug: page.pathname.split("/").filter(Boolean) }));

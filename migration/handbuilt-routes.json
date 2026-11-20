@@ -448,6 +448,37 @@
       "pathname": "/contact/",
       "approvedBy": "Xander",
       "reason": "Contact page rebuilt on Xander's request (Nov 2026): the snapshot was a 'Verlof' (holiday closure) notice image above a WordPress-only form. Now: all ways to reach Natuurhout (phone, gsm, WhatsApp, mail), a working contact form through /api/offerte/, address with route, opening hours and delivery info. Title, description, canonical, structured data, the h1 text and the form heading are the snapshot's."
+    },
+    {
+      "pathname": "/algemene-voorwaarden-van-beho-comm-v/",
+      "approvedBy": "Xander",
+      "reason": "Legal pages checked and updated on Xander's request (Nov 2026). The WordPress conditions were written for quotes and business customers; now that consumers order and pay online, Part A adds the rules for distance sales and consumers (prices incl. btw, ordering and confirmation, payment via MultiSafepay or transfer, pickup and delivery, the 14-day right of withdrawal with the model form and the maatwerk exception, rental, the 2-year legal guarantee, complaints and the Consumentenombudsdienst). Part B is the existing text with obvious errors corrected (stray 'br/>', the garantie and geschillen articles glued into others, article numbering, a broken cross-reference, the prices sentence). Clearer title, description and h1.",
+      "approvedTitle": "Algemene voorwaarden | Natuurhout",
+      "approvedDescription": "Algemene voorwaarden van BEHO comm.v. (Natuurhout): bestellen, betalen, afhalen en levering, herroepingsrecht, garantie en klachten.",
+      "approvedHeading": "Algemene voorwaarden van BEHO comm.v."
+    },
+    {
+      "pathname": "/gebruiksvoorwaarden/",
+      "approvedBy": "Xander",
+      "reason": "Legal pages checked and updated on Xander's request (Nov 2026): the right company name instead of 'Informatietuinen BEHO comm.v', the AVG instead of the Dutch WBP, links to the privacyverklaring, cookiebeleid and algemene voorwaarden, a line on obvious price errors."
+    },
+    {
+      "pathname": "/privacyverklaring/",
+      "approvedBy": "Xander",
+      "reason": "Legal pages checked and updated on Xander's request (Nov 2026): the WordPress text listed WordPress, Wordfence and YouTube cookies, a newsletter and user accounts that no longer exist. Rewritten for the site as it works now: which data, why and on what ground, the processors (Cloudflare, Microsoft 365, MultiSafepay, iBanFirst, Google and Meta only with consent), retention, rights, the Gegevensbeschermingsautoriteit, security.",
+      "approvedDescription": "Hoe Natuurhout (BEHO comm.v.) met uw persoonsgegevens omgaat: welke gegevens, waarom, met wie we ze delen, hoe lang we ze bewaren en welke rechten u hebt."
+    },
+    {
+      "pathname": "/cookiebeleid-eu/",
+      "approvedBy": "Xander",
+      "reason": "Legal pages checked and updated on Xander's request (Nov 2026): the WordPress page was a Complianz list of the old site's cookies (WooCommerce, Wordfence, Elementor, reCAPTCHA, Wistia, OptinMonster, Maps Marker Pro, WordPress). Rewritten for what this site stores (cookie choice and basket in local storage, Google Analytics and Meta Pixel only after consent) with a button that reopens the cookie settings.",
+      "approvedDescription": "Welke cookies natuurhout.be gebruikt: noodzakelijke voor uw cookiekeuze en winkelmandje, statistieken en marketing alleen met uw toestemming. Wijzig hier uw keuze."
+    },
+    {
+      "pathname": "/verzoek-toegang-tot-data/",
+      "approvedBy": "Xander",
+      "reason": "Legal pages checked and updated on Xander's request (Nov 2026): the WordPress page described a Complianz form that no longer exists. Now: how to ask for, correct or delete your data by mail (prefilled subjects), how we check it is you, the one-month answer. Stays noindex.",
+      "approvedDescription": "Vraag inzage in uw gegevens bij Natuurhout, of laat ze verbeteren of wissen: stuur ons een mail, we antwoorden binnen één maand."
     }
   ]
 }

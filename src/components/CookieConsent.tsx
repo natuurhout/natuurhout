@@ -54,6 +54,10 @@ export default function CookieConsent() {
         Noodzakelijke cookies staan altijd aan. Lees ons{" "}
         <Link href="/cookiebeleid-eu/" className="underline underline-offset-2">
           cookiebeleid
+        </Link>{" "}
+        en onze{" "}
+        <Link href="/privacyverklaring/" className="underline underline-offset-2">
+          privacyverklaring
         </Link>
         .
       </p>

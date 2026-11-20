@@ -162,7 +162,10 @@ export default function ContactForm() {
             aria-invalid={Boolean(shown.agree)}
             className="mt-1 h-4 w-4 accent-accent"
           />
-          Ik ga ermee akkoord dat Natuurhout mijn gegevens gebruikt om mijn vraag te beantwoorden.
+          <span>
+            Ik ga ermee akkoord dat Natuurhout mijn gegevens gebruikt om mijn vraag te beantwoorden (zie onze{" "}
+            <a href="/privacyverklaring/" target="_blank" className="underline underline-offset-2 hover:text-accent-deep">privacyverklaring</a>).
+          </span>
         </label>
         {shown.agree && <p className="mt-1 text-xs font-medium text-red-700">{shown.agree}</p>}
       </div>
