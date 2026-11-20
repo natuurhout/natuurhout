@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { CALCULATOR_HEKWERK_PHOTO, CALCULATOR_POSTRAIL_PHOTO, CALCULATOR_VLECHTSCHERM_PHOTO } from "@/lib/extra-photos";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import {
   BLACK_HARDWARE_SURCHARGE,
@@ -931,43 +932,105 @@ function typeImage(data: CalculatorData, id: ProductType): string | undefined {
 }
 
 /** Every product of a pick type with all its variants, a quantity per variant. */
+/*
+ * One collapsible row per product (Xander, Nov 2026): closed it shows the photo,
+ * "vanaf" price and what is chosen, so the step stays short; open it lists the
+ * sizes with a stepper. Products with something chosen start open.
+ */
 export function PickStep({ data, state, update, type }: StepProps & { type: PickType }) {
+  const products = data.picks[type];
+  const chosen = (p: (typeof products)[number]) => p.sizes.reduce((n, z) => n + (state.picks[z.variantId] ?? 0), 0);
+  const [open, setOpen] = useState<Set<string>>(() => new Set(products.filter((p) => chosen(p) > 0).map((p) => p.handle)));
+  const toggle = (handle: string) =>
+    setOpen((now) => {
+      const next = new Set(now);
+      if (next.has(handle)) next.delete(handle);
+      else next.add(handle);
+      return next;
+    });
   return (
-    <div className="space-y-7">
-      {data.picks[type].map((p) => (
-        <Question key={p.handle} title={p.title}>
-          <div className="divide-y divide-line overflow-hidden rounded-xl border border-line">
-            {p.sizes.map((z) => {
-              const photo = variantPhoto(p.handle, z.variantId);
-              const label = z.title === "Default Title" ? p.title : z.title;
-              return (
-                <div key={z.variantId} className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    {photo && (
-                      <span className="relative h-10 w-[3.25rem] shrink-0 overflow-hidden rounded-md border border-line bg-[#f0f0f0]">
-                        <Image src={photo.src} alt="" fill sizes="52px" className="object-cover" />
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink">{label}</p>
-                      <p className="text-xs text-ink/60">
-                        {formatPrice(z.price)}/stuk{soldOutSuffix(z.available)}
-                      </p>
-                    </div>
-                  </div>
-                  <Stepper
-                    label={`${p.title} ${label}`}
-                    value={state.picks[z.variantId] ?? 0}
-                    onChange={(v) => update((s) => ({ ...s, picks: { ...s.picks, [z.variantId]: v } }))}
-                  />
+    <div className="space-y-3">
+      <p className="text-sm text-ink/60">Klik op een product om de maten te zien en kies hoeveel stuks u wilt.</p>
+      {products.map((p) => {
+        const isOpen = open.has(p.handle);
+        const count = chosen(p);
+        const sum = p.sizes.reduce((t, z) => t + (state.picks[z.variantId] ?? 0) * z.price, 0);
+        const from = Math.min(...p.sizes.map((z) => z.price));
+        const panel = `pick-${p.handle}`;
+        return (
+          <div key={p.handle} className={`overflow-hidden rounded-xl border bg-white transition ${count > 0 ? "border-accent/60" : "border-line"}`}>
+            <button
+              type="button"
+              aria-expanded={isOpen}
+              aria-controls={panel}
+              onClick={() => toggle(p.handle)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-brand-soft/40"
+            >
+              {p.image && (
+                <span className="relative h-11 w-14 shrink-0 overflow-hidden rounded-md border border-line bg-[#f0f0f0]">
+                  <Image src={p.image} alt="" fill sizes="56px" className="object-cover" />
+                </span>
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-ink">{p.title}</span>
+                <span className="block text-xs text-ink/60">
+                  {p.sizes.length > 1 ? `${p.sizes.length} maten · vanaf ` : ""}
+                  {formatPrice(from)}/stuk
+                </span>
+                {count > 0 && (
+                  <span className="mt-1 inline-block rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent-deep tabular-nums sm:hidden">
+                    {count} st. · {formatPrice(sum)}
+                  </span>
+                )}
+              </span>
+              {count > 0 && (
+                <span className="hidden shrink-0 rounded-full sm:inline-block bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent-deep tabular-nums">
+                  {count} st. · {formatPrice(sum)}
+                </span>
+              )}
+              <ChevronDown aria-hidden className={`h-5 w-5 shrink-0 text-ink/50 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isOpen && (
+              <div id={panel} className="border-t border-line">
+                <div className={`grid gap-px bg-line ${p.sizes.length > 3 ? "md:grid-cols-2 md:[&>*:last-child:nth-child(odd)]:col-span-2" : ""}`}>
+                  {p.sizes.map((z) => {
+                    const photo = variantPhoto(p.handle, z.variantId);
+                    const label = z.title === "Default Title" ? p.title : z.title;
+                    return (
+                      <div key={z.variantId} className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5">
+                        <div className="flex min-w-0 items-center gap-3">
+                          {photo && (
+                            <span className="relative h-10 w-[3.25rem] shrink-0 overflow-hidden rounded-md border border-line bg-[#f0f0f0]">
+                              <Image src={photo.src} alt="" fill sizes="52px" className="object-cover" />
+                            </span>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-ink">{label}</p>
+                            <p className="text-xs text-ink/60">
+                              {formatPrice(z.price)}/stuk{soldOutSuffix(z.available)}
+                            </p>
+                          </div>
+                        </div>
+                        <Stepper
+                          label={`${p.title} ${label}`}
+                          value={state.picks[z.variantId] ?? 0}
+                          onChange={(v) => update((s) => ({ ...s, picks: { ...s.picks, [z.variantId]: v } }))}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+                {p.sizes.some((z) => !z.available && (state.picks[z.variantId] ?? 0) > 0) && (
+                  <div className="border-t border-line px-4 py-3">
+                    <OrderNote handle={p.handle} />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          {p.sizes.some((z) => !z.available && (state.picks[z.variantId] ?? 0) > 0) && <OrderNote handle={p.handle} />}
-        </Question>
-      ))}
-      <p className="text-xs text-ink/55">{PICK_LABEL[type]}: de prijzen zijn per stuk, incl. btw.</p>
+        );
+      })}
+      <p className="pt-2 text-xs text-ink/55">{PICK_LABEL[type]}: de prijzen zijn per stuk, incl. btw.</p>
     </div>
   );
 }
