@@ -219,13 +219,51 @@ function Figure({ photo: p, className = "", sizes }: { photo: Photo; className?:
   );
 }
 
-function Section({ title, blocks, photo: p, flip = false }: { title: string; blocks: LegacyBlock[]; photo: Photo; flip?: boolean }) {
+const inline = "font-semibold text-accent-deep underline decoration-accent/40 underline-offset-2 hover:text-ink hover:decoration-ink";
+
+/** Where Natuurhout comes from and how the range grew (Xander, Nov 2026), with links to the products. */
+function History() {
+  return (
+    <div className="mt-4 space-y-4 text-[17px] leading-8 text-ink/80">
+      <p>
+        Natuurhout is begonnen met kastanjehout, en daar zijn we in gespecialiseerd. In onze eigen werkplaats maken we kastanje poorten:{" "}
+        <Link href="/project/kastanje-poorten-geschroefd/" className={inline}>geschroefde poorten</Link>,{" "}
+        <Link href="/project/franse-poorten/" className={inline}>premium poorten</Link> en{" "}
+        <Link href="/project/maatwerk-poorten/" className={inline}>premium maatwerkpoorten</Link> op uw eigen maten.
+      </p>
+      <p>
+        In de loop der jaren is ons assortiment gegroeid. Naast kastanje leveren we nu ook{" "}
+        <Link href="/project/hazelaarrasterwerk/" className={inline}>hazelaar hekwerk</Link> en{" "}
+        <Link href="/project/hazelaarvlechtschermen/" className={inline}>hazelaar vlechtschermen</Link>, en{" "}
+        <Link href="/project/robinia-rasterwerk/" className={inline}>robinia hekwerk</Link>,{" "}
+        <Link href="/shop/robinia-poort/" className={inline}>robinia poorten</Link> en{" "}
+        <Link href="/project/robinia-palen/" className={inline}>robinia palen</Link>.
+      </p>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  blocks,
+  photo: p,
+  flip = false,
+  children,
+}: {
+  title: string;
+  blocks: LegacyBlock[];
+  photo: Photo;
+  flip?: boolean;
+  /** Website text after the snapshot's paragraphs. */
+  children?: React.ReactNode;
+}) {
   return (
     <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
       <div className={flip ? "lg:order-2" : undefined}>
         <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h2>
         <div className="mt-4">
           <Paragraphs blocks={blocks} />
+          {children}
         </div>
       </div>
       <Figure photo={p} className="aspect-[4/3]" sizes="(max-width: 1024px) 100vw, 50vw" />
@@ -296,7 +334,9 @@ export default function AboutPage() {
       </section>
 
       <div className="mt-16 space-y-16 lg:mt-20 lg:space-y-20">
-        <Section title={strong} blocks={after(blocks, strong)} photo={MAKER} />
+        <Section title={strong} blocks={after(blocks, strong)} photo={MAKER}>
+          <History />
+        </Section>
 
         <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
           <div className="space-y-8 lg:order-2">
