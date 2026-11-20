@@ -128,8 +128,23 @@ function legacyClassify(title: string, html: string): LegacyTab {
  * the Omschrijving tab).
  */
 const LEADS: Record<string, string> = {
+  "/project/rasterwerk-kastanjehout/":
+    "Kastanje hekwerk, ook Frans hekwerk of schapenhek genoemd, is de klassieke natuurlijke tuinafsluiting: gekloofde kastanjelatten met dubbel gegalvaniseerd draad, onbehandeld en 15 tot 25 jaar duurzaam. Op voorraad in Zele van 60 tot 180 cm hoog, met levering in heel België.",
   "/project/hazelaarrasterwerk/":
     "Hazelaar hekwerk is de budgetvriendelijke natuurlijke tuinafsluiting: met de hand gevlochten, onbehandeld en zo’n 10 jaar duurzaam. Op voorraad in Zele in hoogtes van 60 tot 150 cm, met levering in heel België.",
+};
+
+/**
+ * Extra text at the end of the Omschrijving tab (Xander, Nov 2026): the names
+ * people search for in Flanders, in plain sentences, and links to the other
+ * woods. New website copy; the snapshot's own text stays as it is.
+ */
+const ABOUT: Record<string, string> = {
+  "/project/rasterwerk-kastanjehout/": [
+    "<h3>Kastanje hekwerk, Frans hekwerk of schapenhek?</h3>",
+    "<p>In Vlaanderen heeft kastanje hekwerk veel namen: kastanje afsluiting, kastanjehouten tuinafsluiting, Frans hekwerk of Franse afsluiting, schapenhek, kastanje rolhek of rasterwerk. Het gaat telkens om hetzelfde: gekloofde kastanjelatten, verbonden met dubbel gegalvaniseerd ijzerdraad en geleverd op een rol. U gebruikt het als tuinafsluiting rond de voor- of achtertuin, als schapenhek of weideafsluiting voor schapen, geiten of ezels, of rond een kippenren, moestuin of zwembad.</p>",
+    "<p>Zoekt u een natuurlijk alternatief voor treillage of een draadafsluiting? Kastanje hekwerk plaatst u even eenvoudig tussen palen, maar het oogt warm en landelijk, en het onbehandelde kastanjehout gaat 15 tot 25 jaar mee. Kleiner budget of juist de langste levensduur? Kijk dan naar <a href=\"/project/hazelaarrasterwerk/\">hazelaar hekwerk</a> (voordeliger, zo’n 10 jaar) of <a href=\"/project/robinia-rasterwerk/\">robinia hekwerk</a> (25 tot 40 jaar).</p>",
+  ].join(""),
 };
 
 /** The opening sentences, up to ~260 characters, for the lead under the h1. */
@@ -203,6 +218,8 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     started = true;
     sections[tab] += `${section.title ? `<h3>${escapeHtml(section.title)}</h3>` : ""}${section.html}`;
   }
+
+  if (ABOUT[page.pathname]) sections.omschrijving += ABOUT[page.pathname];
 
   const $text = load(sections.omschrijving, null, false);
   const opening = $text("p")

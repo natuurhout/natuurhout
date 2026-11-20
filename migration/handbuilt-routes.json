@@ -22,11 +22,15 @@
     {
       "pathname": "/project/rasterwerk-kastanjehout/",
       "approvedBy": "Xander",
-      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page. Nov 2026 (Xander): a new title, description, h1 and short intro for search and ads, and a paragraph with the names used in Flanders (Frans hekwerk, schapenhek, kastanje tuinafsluiting, rolhek, treillage) at the end of Omschrijving (LEADS and ABOUT in src/lib/legacy-product.ts); the old h1 is in removedContent.",
       "preserveContent": true,
       "pricesFromShop": true,
       "pricesApprovedBy": "Xander",
-      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices."
+      "pricesReason": "Xander: 'Neem de prijzen van de shop over' — the outdated WordPress price tables are replaced by the webshop's prices, so a page never shows two different prices.",
+      "approvedTitle": "Kastanje hekwerk | Kastanje tuinafsluiting op rol | Natuurhout",
+      "approvedDescription": "Kastanje hekwerk (Frans hekwerk, schapenhek) op rol: onbehandelde tuinafsluiting die 15 tot 25 jaar meegaat. Van 60 tot 180 cm hoog, op voorraad in Zele.",
+      "approvedHeading": "Kastanje hekwerk: natuurlijke tuinafsluiting op rol",
+      "removedContent": ["Kastanjehouten afsluitingen"]
     },
     {
       "pathname": "/project/robinia-rasterwerk/",
