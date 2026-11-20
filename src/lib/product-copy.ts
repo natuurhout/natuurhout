@@ -12,6 +12,8 @@ import type { ProductImage, ProductVariant } from "@/lib/catalog";
 type Copy = {
   title?: string;
   bodyHtml?: string;
+  /** Corrections in the webshop description: [exact text, replacement], applied in order. */
+  bodyFixes?: [string, string][];
   /** Replaces the webshop photos, in this order (the first is the card photo). */
   images?: ProductImage[];
   /** Photo per variant id (a src from `images`), shown in the price list. */
@@ -42,6 +44,16 @@ const HANG_SLUITWERK = {
 };
 
 export const PRODUCT_COPY: Record<string, Copy> = {
+  // The robinia poort is screwed and dowelled, not mortise and tenon (Xander, Nov 2026).
+  "robinia-poort": {
+    bodyFixes: [
+      [
+        'zorgvuldig in elkaar gezet met een <strong data-start="475" data-end="509">klassieke pen-en-gatverbinding</strong> – een constructietechniek die garant staat voor stabiliteit en duurzaamheid.',
+        "zorgvuldig in elkaar gezet: <strong>vastgeschroefd en met deuvels verbonden</strong>. Zo is de poort zeer stevig en duurzaam.",
+      ],
+      ["klassieke houtverbindingen, pen-en-gatverbiding.", "vastgeschroefd en met deuvels verbonden, zeer stevig."],
+    ],
+  },
   // A loose inbussleutel for the draadverbinders (Xander, Nov 2026).
   "hekwerk-draadverbinders": {
     options: ["Artikel"],

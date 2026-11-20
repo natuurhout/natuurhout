@@ -134,7 +134,7 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
   },
   "robinia-poort": {
     plus: [
-      ["Pen-en-gatverbindingen", "een frame van geschaafde robinia profielen van 7x5 cm."],
+      ["Geschroefd en gedeuveld", "een frame van geschaafde robinia profielen van 7x5 cm, vastgeschroefd en met deuvels verbonden: zeer stevig."],
       ["Zelfde latten als het robinia hekwerk", "voorgeboord en vastgeschroefd, voor een strak geheel."],
       ["Met hang- en sluitwerk", "scharnieren en sluiting zijn inbegrepen."],
       [

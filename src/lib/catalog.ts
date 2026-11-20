@@ -95,7 +95,12 @@ export const baseProducts = withPromotions(
         ...product.variants.map((variant) => ({ ...variant, title: PRODUCT_COPY[product.handle]?.variantTitles?.[variant.id] ?? variant.title })),
         ...(PRODUCT_COPY[product.handle]?.extraVariants ?? []),
       ],
-      bodyHtml: localShopLinks(PRODUCT_COPY[product.handle]?.bodyHtml ?? product.bodyHtml),
+      bodyHtml: localShopLinks(
+        (PRODUCT_COPY[product.handle]?.bodyFixes ?? []).reduce(
+          (html, [from, to]) => html.split(from).join(to),
+          PRODUCT_COPY[product.handle]?.bodyHtml ?? product.bodyHtml,
+        ),
+      ),
       images: PRODUCT_COPY[product.handle]?.images ?? product.images.map((image) => {
         const file = image.src.split("?")[0].split("/").pop() ?? "";
         const replaced = REPLACED_SHOP_PHOTOS[product.handle]?.[file];
