@@ -29,6 +29,7 @@ type Quote = {
   deliverable: boolean;
   minimum: number | null;
   short: number;
+  atMinimum?: number | null;
   total: number;
   vat: number;
 };
@@ -352,6 +353,9 @@ export default function Checkout() {
           ) : availability.short > 0 && availability.minimum !== null ? (
             <p className="text-amber-800">
               Levering naar <strong>{placeLabel}</strong> kan vanaf {formatPrice(availability.minimum)}: nog <strong>{formatPrice(availability.short)}</strong> bijbestellen.
+              {typeof availability.atMinimum === "number" && (
+                <> Levering kost dan <strong>{availability.atMinimum === 0 ? "niets" : formatPrice(availability.atMinimum)}</strong>.</>
+              )}
             </p>
           ) : (
             <p className="text-red-700">{availability.delivery.reason.replace(/\s*Afhalen in Zele kan altijd\.?/i, "") || "Naar deze postcode leveren we niet via de webshop."}</p>

@@ -32,7 +32,8 @@ test("60 km, 8000, €135: blocked, €65 to go", () => {
   if (q.ok) return;
   assert.equal(q.minimum, 200);
   assert.equal(q.short, 65);
-  assert.equal(q.reason, "Nog €65 bijbestellen voor levering naar 8000 Testgemeente. Levering op deze afstand kan vanaf €200. Afhalen in Zele kan altijd.");
+  assert.equal(q.atMinimum, 55);
+  assert.equal(q.reason, "Nog €65 bijbestellen voor levering naar 8000 Testgemeente. Levering op deze afstand kan vanaf €200 en kost dan €55. Afhalen in Zele kan altijd.");
 });
 
 test("90 km, 2000, €350: €80 + €5 = €85", () => {
@@ -87,5 +88,18 @@ test("free delivery wins over band and region", () => {
 test("without a place the messages name only the postcode", () => {
   const q = priceDelivery(settings, { postcode: "8000", place: "", km: 78 }, { subtotal: 100, lines: [] });
   assert.equal(q.ok, false);
-  if (!q.ok) assert.equal(q.reason, "Nog €200 bijbestellen voor levering naar 8000. Levering op deze afstand kan vanaf €300. Afhalen in Zele kan altijd.");
+  if (!q.ok) assert.match(q.reason, /^Nog €200 bijbestellen voor levering naar 8000\. Levering op deze afstand kan vanaf €300 en kost dan €\d+\. Afhalen in Zele kan altijd\.$/);
+});
+
+test("below the minimum: the price once the minimum is reached, free when free delivery applies", () => {
+  const q = quote(60, "8000", 135);
+  assert.equal(q.ok, false);
+  if (!q.ok) assert.equal(q.atMinimum, price(quote(60, "8000", 200)));
+  const free = { ...settings, freeAbove: 200 };
+  const f = quote(60, "8000", 135, free);
+  assert.equal(f.ok, false);
+  if (!f.ok) {
+    assert.equal(f.atMinimum, 0);
+    assert.match(f.reason, /vanaf €200 en is dan gratis\./);
+  }
 });

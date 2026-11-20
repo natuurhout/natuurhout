@@ -24,6 +24,8 @@ export type DeliveryResult = {
   /** The band's minimum order value for delivery, and what is still missing (0 = reached). */
   minimum: number | null;
   short: number;
+  /** Below the minimum: the delivery price once the order reaches it (null: unknown). */
+  atMinimum?: number | null;
 };
 
 /**

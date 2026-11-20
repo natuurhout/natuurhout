@@ -67,6 +67,8 @@ type Priced = {
    */
   minimum: number | null;
   short: number;
+  /** Below the minimum: what delivery would cost once the order reaches it. */
+  atMinimum: number | null;
   total: number;
 };
 
@@ -110,6 +112,7 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
   let delivery: Priced["delivery"] = null;
   let minimum: number | null = null;
   let short = 0;
+  let atMinimum: number | null = null;
   if (wantsDelivery) {
     const q = deliveryQuote(settings, postcode, city, { subtotal, lines: lines.map((l) => ({ handle: l.handle, qty: l.qty })) });
     delivery = q.ok
@@ -117,8 +120,9 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
       : { ok: false, price: 0, label: q.place ? `${postcode} ${q.place}` : postcode, km: q.km ?? null, reason: q.reason };
     minimum = q.minimum ?? null;
     short = q.ok ? 0 : (q.short ?? 0);
+    atMinimum = q.ok ? null : (q.atMinimum ?? null);
   }
-  return { lines, invalid, subtotal, delivery, minimum, short, total: round2(subtotal + (delivery?.ok ? delivery.price : 0)) };
+  return { lines, invalid, subtotal, delivery, minimum, short, atMinimum, total: round2(subtotal + (delivery?.ok ? delivery.price : 0)) };
 }
 
 export async function quote(request: Request, env: CheckoutEnv): Promise<Response> {
@@ -135,6 +139,7 @@ export async function quote(request: Request, env: CheckoutEnv): Promise<Respons
     deliverable: !wantsDelivery || Boolean(p.delivery?.ok),
     minimum: p.minimum,
     short: p.short,
+    atMinimum: p.atMinimum,
     total: p.total,
     vat: round2((p.total * VAT_RATE) / (100 + VAT_RATE)),
   });

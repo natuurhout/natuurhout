@@ -66,8 +66,11 @@ export type Basket = { subtotal: number; lines: { handle: string; qty: number }[
 export type Where = { postcode: string; place: string; km: number };
 export type DeliveryQuote =
   | { ok: true; price: number; km: number; place: string; steps: string[]; minimum: number | null }
-  /** `minimum`/`short`: only when the order is below the minimum for this distance. */
-  | { ok: false; reason: string; km?: number; place?: string; steps: string[]; minimum?: number; short?: number };
+  /**
+   * `minimum`/`short`: only when the order is below the minimum for this distance;
+   * `atMinimum`: what delivery would cost once the order reaches that minimum.
+   */
+  | { ok: false; reason: string; km?: number; place?: string; steps: string[]; minimum?: number; short?: number; atMinimum?: number };
 
 /** Is a product (handle) in a collection? Supplied by the caller (catalogue). */
 export type InCollection = (collection: string, handle: string) => boolean;
@@ -130,14 +133,20 @@ export function priceDelivery(s: PriceSettings, where: Where, basket: Basket, in
   if (minimum !== null && basket.subtotal < minimum) {
     const short = round2(minimum - basket.subtotal);
     steps.push(`Minimum bestelbedrag voor levering op ${km.toLocaleString("nl-BE")} km: ${euro(minimum)}, nog ${euro(short)} te gaan: geen levering`);
+    // The same basket at the minimum: what delivery would cost then.
+    const then = priceDelivery(s, where, { ...basket, subtotal: minimum }, inCollection);
+    const atMinimum = then.ok ? then.price : undefined;
+    if (atMinimum !== undefined) steps.push(`Bij ${euro(minimum)} zou levering ${atMinimum === 0 ? "gratis zijn" : `${euro(atMinimum)} kosten`}`);
+    const cost = atMinimum === undefined ? "" : atMinimum === 0 ? " en is dan gratis" : ` en kost dan ${euroShort(atMinimum)}`;
     return {
       ok: false,
-      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${at}. Levering op deze afstand kan vanaf ${euroShort(minimum)}. Afhalen in Zele kan altijd.`,
+      reason: `Nog ${euroShort(short)} bijbestellen voor levering naar ${at}. Levering op deze afstand kan vanaf ${euroShort(minimum)}${cost}. Afhalen in Zele kan altijd.`,
       km,
       place,
       steps,
       minimum,
       short,
+      atMinimum,
     };
   }
   if (minimum !== null) steps.push(`Minimum bestelbedrag voor levering: ${euro(minimum)} (gehaald)`);
