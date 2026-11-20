@@ -72,8 +72,9 @@ export default function OrderRequestForm({
     });
   }, [place]);
 
-  // Only priced webshop variants count towards the delivery minimum.
-  const priced = lines.flatMap((l) => (typeof l.id === "number" && l.id > 0 ? [{ id: l.id, qty: l.qty }] : []));
+  // Only priced variants count towards the delivery minimum: the Worker skips ids it has no price for
+  // (website-only variants such as the inbussleutel or a rental have negative ids and do count).
+  const priced = lines.flatMap((l) => (typeof l.id === "number" && l.id !== 0 ? [{ id: l.id, qty: l.qty }] : []));
   const { result: deliveryCheck } = useDeliveryQuote(priced, f.postcode, f.city);
   const deliveryBlocked = deliveryCheck !== null && !deliveryCheck.deliverable;
   const belowMinimum = f.delivery && deliveryBlocked;

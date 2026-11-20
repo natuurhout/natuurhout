@@ -108,7 +108,8 @@ export default function CartView() {
   const [sent, setSent] = useState<{ onOrder: boolean } | null>(null);
   const [place, setPlace] = useState<{ postcode: string; city: string } | null>(null);
   const onPostcode = useCallback((postcode: string, city: string) => setPlace({ postcode, city }), []);
-  const priced = cart.filter((l) => l.id > 0).map((l) => ({ id: l.id, qty: l.qty }));
+  // Every line with a variant id (website-only ones are negative); the Worker skips unpriced ones.
+  const priced = cart.filter((l) => !(l.handle in PAGE)).map((l) => ({ id: l.id, qty: l.qty }));
   const [checkout, setCheckout] = useState<Availability | null>(null);
   const [asRequest, setAsRequest] = useState(false);
   const stock = useStock(cart.map((l) => l.id));

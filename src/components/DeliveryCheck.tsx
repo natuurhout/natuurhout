@@ -35,12 +35,17 @@ export async function postPrice<T>(body: unknown, signal: AbortSignal): Promise<
   for (let attempt = 0; attempt < 2; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 1200));
     if (signal.aborted) break;
+    // Never wait for ever: an attempt that gets no answer in 12 s counts as failed.
+    const own = new AbortController();
+    const stop = () => own.abort();
+    signal.addEventListener("abort", stop);
+    const timer = setTimeout(stop, 12000);
     try {
       const r = await fetch("/api/afrekenen/prijs/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        signal,
+        signal: own.signal,
         cache: "no-store",
       });
       if (r.ok) return (await r.json()) as T;
@@ -49,6 +54,9 @@ export async function postPrice<T>(body: unknown, signal: AbortSignal): Promise<
       if (signal.aborted) break;
       status = 0;
       void error;
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", stop);
     }
   }
   throw new PriceError(signal.aborted ? -1 : status);
@@ -192,6 +200,8 @@ export function DeliveryEstimator({
   const [city, setCity] = useState("");
   const { result, failed, retry } = useDeliveryQuote(lines, postcode, city);
   const ready = /^\d{4}$/.test(postcode.trim());
+  // Only request-only products (maatwerk): nothing to price, so nothing to wait for.
+  const nothingPriced = lines.length === 0;
   const field =
     "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15";
 
@@ -224,7 +234,9 @@ export function DeliveryEstimator({
       </div>
 
       <div className="mt-3" aria-live="polite">
-        {!ready ? null : failed !== null && !result ? (
+        {!ready ? null : nothingPriced ? (
+          <p className="text-sm text-ink/65">Voor maatwerk berekenen we de levering mee in de offerte.</p>
+        ) : failed !== null && !result ? (
           <PriceFailure status={failed} onRetry={retry} className="text-sm" />
         ) : !result || !d ? (
           <p className="text-sm text-ink/55">Even berekenen…</p>
