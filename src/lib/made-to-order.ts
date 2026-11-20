@@ -16,13 +16,20 @@ const MADE_TO_MEASURE: OrderTerm = {
 };
 
 const TERMS: Record<string, OrderTerm> = {
-  "kastanje-poort-geschroefd": MADE_TO_MEASURE,
+  // Lead times from Xander (Nov 2026); these can be ordered and paid at once.
+  "kastanje-poort-geschroefd": {
+    badge: "Op bestelling",
+    note: "Niet op voorraad: we maken de poort voor u, klaar in ±3 werkdagen.",
+  },
   "kastanje-poorten": MADE_TO_MEASURE,
-  "maatwerk-poort": MADE_TO_MEASURE,
+  "maatwerk-poort": {
+    badge: "Op bestelling",
+    note: "Wordt op maat voor u gemaakt: levering in ±2 weken.",
+  },
   // Price list next to the webshop's eiken palen (src/lib/price-updates.ts).
   "eiken-palen-met-postsaver": {
-    badge: "Op aanvraag",
-    note: "Wij brengen de postsaver voor u aan. Vraag deze palen aan; we bevestigen prijs en levertermijn per mail.",
+    badge: "Op bestelling",
+    note: "Wij brengen de postsaver voor u aan: klaar in ±3 dagen.",
   },
   // Not in the webshop (src/lib/website-products.ts).
   snelbeton: {

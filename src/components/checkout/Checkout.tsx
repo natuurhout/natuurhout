@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Landmark, Lock, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
 import { DeliveryLine, DeliveryMinimum, PriceError, PriceFailure, postPrice, useDeliveryQuote, type DeliveryResult } from "@/components/DeliveryCheck";
 import { setCartQty, useCart } from "@/lib/cart";
+import { orderTerm } from "@/lib/made-to-order";
 import { formatPrice } from "@/lib/catalog";
 import { ADDRESS, PHONE } from "@/lib/contact";
 import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
@@ -119,7 +120,7 @@ export default function Checkout() {
     if (!onlineAllowed) setMethod("overschrijving");
   }, [onlineAllowed]);
 
-  const basket = cart.map((l) => ({ id: l.id, qty: l.qty }));
+  const basket = cart.map((l) => ({ id: l.id, qty: l.qty, ...(l.note ? { note: l.note } : {}) }));
   const basketKey = JSON.stringify(basket);
   const postcode = f.postcode.trim();
   const city = f.city.trim();
@@ -300,7 +301,11 @@ export default function Checkout() {
               <span className="min-w-0 flex-1">
                 <span className="block font-medium text-ink">{priced?.product ?? line.product}</span>
                 {(priced ? priced.label : line.label) && <span className="block text-ink/60">{priced ? priced.label : line.label}</span>}
-                {priced?.note && <span className="block text-xs text-amber-700">Op bestelling: we laten de levertermijn weten</span>}
+                {priced?.note && (
+                  <span className="block text-xs text-amber-700">
+                    {priced.note === "op bestelling" ? orderTerm(line.handle).note : priced.note}
+                  </span>
+                )}
                 {bad && (
                   <span className="mt-1 flex items-center gap-2 text-xs font-medium text-red-700">
                     Niet online te bestellen (vraag een offerte)

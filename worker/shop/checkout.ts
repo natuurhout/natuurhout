@@ -54,7 +54,7 @@ function rateLimited(ip: string): boolean {
 
 // ---------------------------------------------------------------- pricing
 
-type BasketLine = { id: number; qty: number };
+type BasketLine = { id: number; qty: number; note?: string };
 type Priced = {
   lines: (NewLine & { id: number; image: string | null })[];
   invalid: number[];
@@ -74,14 +74,18 @@ type Priced = {
 
 function parseBasket(body: Record<string, unknown>): BasketLine[] {
   const raw = Array.isArray(body.lines) ? body.lines.slice(0, MAX_LINES) : [];
-  const out = new Map<number, number>();
-  for (const l of raw as { id?: unknown; qty?: unknown }[]) {
+  const out = new Map<number, BasketLine>();
+  for (const l of raw as { id?: unknown; qty?: unknown; note?: unknown }[]) {
     const id = Number(l?.id);
     const qty = Math.round(Number(l?.qty));
     if (!Number.isSafeInteger(id) || !Number.isFinite(qty) || qty < 1 || qty > 9999) continue;
-    out.set(id, (out.get(id) ?? 0) + qty);
+    // The customer's own words for this line (a gate's size and hinges, from the calculator).
+    const note = str(l?.note, 300).replace(/\s+/g, " ");
+    const had = out.get(id);
+    const notes = [had?.note, note].filter(Boolean).join(" | ").slice(0, 600);
+    out.set(id, { id, qty: (had?.qty ?? 0) + qty, ...(notes ? { note: notes } : {}) });
   }
-  return [...out].map(([id, qty]) => ({ id, qty }));
+  return [...out.values()];
 }
 
 async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolean, postcode: string, city: string): Promise<Priced> {
@@ -102,7 +106,7 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
       variant_id: hit.variant.id,
       handle: hit.product.handle,
       product: hit.product.title,
-      label: variantLabel(hit.product, hit.variant),
+      label: b.note ? `${variantLabel(hit.product, hit.variant)} (${b.note})` : variantLabel(hit.product, hit.variant),
       qty: b.qty,
       unit: round2(parseFloat(hit.variant.price)),
       note: later ? `${later.inStock} op voorraad, ${later.later} in nabestelling` : hit.variant.available ? "" : "op bestelling",

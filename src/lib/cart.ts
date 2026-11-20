@@ -19,6 +19,8 @@ export type CartLine = {
   unit: number;
   qty: number;
   available: boolean;
+  /** What the variant alone does not say, e.g. a gate's size and hinges (calculator); goes with the order. */
+  note?: string;
 };
 
 const KEY = "natuurhout-winkelmandje-v1";

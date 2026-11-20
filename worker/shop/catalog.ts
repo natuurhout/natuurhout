@@ -5,8 +5,11 @@
  * at once, even before the static site has been rebuilt.
  */
 
-import { baseProducts, collections, type Product, type ProductVariant } from "../../src/lib/catalog";
+import { baseProducts, collections, getProduct, type Product, type ProductVariant } from "../../src/lib/catalog";
 import { applyOverrides, type CatalogOverrides } from "../../src/lib/catalog-overrides";
+import { fittedPostsavers } from "../../src/lib/fitted-postsavers";
+import { MAATWERK_POORT } from "../../src/lib/order-only-products";
+import { oakWithPostsaver } from "../../src/lib/price-updates";
 import { ensureSchema } from "../crm/schema";
 
 export type VariantRow = {
@@ -54,6 +57,19 @@ export function toOverrides(variants: VariantRow[], products: ProductRow[]): Cat
   return out;
 }
 
+/*
+ * Orderable without a /shop/ page (src/lib/order-only-products.ts): the
+ * maatwerkpoort, eiken palen met postsaver and fitted postsavers. Built once.
+ */
+let orderOnly: Product[] | null = null;
+function orderOnlyProducts(): Product[] {
+  if (!orderOnly) {
+    const oak = getProduct("eiken-palen");
+    orderOnly = [MAATWERK_POORT, oak ? oakWithPostsaver(oak) : null, fittedPostsavers()].filter((p): p is Product => Boolean(p));
+  }
+  return orderOnly;
+}
+
 export async function loadCatalog(db: D1Database): Promise<{ products: LiveProduct[]; overrides: CatalogOverrides; byId: Map<number, { product: LiveProduct; variant: LiveVariant }> }> {
   await ensureSchema(db);
   const [variants, productRows] = await db.batch([
@@ -63,12 +79,13 @@ export async function loadCatalog(db: D1Database): Promise<{ products: LiveProdu
   const vRows = variants.results as VariantRow[];
   const pRows = productRows.results as ProductRow[];
   const overrides = toOverrides(vRows, pRows);
-  const applied = applyOverrides(baseProducts, overrides);
+  const all = [...baseProducts, ...orderOnlyProducts()];
+  const applied = applyOverrides(all, overrides);
   const vMap = new Map(vRows.map((v) => [v.variant_id, v]));
   const pMap = new Map(pRows.map((p) => [p.handle, p]));
   const byId = new Map<number, { product: LiveProduct; variant: LiveVariant }>();
   const products = applied.map((product, i): LiveProduct => {
-    const base = baseProducts[i];
+    const base = all[i];
     const live: LiveProduct = {
       ...product,
       hidden: pMap.get(product.handle)?.hidden === 1,

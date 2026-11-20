@@ -30,10 +30,11 @@ import { useStock } from "@/lib/stock";
  * 0 counted stay as "op bestelling".
  */
 
-// Request-only price lists that live on another product's page.
+// Products without a /shop/ page of their own (src/lib/order-only-products.ts): where their price list lives.
 const PAGE: Record<string, string> = {
   "maatwerk-poort": "/project/maatwerk-poorten/",
   "eiken-palen-met-postsaver": "/shop/eiken-palen/",
+  "postsaver-aanbrengen": "/project/postsaver-voor-palen/",
 };
 const pageOf = (line: CartLine) => PAGE[line.handle] ?? `/shop/${line.handle}/`;
 
@@ -109,7 +110,7 @@ export default function CartView() {
   const [place, setPlace] = useState<{ postcode: string; city: string } | null>(null);
   const onPostcode = useCallback((postcode: string, city: string) => setPlace({ postcode, city }), []);
   // Every line with a variant id (website-only ones are negative); the Worker skips unpriced ones.
-  const priced = cart.filter((l) => !(l.handle in PAGE)).map((l) => ({ id: l.id, qty: l.qty }));
+  const priced = cart.map((l) => ({ id: l.id, qty: l.qty }));
   const [checkout, setCheckout] = useState<Availability | null>(null);
   const [asRequest, setAsRequest] = useState(false);
   const stock = useStock(cart.map((l) => l.id));
@@ -119,16 +120,14 @@ export default function CartView() {
       .then((a: Availability | null) => a && setCheckout(a))
       .catch(() => {});
   }, []);
-  // Maatwerk and other request-only lines cannot be paid online.
-  const requestOnly = cart.some((l) => l.handle in PAGE);
-  const canPay = Boolean(checkout?.ready) && !requestOnly;
+  const canPay = Boolean(checkout?.ready);
   const checkoutHref = `/afrekenen/${place?.postcode ? `?postcode=${place.postcode}${place.city ? `&gemeente=${encodeURIComponent(place.city)}` : ""}` : ""}`;
   const onOrder = cart.filter((l) => !l.available);
   const notes = [...new Set(onOrder.map((l) => orderTerm(l.handle).note))];
   const requestLines: RequestLine[] = cart.map((l) => ({
     id: l.id,
     group: l.product,
-    label: l.label,
+    label: l.note ? `${l.label} (${l.note})` : l.label,
     detail: l.available ? "Op voorraad" : orderTerm(l.handle).badge,
     qty: l.qty,
     unit: l.unit,
@@ -167,6 +166,7 @@ export default function CartView() {
                     {line.product}
                   </Link>
                   <p className="text-sm text-ink/65">{line.label}</p>
+                  {line.note && <p className="text-xs leading-5 text-ink/60">{line.note}</p>}
                   <p className="text-xs text-ink/55">
                     {formatPrice(line.unit)} per stuk
                     {!line.available && (

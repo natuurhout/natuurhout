@@ -19,7 +19,7 @@ import { addToCart, cartCount, useCart } from "@/lib/cart";
 import { orderTerm } from "@/lib/made-to-order";
 import { backorderNote } from "@/lib/order-limits";
 import { useStock } from "@/lib/stock";
-import { OAK_WITH_POSTSAVER_HANDLE, oakWithPostsaver } from "@/lib/price-updates";
+import { oakWithPostsaver } from "@/lib/price-updates";
 
 /*
  * Price list buy box: one row per shop variant with its price and a quantity,
@@ -293,8 +293,6 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
   }));
   const showForm = requesting && lines.length > 0;
   const router = useRouter();
-  // The checkout only prices catalogue variants; request-only lines need the form.
-  const requestOnly = lines.some((l) => l.product.handle === OAK_WITH_POSTSAVER_HANDLE);
 
   function addLines() {
     addToCart(
@@ -314,7 +312,6 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
   }
 
   function buyNow() {
-    if (requestOnly) return openForm();
     addLines();
     router.push("/afrekenen/");
   }
@@ -388,7 +385,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
               </button>
               <button type="button" onClick={buyNow} className={`${button} border border-brand/25 bg-white text-ink hover:border-accent hover:text-accent-deep`}>
                 <Send className="h-4 w-4" />
-                {requestOnly ? "Meteen aanvragen" : "Meteen bestellen"}
+                Meteen bestellen
               </button>
             </div>
           ) : (

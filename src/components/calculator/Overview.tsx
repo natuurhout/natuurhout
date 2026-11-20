@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, Clock, Copy, Loader2, Mail, ShoppingCart, Truck } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import { addToCart } from "@/lib/cart";
-import { contactErrors, lineDetail, orderLines, quoteText, total, type Line, type State } from "@/components/calculator/model";
+import { FITTED_SAVER, contactErrors, deliveryBasket, lineDetail, orderLines, quoteText, total, type Line, type State } from "@/components/calculator/model";
 import { DeliveryEstimator, DeliveryLine, DeliveryMinimum, useDeliveryQuote, withExtra } from "@/components/DeliveryCheck";
 import { Chip, Field, Question, inputClass } from "@/components/calculator/ui";
 import type { StepProps } from "@/components/calculator/Steps";
@@ -115,12 +115,13 @@ function DeliveryTerms({ lines }: { lines: Line[] }) {
 /*
  * "Meteen bestellen" (Xander, Nov 2026): the list goes into the winkelmandje
  * as webshop lines and the customer goes on to /afrekenen/ (or to the
- * winkelmandje while checkout is not set up). Lists with maatwerk or other
- * quote-only lines can only be sent as an offerteaanvraag.
+ * winkelmandje while checkout is not set up). Lists with a price on request,
+ * a surcharge or something out of stock (other than what is made for the
+ * customer anyway, see orderLines) are sent as an offerteaanvraag.
  */
 function OrderNow({ lines, place, onPostcode }: { lines: Line[]; place: { postcode: string; city: string }; onPostcode: (postcode: string, city: string) => void }) {
   const { cart, blocked } = orderLines(lines);
-  const extra = total(blocked);
+  const forDelivery = deliveryBasket(lines);
   const [ready, setReady] = useState<boolean | null>(null);
   const [going, setGoing] = useState(false);
   useEffect(() => {
@@ -148,8 +149,8 @@ function OrderNow({ lines, place, onPostcode }: { lines: Line[]; place: { postco
       </p>
 
       <DeliveryEstimator
-        lines={cart.map((l) => ({ id: l.id, qty: l.qty }))}
-        extra={extra}
+        lines={forDelivery.lines}
+        extra={forDelivery.extra}
         initialPostcode={place.postcode}
         initialCity={place.city}
         onPostcode={onPostcode}
@@ -166,6 +167,7 @@ function OrderNow({ lines, place, onPostcode }: { lines: Line[]; place: { postco
               We zetten deze materiaallijst in uw winkelmandje. Daarna kiest u afhalen in Zele of laten leveren
               {ready ? " en betaalt u online of via overschrijving" : " en verstuurt u uw bestelling"}.
             </p>
+            <OrderTermsNote lines={lines} />
             <button
               type="button"
               onClick={order}
@@ -177,14 +179,16 @@ function OrderNow({ lines, place, onPostcode }: { lines: Line[]; place: { postco
               <ArrowRight aria-hidden className="h-4 w-4" />
             </button>
           </>
-        ) : cart.length === 0 ? (
-          <p className="mt-1 text-sm leading-6 text-ink/65">Deze keuze maken we op maat: vraag hieronder uw offerte aan.</p>
+        ) : blocked.length === 0 ? (
+          <p className="mt-1 text-sm leading-6 text-ink/65">Kies eerst wat u nodig hebt in de vorige stappen.</p>
         ) : (
           <div className="mt-1 text-sm leading-6 text-ink/65">
-            <p>Deze materiaallijst kunt u niet meteen bestellen, want deze posten maken of prijzen we op maat:</p>
+            <p>Deze materiaallijst kunt u niet meteen bestellen, door deze posten:</p>
             <ul className="mt-1 list-disc pl-5">
-              {blocked.map((l, i) => (
-                <li key={`${l.label}-${i}`}>{l.label}</li>
+              {blocked.map(({ line, why }, i) => (
+                <li key={`${line.label}-${i}`}>
+                  {line.label}: <span className="text-ink/80">{why === "voorraad" ? "nu niet op voorraad" : "prijs op maat"}</span>
+                </li>
               ))}
             </ul>
             <p className="mt-1">Vraag hieronder uw offerte aan, of pas uw keuze aan in de vorige stappen.</p>
@@ -195,15 +199,32 @@ function OrderNow({ lines, place, onPostcode }: { lines: Line[]; place: { postco
   );
 }
 
+/** What takes longer than stock (within the week): maatwerk ±2 weken, geschroefd ±3 werkdagen, postsaver ±3 dagen. */
+function OrderTermsNote({ lines }: { lines: Line[] }) {
+  const notes = [...new Set(lines.flatMap((l) => (l.order ? [`${l.label.split(" — ")[0]}: ${l.order.note}`] : [])))];
+  const fitted = lines.some((l) => l.variant?.handle === FITTED_SAVER.handle);
+  if (!notes.length && !fitted) return null;
+  return (
+    <ul className="mt-2 space-y-1 text-xs leading-5 text-ink/60">
+      {notes.map((note) => (
+        <li key={note} className="flex gap-1.5">
+          <Clock aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-deep" /> {note}
+        </li>
+      ))}
+      {fitted && (
+        <li className="flex gap-1.5">
+          <Clock aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-deep" /> Postsavers brengen we voor u aan: klaar in ±3 dagen.
+        </li>
+      )}
+    </ul>
+  );
+}
+
 /** Live delivery price for the address in the quote form. */
 function FormDelivery({ lines, postcode, city }: { lines: Line[]; postcode: string; city: string }) {
-  const { cart, blocked } = orderLines(lines);
-  const quote = useDeliveryQuote(
-    cart.map((l) => ({ id: l.id, qty: l.qty })),
-    postcode,
-    city,
-  );
-  const result = quote.result ? withExtra(quote.result, total(blocked)) : null;
+  const forDelivery = deliveryBasket(lines);
+  const quote = useDeliveryQuote(forDelivery.lines, postcode, city);
+  const result = quote.result ? withExtra(quote.result, forDelivery.extra) : null;
   const d = result?.delivery;
   if (!result || !d) {
     return (

@@ -26,6 +26,13 @@ metadata, images, or configuration. Heed deprecation notices.
   variant ids stay the same, old URLs redirect in `next.config.ts`).
   Tools to rent (grondboor, rubberen slaghamer: €60 = €10 huur + €50 borg)
   are an extra choice with a negative id (`src/lib/rentals.ts`).
+  Orderable without a /shop/ page (`src/lib/order-only-products.ts`, in the Worker's
+  catalogue only): kastanje premium maatwerkpoort (±2 weken), eiken palen met
+  postsaver and fitted postsavers (`src/lib/fitted-postsavers.ts`, ±3 dagen).
+  The calculator's "Meteen bestellen" puts its list in the winkelmandje (`orderLines`
+  in `src/components/calculator/model.ts`); out-of-stock lines other than those and
+  geschroefde poorten (±3 werkdagen) go as an offerteaanvraag. A cart line's `note`
+  (a gate's size and hinges) is added to the order line's label.
   Website title, description and own photos (with a photo per choice in the
   price list) can replace a webshop product's in `src/lib/product-copy.ts`
   (e.g. hang- en sluitwerk; photos in `public/fotos/web/hang-sluitwerk/`).

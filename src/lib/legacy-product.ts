@@ -1,5 +1,5 @@
 import { load } from "cheerio/slim";
-import { CUSTOM_GATE_HEIGHTS, CUSTOM_GATE_TABLE } from "@/lib/calculator-pricing";
+import { MAATWERK_POORT } from "@/lib/order-only-products";
 import { getProduct, type Product } from "@/lib/catalog";
 import { PAGE_EXTRA_PHOTOS } from "@/lib/extra-photos";
 import { approvedSeo, getLegacyPageByPath, type LegacyPage } from "@/lib/legacy";
@@ -48,31 +48,8 @@ const OVERVIEW_EXTRAS: Record<string, string[]> = {
 /*
  * Franse maatwerkpoorten are not in the webshop: they are made after the
  * order. Their price table (the same one the calculator uses) becomes a
- * price list of its own, where every size is "op bestelling".
+ * price list of its own (src/lib/order-only-products.ts), every size "op bestelling".
  */
-const MAATWERK_POORT: Product = {
-  handle: "maatwerk-poort",
-  title: "Kastanje premium maatwerkpoort",
-  bodyHtml: "",
-  options: ["Breedte", "Hoogte"],
-  images: [],
-  variants: CUSTOM_GATE_TABLE.flatMap((row, r) =>
-    CUSTOM_GATE_HEIGHTS.map((height, h) => ({
-      id: -(r * CUSTOM_GATE_HEIGHTS.length + h + 1),
-      title: `${row.width}cm / ${height}cm`,
-      price: row.prices[h].toFixed(2),
-      compare_at: null,
-      available: false,
-    })),
-  ),
-  priceFrom: null,
-  priceTo: null,
-  available: false,
-  tags: [],
-  shopUrl: "/project/maatwerk-poorten/",
-  publishedAt: null,
-};
-
 const REQUEST_ONLY: Record<string, Product[]> = {
   "/project/maatwerk-poorten/": [MAATWERK_POORT],
 };

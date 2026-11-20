@@ -1,5 +1,6 @@
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
+import { MAATWERK_POORT, customGateVariantId } from "@/lib/order-only-products";
 import {
   BLACK_HARDWARE_SURCHARGE,
   OAK_WITH_POSTSAVER,
@@ -293,10 +294,13 @@ export function gateSize(data: CalculatorData, gate: Gate): GateSize | null {
     const h = parseFloat(gate.customHeight.replace(",", "."));
     if (validateCustomGate(w, h)) return null;
     const listed = customGatePrice(w, h);
+    const id = listed ? customGateVariantId(listed.width, listed.height) : null;
     return {
       label: `op maat ${Math.round(w)} × ${Math.round(h)} cm (b × h)`,
       price: listed?.price ?? null,
-      available: true,
+      // Made to measure: "op bestelling", about 2 weeks (src/lib/made-to-order.ts).
+      available: false,
+      ...(listed && id !== null ? { opt: { variantId: id, title: `${listed.width}cm / ${listed.height}cm`, price: listed.price, available: false } } : {}),
       detail: listed
         ? `prijs volgens maat ${formatMeters(listed.width)} × ${formatMeters(listed.height)}`
         : "breder dan de prijslijst — prijs op aanvraag",
@@ -362,8 +366,10 @@ export type Line = {
   url?: string;
   /** Not in stock: still requested, "Op bestelling"/"Op aanvraag" with the delivery term (src/lib/made-to-order.ts). */
   order?: { badge: string; note: string };
-  /** Missing: not a webshop variant as such (maatwerk, a fitted postsaver, a surcharge): quote only. */
+  /** Missing: not a webshop variant as such (a surcharge, a price on request): quote only. */
   variant?: LineVariant;
+  /** For the order: what the variant alone does not say (a gate's size and hinges). */
+  note?: string;
 };
 
 const variantOf = (handle: string, product: string, o: Opt): Pick<Line, "variant"> => ({
@@ -401,12 +407,29 @@ export function mountedSaverPrice(data: CalculatorData, key: string): number | n
 export type PostSaver = {
   /** Extra per post when Natuurhout fits it; null = not offered. */
   mounted: number | null;
+  /** The fitting as a variant of the order-only product FITTED_SAVER (src/lib/order-only-products.ts). */
+  mountedId?: number;
   /** Loose sleeve to fit yourself; null = not offered. */
   loose: ReturnType<typeof looseSaver>;
 };
 
 /** The postsaver options for one post, with their prices. */
+/*
+ * Fitting a postsaver can be ordered and paid at once (Xander, Nov 2026: ready
+ * in about 3 days). Each fitting is a variant of an order-only product, with
+ * an id derived from the post's (or, for gate posts, the loose sleeve's)
+ * webshop variant id, so the site and the Worker agree without a table.
+ */
+export const FITTED_SAVER = { handle: "postsaver-aanbrengen", title: "Postsaver aangebracht door Natuurhout" };
+export const fittedSaverId = (poleVariantId: number) => -(poleVariantId * 10 + 7);
+export const gatePostSaverId = (sleeveVariantId: number) => -(sleeveVariantId * 10 + 8);
+
 export function postSaverFor(data: CalculatorData, kind: PoleOption["kind"], pole: PoleOpt): PostSaver {
+  const saver = postSaverPrices(data, kind, pole);
+  return saver.mounted === null ? saver : { ...saver, mountedId: fittedSaverId(pole.variantId) };
+}
+
+function postSaverPrices(data: CalculatorData, kind: PoleOption["kind"], pole: PoleOpt): PostSaver {
   if (kind === "kastanje-postsaver") return { mounted: null, loose: null };
   if (kind === "eiken") {
     // Natuurhout's price list for oak with a postsaver; no loose sleeve fits.
@@ -448,7 +471,19 @@ export function fieldGateLatch(data: CalculatorData, gate: Gate) {
 /** Postsaver lines for `qty` posts. */
 function saverLines(group: string, mode: SaverMode, saver: PostSaver, qty: number, what: string): Line[] {
   if (mode === "mounted" && saver.mounted !== null) {
-    return [{ group, label: `Postsaver aangebracht door Natuurhout op ${what}`, detail: `meerkost per paal (incl. aanbrengen)`, qty, unit: saver.mounted }];
+    const label = `Postsaver aangebracht door Natuurhout op ${what}`;
+    return [
+      {
+        group,
+        label,
+        detail: "meerkost per paal (incl. aanbrengen), klaar in ±3 dagen",
+        qty,
+        unit: saver.mounted,
+        ...(saver.mountedId !== undefined
+          ? { variant: { id: saver.mountedId, handle: FITTED_SAVER.handle, product: FITTED_SAVER.title, title: `op ${what}`, available: true } }
+          : {}),
+      },
+    ];
   }
   if (mode === "loose" && saver.loose) {
     const loose = saver.loose;
@@ -459,7 +494,9 @@ function saverLines(group: string, mode: SaverMode, saver: PostSaver, qty: numbe
 
 /** Postsaver for the posts that come with a gate, by their diameter. */
 export function includedPostSaver(data: CalculatorData, key: string): PostSaver {
-  return { mounted: mountedSaverPrice(data, key), loose: looseSaver(data, key) };
+  const loose = looseSaver(data, key);
+  const mounted = mountedSaverPrice(data, key);
+  return { mounted, loose, ...(mounted !== null && loose ? { mountedId: gatePostSaverId(loose.opt.variantId) } : {}) };
 }
 
 export function buildLines(data: CalculatorData, state: State): Line[] {
@@ -564,8 +601,13 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
         qty: gate.leaves,
         unit: size.price,
         url: gate.handle === CUSTOM_GATE ? undefined : option?.shopUrl,
-        ...onOrder(gate.handle, size.available),
-        ...(size.opt && option ? variantOf(option.handle, option.title, size.opt) : {}),
+        ...onOrder(gate.handle === CUSTOM_GATE ? MAATWERK_POORT.handle : gate.handle, size.available),
+        ...(size.opt && gate.handle === CUSTOM_GATE
+          ? variantOf(MAATWERK_POORT.handle, MAATWERK_POORT.title, size.opt)
+          : size.opt && option
+            ? variantOf(option.handle, option.title, size.opt)
+            : {}),
+        note: [gate.handle === CUSTOM_GATE ? size.label : "", kind, swing].filter(Boolean).join("; "),
       });
 
       if (postsIncluded(data, gate)) {
@@ -659,19 +701,47 @@ export function pickProblem(data: CalculatorData, state: State, type: PickType):
  * hardware, ...) are `blocked`: with any of those, the list goes as a quote.
  */
 export function orderLines(lines: Line[]) {
-  const cart = new Map<number, { id: number; handle: string; product: string; label: string; unit: number; qty: number; available: boolean }>();
-  const blocked: Line[] = [];
+  const cart = new Map<number, { id: number; handle: string; product: string; label: string; unit: number; qty: number; available: boolean; note?: string }>();
+  const blocked: { line: Line; why: "maat" | "voorraad" }[] = [];
   for (const l of lines) {
     if (!l.variant || l.unit === null) {
-      blocked.push(l);
+      blocked.push({ line: l, why: "maat" });
       continue;
     }
     const v = l.variant;
+    // Not in stock: only what is made for the customer anyway can be ordered at once.
+    if (!v.available && !ORDER_WHEN_SOLD_OUT.has(v.handle)) {
+      blocked.push({ line: l, why: "voorraad" });
+      continue;
+    }
     const had = cart.get(v.id);
-    cart.set(v.id, { id: v.id, handle: v.handle, product: v.product, label: v.title, unit: l.unit, qty: (had?.qty ?? 0) + l.qty, available: v.available });
+    const note = [had?.note, l.note].filter(Boolean).join(" | ");
+    cart.set(v.id, { id: v.id, handle: v.handle, product: v.product, label: v.title, unit: l.unit, qty: (had?.qty ?? 0) + l.qty, available: v.available, ...(note ? { note } : {}) });
   }
   return { cart: [...cart.values()], blocked };
 }
+
+/**
+ * For the delivery price: every webshop variant in the list (in stock or not),
+ * and the value of the rest, which the Worker cannot price (DeliveryCheck's withExtra).
+ */
+export function deliveryBasket(lines: Line[]) {
+  const ids = new Map<number, number>();
+  let extra = 0;
+  for (const l of lines) {
+    if (l.variant && l.unit !== null) ids.set(l.variant.id, (ids.get(l.variant.id) ?? 0) + l.qty);
+    else extra += l.unit === null ? 0 : l.qty * l.unit;
+  }
+  return { lines: [...ids].map(([id, qty]) => ({ id, qty })), extra };
+}
+
+/*
+ * Out of stock and still to order and pay at once (Xander, Nov 2026): the
+ * maatwerkpoort (about 2 weeks), the geschroefde poort (about 3 working days)
+ * and fitted postsavers (about 3 days). Anything else not in stock goes as an
+ * offerteaanvraag.
+ */
+const ORDER_WHEN_SOLD_OUT = new Set([MAATWERK_POORT.handle, "kastanje-poort-geschroefd", FITTED_SAVER.handle]);
 
 export function total(lines: Line[]): number {
   return lines.reduce((sum, l) => sum + (l.unit === null ? 0 : l.qty * l.unit), 0);

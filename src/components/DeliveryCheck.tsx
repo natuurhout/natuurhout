@@ -274,7 +274,7 @@ export function DeliveryEstimator({
 
       <div className="mt-3" aria-live="polite">
         {!ready ? null : nothingPriced ? (
-          <p className="text-sm text-ink/65">Voor maatwerk berekenen we de levering mee in de offerte.</p>
+          <p className="text-sm text-ink/65">Voor deze keuze berekenen we de levering mee in de offerte.</p>
         ) : failed !== null && !result ? (
           <PriceFailure status={failed} onRetry={retry} className="text-sm" />
         ) : !result || !d ? (
