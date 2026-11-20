@@ -295,9 +295,16 @@ const MIGRATIONS: string[][] = [
     51176454750539: 20, // 80cm / 4.5/5cm
     51176454979915: 20, // 80cm / 7.5/8cm
   }),
+  // 12: robinia poorten, one of each size left.
+  stockCount("robinia-poort", "telling 2026-11-20", {
+    51808531579211: 1, // 100cm x 100cm
+    51808531611979: 1, // 120cm x 100cm
+    56930521973067: 1, // 100cm x 150cm
+    56930522005835: 1, // 120cm x 150cm
+  }),
 ];
 
-/** SQL for a one-time stock count (see migrations 7 to 11). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 to 12). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [
