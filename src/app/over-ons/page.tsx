@@ -221,6 +221,97 @@ function Figure({ photo: p, className = "", sizes }: { photo: Photo; className?:
 
 const inline = "font-semibold text-accent-deep underline decoration-accent/40 underline-offset-2 hover:text-ink hover:decoration-ink";
 
+/*
+ * The range, replacing the snapshot's "Assortiment kastanjehout" (which
+ * still listed furniture) on Xander's request, Nov 2026: every product group
+ * with links to its pages, then how to order.
+ */
+const RANGE: { name: string; links: { href: string; label: string }[] }[] = [
+  {
+    name: "Hekwerk",
+    links: [
+      { href: "/project/rasterwerk-kastanjehout/", label: "kastanje" },
+      { href: "/project/robinia-rasterwerk/", label: "robinia" },
+      { href: "/project/hazelaarrasterwerk/", label: "hazelaar" },
+    ],
+  },
+  {
+    name: "Poorten",
+    links: [
+      { href: "/project/franse-poorten/", label: "kastanje premium" },
+      { href: "/project/kastanje-poorten-geschroefd/", label: "kastanje geschroefd" },
+      { href: "/project/maatwerk-poorten/", label: "maatwerk" },
+      { href: "/shop/robinia-poort/", label: "robinia" },
+      { href: "/project/hazelaar-poorten/", label: "hazelaar" },
+      { href: "/project/cleft-field-veldpoorten/", label: "veldpoorten" },
+    ],
+  },
+  {
+    name: "Palen",
+    links: [
+      { href: "/project/kastanjepalen/", label: "kastanje" },
+      { href: "/project/robinia-palen/", label: "robinia" },
+      { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "gezaagde robinia" },
+      { href: "/project/eiken-palen/", label: "eiken" },
+      { href: "/project/postsaver-voor-palen/", label: "postsaver" },
+    ],
+  },
+  {
+    name: "Vlechtschermen",
+    links: [
+      { href: "/project/hazelaarvlechtschermen/", label: "hazelaar" },
+      { href: "/project/hazelaar-vlechtscherm-hasseltre/", label: "hazelaar halve latten" },
+    ],
+  },
+  { name: "Post & Rail", links: [{ href: "/project/post-rail-2/", label: "omheining voor weides en paddocks" }] },
+  {
+    name: "Tuin",
+    links: [
+      { href: "/project/moestuinbak/", label: "plantenbakken" },
+      { href: "/project/lariks-schaal-delen-2/", label: "lariks schaaldelen" },
+    ],
+  },
+  {
+    name: "Plaatsingsmateriaal",
+    links: [
+      { href: "/shop/beslag-hang-sluitwerk/", label: "hang- en sluitwerk" },
+      { href: "/assortiment/plaatsingsmateriaal/", label: "schroeven, grondboren en meer" },
+    ],
+  },
+];
+
+function Range() {
+  return (
+    <div>
+      <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">Ons assortiment: hekwerk, poorten en palen</h2>
+      <p className="mt-4 text-[17px] leading-8 text-ink/80">
+        Alles voor een natuurlijke afsluiting, in kastanje, robinia en hazelaar, in verschillende hoogtes en maten:
+      </p>
+      <ul className="mt-3 divide-y divide-line border-y border-line">
+        {RANGE.map((group) => (
+          <li key={group.name} className="grid gap-x-4 gap-y-0.5 py-2.5 text-[15px] leading-7 sm:grid-cols-[9.5rem_1fr]">
+            <span className="font-semibold text-ink">{group.name}</span>
+            <span className="text-ink/80">
+              {group.links.map((link, i) => (
+                <span key={link.href}>
+                  {i > 0 && (i === group.links.length - 1 ? " en " : ", ")}
+                  <Link href={link.href} className={inline}>
+                    {link.label}
+                  </Link>
+                </span>
+              ))}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-4 text-[17px] leading-8 text-ink/80">
+        Haal uw bestelling af in Zele, laat ze leveren in heel België, bestel meteen via de prijslijsten of{" "}
+        <Link href={QUOTE_HREF} className={inline}>vraag een offerte op maat</Link> aan.
+      </p>
+    </div>
+  );
+}
+
 /** Where Natuurhout comes from and how the range grew (Xander, Nov 2026), with links to the products. */
 function History() {
   return (
@@ -278,7 +369,6 @@ export default function AboutPage() {
   const intro = eyebrow && eyebrow.type === "heading" ? after(blocks, eyebrow.text) : [];
   const strong = "Kastanjehout is sterk, veelzijdig en mooi";
   const uses = "Toepassingen kastanjehout";
-  const range = "Assortiment kastanjehout";
 
   return (
     <div className="mx-auto w-full max-w-[72rem] px-4 py-10 sm:px-6 lg:px-10 lg:py-14" data-legacy-product={page.pathname}>
@@ -340,14 +430,13 @@ export default function AboutPage() {
 
         <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
           <div className="space-y-8 lg:order-2">
-            {[uses, range].map((title) => (
-              <div key={title}>
-                <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h2>
-                <div className="mt-4">
-                  <Paragraphs blocks={after(blocks, title)} />
-                </div>
+            <div>
+              <h2 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{uses}</h2>
+              <div className="mt-4">
+                <Paragraphs blocks={after(blocks, uses)} />
               </div>
-            ))}
+            </div>
+            <Range />
           </div>
           <Figure photo={DELIVERY} className="aspect-[4/3]" sizes="(max-width: 1024px) 100vw, 50vw" />
         </section>
