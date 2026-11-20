@@ -8,7 +8,7 @@ import { getProduct, type Product } from "@/lib/catalog";
 import { MOBILE, PHONE } from "@/lib/contact";
 import type { LegacyPage } from "@/lib/legacy";
 import { SHOP_PRICES_MARKER, type LegacyProduct } from "@/lib/legacy-product";
-import { boughtTogether, productFacts } from "@/lib/product-info";
+import { boughtTogether, pairedWith, productFacts } from "@/lib/product-info";
 import { productHighlights } from "@/lib/product-highlights";
 import { realisatiesFor } from "@/lib/realisaties";
 
@@ -113,6 +113,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
       <ProductInfo
         tabs={productInfoTabs({
           omschrijving: info.sections.omschrijving,
+          pairs: pairedWith(primary),
           prijzen: listed && info.sections.prijzen ? <PriceOverview info={info} /> : undefined,
           facts: info.pricesFromShop ? productFacts(primary) : [],
           kenmerken: info.sections.kenmerken,

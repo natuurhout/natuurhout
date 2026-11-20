@@ -215,7 +215,8 @@ function companions(product: Product): string[] {
   const w = wood(product) ?? "kastanje";
   switch (kind(product)) {
     case "hekwerk":
-      return [POSTS[w], "kastanje-paal-met-postsaver", "hekwerk-draadverbinders", GATE[w], "grondboor"];
+      // Palen, poort, postsaver and houtschroeven first (Xander, Nov 2026).
+      return [POSTS[w], GATE[w], "kastanje-paal-met-postsaver", "houtschroeven", "hekwerk-draadverbinders", "grondboor"];
     case "poort":
       return w === "robinia"
         ? [GATE_POSTS.robinia, FENCE.robinia, "snelbeton", "kastanje-paal-met-postsaver", "grondboor"]
@@ -239,6 +240,18 @@ function companions(product: Product): string[] {
     default:
       return ["palen", "kastanje-rasterwerk", "kastanje-poorten", "kastanje-paal-met-postsaver", "grondboor"];
   }
+}
+
+/**
+ * The gate and posts that go with a fence, shown small under its description
+ * (Xander, Nov 2026: they are often bought together). Only for the three
+ * fences themselves.
+ */
+export function pairedWith(product: Product | undefined): Product[] {
+  if (!product) return [];
+  const w = (Object.keys(FENCE) as (keyof typeof FENCE)[]).find((key) => FENCE[key] === product.handle);
+  if (!w) return [];
+  return [GATE[w], POSTS[w]].map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
 }
 
 export function boughtTogether(product: Product, limit = 4): Product[] {

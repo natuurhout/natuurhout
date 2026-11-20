@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ProductTabs, { type ProductTab } from "@/components/ProductTabs";
-import { compareAtPrice, formatPrice, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
+import { compareAtPrice, formatPrice, productPage, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
+import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { orderTerm } from "@/lib/made-to-order";
 import { MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
@@ -174,8 +175,40 @@ function Highlights({ highlights, more }: { highlights: ProductHighlights; more:
   );
 }
 
+/** Small cards under a fence's description: the gate and posts often bought with it. */
+function Pairs({ products }: { products: Product[] }) {
+  return (
+    <div className="mt-8 border-t border-line pt-5">
+      <p className="text-sm font-semibold text-ink">Vaak samen met dit hekwerk</p>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+        {products.map((p) => {
+          const photo = CARD_PHOTOS[p.handle] ?? p.images[0]?.src;
+          return (
+            <li key={p.handle}>
+              <Link
+                href={productPage(p)}
+                className="group flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 pr-4 transition-colors hover:border-accent"
+              >
+                <span className="relative h-14 w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-brand-soft">
+                  {photo && <Image src={photo} alt="" fill sizes="72px" className="object-cover" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold leading-snug text-ink group-hover:text-accent-deep">{p.title}</span>
+                  {p.priceFrom && <span className="block text-xs text-ink/60">vanaf {formatPrice(p.priceFrom)}</span>}
+                </span>
+                <span aria-hidden className="text-ink/30 transition-colors group-hover:text-accent">→</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function productInfoTabs({
   omschrijving,
+  pairs = [],
   prijzen,
   facts,
   kenmerken,
@@ -186,6 +219,8 @@ export function productInfoTabs({
   fencing,
 }: {
   omschrijving: string;
+  /** Gate and posts that go with a fence, shown small under the description (pairedWith). */
+  pairs?: Product[];
   /** Price overview of a WordPress page; omitted when it already shows above. */
   prijzen?: ReactNode;
   facts: { label: string; value: string }[];
@@ -201,7 +236,12 @@ export function productInfoTabs({
     {
       id: "omschrijving",
       label: "Omschrijving",
-      content: omschrijving ? <Html html={omschrijving} /> : <p className="text-ink/60">Meer informatie volgt.</p>,
+      content: (
+        <>
+          {omschrijving ? <Html html={omschrijving} /> : <p className="text-ink/60">Meer informatie volgt.</p>}
+          {pairs.length > 0 && <Pairs products={pairs} />}
+        </>
+      ),
     },
     prijzen
       ? { id: "prijstabel", label: "Prijstabel", content: prijzen }
