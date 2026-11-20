@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 /*
  * Counted stock per variant id, live from the Worker (GET /api/afrekenen/voorraad/,
  * worker/shop/checkout.ts → stockLevels). Variants whose stock is not counted are
- * missing. Used to stop a price list or the winkelmandje at the stock
- * (src/lib/order-limits.ts → stockNote); 0 counted stays orderable as "op bestelling".
+ * missing. The price list and winkelmandje say what is in nabestelling above it
+ * (src/lib/order-limits.ts → backorderNote).
  */
 export function useStock(ids: number[]): Record<number, number> {
   const key = [...new Set(ids)].sort((a, b) => a - b).join(",");
@@ -26,9 +26,3 @@ export function useStock(ids: number[]): Record<number, number> {
   }, [key]);
   return stock;
 }
-
-/** The most that can be ordered of a variant, or null when there is no limit (not counted, or 0 = op bestelling). */
-export const stockMax = (stock: Record<number, number>, id: number): number | null => {
-  const n = stock[id];
-  return n !== undefined && n > 0 ? n : null;
-};

@@ -26,7 +26,7 @@ import { createPayment, getPayment, methodName, mspKey, MspError, validSignature
 import { createOrder, getLines, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
 import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid";
 import { makeMailer, type MailEnv } from "./send";
-import { overLimit, overStock } from "../../src/lib/order-limits";
+import { backorder, overLimit } from "../../src/lib/order-limits";
 import { formatIban, getSettings, missingSettings } from "./settings";
 
 export interface CheckoutEnv extends MspEnv, MailEnv {
@@ -58,8 +58,6 @@ type BasketLine = { id: number; qty: number };
 type Priced = {
   lines: (NewLine & { id: number; image: string | null })[];
   invalid: number[];
-  /** Counted stock per variant id (variants whose stock is not counted are left out). */
-  stock: Record<number, number>;
   subtotal: number;
   /** null when the customer picks up; otherwise the delivery quote (ok or why not). */
   delivery: { ok: boolean; price: number; label: string; km: number | null; reason: string } | null;
@@ -88,15 +86,14 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
   const [{ byId }, settings] = await Promise.all([loadCatalog(db), getCheckoutSettings(db)]);
   const lines: Priced["lines"] = [];
   const invalid: number[] = [];
-  const stock: Record<number, number> = {};
   for (const b of basket) {
     const hit = byId.get(b.id);
-    if (hit && hit.variant.stock !== null) stock[b.id] = hit.variant.stock;
     // Unknown ids are request-only products (no price): those go through a quote.
     if (!hit || hit.product.hidden) {
       invalid.push(b.id);
       continue;
     }
+    const later = backorder(hit.variant.stock, b.qty);
     lines.push({
       id: b.id,
       image: hit.product.images[0]?.src ?? null,
@@ -106,7 +103,7 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
       label: variantLabel(hit.product, hit.variant),
       qty: b.qty,
       unit: round2(parseFloat(hit.variant.price)),
-      note: hit.variant.available ? "" : "op bestelling",
+      note: later ? `${later.inStock} op voorraad, ${later.later} in nabestelling` : hit.variant.available ? "" : "op bestelling",
     });
   }
   const subtotal = round2(lines.reduce((t, l) => t + l.qty * l.unit, 0));
@@ -121,7 +118,7 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
     minimum = q.minimum ?? null;
     short = q.ok ? 0 : (q.short ?? 0);
   }
-  return { lines, invalid, stock, subtotal, delivery, minimum, short, total: round2(subtotal + (delivery?.ok ? delivery.price : 0)) };
+  return { lines, invalid, subtotal, delivery, minimum, short, total: round2(subtotal + (delivery?.ok ? delivery.price : 0)) };
 }
 
 export async function quote(request: Request, env: CheckoutEnv): Promise<Response> {
@@ -264,8 +261,6 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
   if (!p.lines.length) return json({ error: "Uw winkelmandje is leeg." }, 400);
   const limit = overLimit(p.lines);
   if (limit) return json({ error: limit }, 400);
-  const short = overStock(p.lines.map((l) => ({ ...l, stock: p.stock[l.id] ?? null })));
-  if (short) return json({ error: short }, 400);
   if (wantsDelivery && !p.delivery?.ok)
     return json(
       {
@@ -384,8 +379,8 @@ async function byToken(db: D1Database, number: string, t: string): Promise<Order
  */
 /**
  * Counted stock for the winkelmandje (GET ?ids=1,2,3): { stock: { [id]: n } }.
- * Variants whose stock is not counted are left out. The basket lowers a line
- * to this number (src/components/CartView.tsx); place() refuses more.
+ * Variants whose stock is not counted are left out. The price list and basket
+ * say how much of a line is in nabestelling (src/lib/order-limits.ts).
  */
 export async function stockLevels(request: Request, env: CheckoutEnv): Promise<Response> {
   if (!env.DB) return json({ stock: {} });

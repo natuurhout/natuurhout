@@ -9,7 +9,7 @@ import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
-import { stockNote } from "@/lib/order-limits";
+import { backorderNote } from "@/lib/order-limits";
 import { useStock } from "@/lib/stock";
 
 /*
@@ -25,9 +25,9 @@ import { useStock } from "@/lib/stock";
  * Request-only items (maatwerk) always go through the order form.
  *
  * Stock (Xander, Nov 2026): the counted stock comes live from the Worker
- * (GET /api/afrekenen/voorraad/). A line above it is lowered to it, with a
- * note that this is all there is and to mail for the next freight. Lines with
- * 0 counted stay as "op bestelling". Checkout refuses more on the server too.
+ * (GET /api/afrekenen/voorraad/). A line can ask more: it says how many are in
+ * stock and that the rest is in nabestelling, with the next freight. Lines with
+ * 0 counted stay as "op bestelling".
  */
 
 // Request-only price lists that live on another product's page.
@@ -88,21 +88,15 @@ function CheckoutCard({ total, online, href, onRequest }: { total: number; onlin
   );
 }
 
-function Qty({ line, max, onMax }: { line: CartLine; max: number | null; onMax: () => void }) {
+function Qty({ line }: { line: CartLine }) {
   const button = "grid h-9 w-9 place-items-center text-ink/60 transition-colors hover:text-accent-deep";
-  const atMax = max !== null && max > 0 && line.qty >= max;
   return (
     <span className="inline-flex items-center rounded-full border border-brand/25 bg-white">
       <button type="button" className={button} onClick={() => setCartQty(line.id, line.qty - 1)} aria-label={`Minder ${line.label}`}>
         <Minus className="h-4 w-4" />
       </button>
       <span className="min-w-8 text-center text-sm font-semibold tabular-nums">{line.qty}</span>
-      <button
-        type="button"
-        className={`${button} ${atMax ? "opacity-40" : ""}`}
-        onClick={() => (atMax ? onMax() : setCartQty(line.id, line.qty + 1))}
-        aria-label={`Meer ${line.label}`}
-      >
+      <button type="button" className={button} onClick={() => setCartQty(line.id, line.qty + 1)} aria-label={`Meer ${line.label}`}>
         <Plus className="h-4 w-4" />
       </button>
     </span>
@@ -118,19 +112,6 @@ export default function CartView() {
   const [checkout, setCheckout] = useState<Availability | null>(null);
   const [asRequest, setAsRequest] = useState(false);
   const stock = useStock(cart.map((l) => l.id));
-  const [atStock, setAtStock] = useState<Record<number, true>>({});
-  // More than the counted stock: lower the line to it (0 counted stays "op bestelling").
-  useEffect(() => {
-    const lowered: Record<number, true> = {};
-    for (const line of cart) {
-      const max = stock[line.id];
-      if (max !== undefined && max > 0 && line.qty > max) {
-        lowered[line.id] = true;
-        setCartQty(line.id, max);
-      }
-    }
-    if (Object.keys(lowered).length) setAtStock((a) => ({ ...a, ...lowered }));
-  }, [cart, stock]);
   useEffect(() => {
     fetch("/api/afrekenen/beschikbaar/", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
@@ -193,11 +174,11 @@ export default function CartView() {
                       </span>
                     )}
                   </p>
-                  {atStock[line.id] && stock[line.id] > 0 && line.qty >= stock[line.id] && (
-                    <p className="mt-1 text-xs leading-5 font-medium text-accent-deep">{stockNote(stock[line.id])}</p>
+                  {backorderNote(stock[line.id], line.qty) && (
+                    <p className="mt-1 text-xs leading-5 font-medium text-accent-deep">{backorderNote(stock[line.id], line.qty)}</p>
                   )}
                 </div>
-                <Qty line={line} max={stock[line.id] ?? null} onMax={() => setAtStock((a) => ({ ...a, [line.id]: true }))} />
+                <Qty line={line} />
                 <span className="w-24 text-right font-semibold tabular-nums">{formatPrice(line.unit * line.qty)}</span>
                 <button
                   type="button"

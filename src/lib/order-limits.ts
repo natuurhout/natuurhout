@@ -4,9 +4,9 @@
  * first (Xander, Nov 2026). Checked by the Worker at checkout
  * (worker/shop/checkout.ts). Client-safe: no catalogue import.
  *
- * Counted stock is a limit too: the winkelmandje lowers a line to what is in
- * stock and says so (stockNote), and checkout refuses more (overStock). A
- * variant with 0 counted stays orderable as "op bestelling".
+ * Counted stock is not a limit (Xander, Nov 2026): more can be ordered, the
+ * price list, winkelmandje and order say how many are in stock and that the
+ * rest is in nabestelling and comes with the next freight (backorderNote).
  */
 
 export const ORDER_LIMITS: Record<string, { max: number; what: string }> = {
@@ -26,14 +26,15 @@ export function overLimit(lines: { handle: string; qty: number }[]): string | nu
   return null;
 }
 
-/** Under a basket line that was lowered to the stock. */
-export const stockNote = (stock: number) =>
-  `Dit is onze volledige voorraad (${stock} ${stock === 1 ? "stuk" : "stuks"}). Meer nodig? Mail ons op info@natuurhout.be: dan laten we u weten wanneer de volgende vracht binnenkomt.`;
+/** How much of a line is in stock and how much is ordered after (nabestelling), or null when all is in stock / not counted. */
+export function backorder(stock: number | null | undefined, qty: number): { inStock: number; later: number } | null {
+  if (stock === null || stock === undefined || stock <= 0 || qty <= stock) return null;
+  return { inStock: stock, later: qty - stock };
+}
 
-/** The message for a line above its counted stock, or null. Stock 0 is "op bestelling" and allowed. */
-export function overStock(lines: { product: string; label: string; qty: number; stock: number | null }[]): string | null {
-  const line = lines.find((l) => l.stock !== null && l.stock > 0 && l.qty > l.stock);
-  if (!line) return null;
-  const name = line.label && line.label !== line.product ? `${line.product} (${line.label})` : line.product;
-  return `Van ${name} hebben we nog ${line.stock} op voorraad. Pas het aantal aan in uw winkelmandje, of mail ons op info@natuurhout.be: dan laten we u weten wanneer de volgende vracht binnenkomt.`;
+/** Under a price list row or basket line that asks more than the counted stock. */
+export function backorderNote(stock: number | null | undefined, qty: number): string | null {
+  const b = backorder(stock, qty);
+  if (!b) return null;
+  return `Nog ${b.inStock} op voorraad. De overige ${b.later} zijn in nabestelling: die komen mee met de volgende vracht (normaal binnen 4 à 5 weken). Liever eerst weten wanneer? Mail info@natuurhout.be.`;
 }
