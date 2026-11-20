@@ -290,9 +290,14 @@ const MIGRATIONS: string[][] = [
     51176453210443: 5, // 300cm / 6-8cm
     51176453439819: 5, // 300cm / 8-10cm
   }),
+  // 11: kastanje hekwerk 80cm, counted later the same day (not in migration 7).
+  stockCount("kastanje-rasterwerk", "telling 2026-11-20", {
+    51176454750539: 20, // 80cm / 4.5/5cm
+    51176454979915: 20, // 80cm / 7.5/8cm
+  }),
 ];
 
-/** SQL for a one-time stock count (see migrations 7 to 10). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 to 11). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [
