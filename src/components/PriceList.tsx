@@ -17,6 +17,8 @@ import {
 } from "@/lib/catalog";
 import { addToCart, cartCount, useCart } from "@/lib/cart";
 import { orderTerm } from "@/lib/made-to-order";
+import { stockNote } from "@/lib/order-limits";
+import { stockMax, useStock } from "@/lib/stock";
 import { OAK_WITH_POSTSAVER_HANDLE, oakWithPostsaver } from "@/lib/price-updates";
 
 /*
@@ -74,10 +76,13 @@ function Stepper({
   value,
   onChange,
   label,
+  max = 999,
 }: {
   value: number;
   onChange: (n: number) => void;
   label: string;
+  /** Counted stock (or 999): the caller clamps and says so; + greys out here. */
+  max?: number;
 }) {
   const btn =
     "grid h-9 w-9 place-items-center text-ink/60 transition-colors hover:text-accent disabled:text-ink/25 disabled:hover:text-ink/25";
@@ -100,7 +105,7 @@ function Stepper({
         placeholder="0"
         onChange={(e) => {
           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-          onChange(Number.isFinite(n) ? Math.min(n, 999) : 0);
+          onChange(Number.isFinite(n) ? Math.min(n, 999) : 0); // the caller clamps to the stock
         }}
         onFocus={(e) => e.target.select()}
         aria-label={`Aantal ${label}`}
@@ -111,6 +116,8 @@ function Stepper({
         className={`${btn} rounded-r-full`}
         onClick={() => onChange(Math.min(999, value + 1))}
         aria-label={`Meer ${label}`}
+        aria-disabled={value >= max}
+        style={value >= max ? { opacity: 0.4 } : undefined}
       >
         <Plus className="h-3.5 w-3.5" />
       </button>
@@ -140,11 +147,16 @@ function PriceTable({
   list: { columns, rows },
   qty,
   setQty,
+  stock,
+  atStock,
 }: {
   product: Product;
   list: { columns: string[]; rows: Row[] };
   qty: Record<number, number>;
   setQty: (id: number, n: number) => void;
+  stock: Record<number, number>;
+  /** Variants the customer tried to take more of than the stock. */
+  atStock: Record<number, true>;
 }) {
   const multi = columns.length > 1;
   // When nothing is in stock the banner above the table says it once.
@@ -216,7 +228,10 @@ function PriceTable({
                 {roll !== null && <span className="block text-xs text-ink/50">{formatPrice(price / roll)} / m</span>}
               </td>
               <td className="px-4 py-2 text-right align-middle sm:px-5">
-                <Stepper value={n} label={label} onChange={(value) => setQty(variant.id, value)} />
+                <Stepper value={n} label={label} max={stockMax(stock, variant.id) ?? 999} onChange={(value) => setQty(variant.id, value)} />
+                {atStock[variant.id] && n === stockMax(stock, variant.id) && (
+                  <span className="mt-1 ml-auto block max-w-56 text-left text-[11px] font-medium leading-4 text-accent-deep">{stockNote(n)}</span>
+                )}
                 {!variant.available && !allOnOrder && (
                   <span className="mt-1 block text-[11px] font-medium text-ink/50">op aanvraag*</span>
                 )}
@@ -250,7 +265,19 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
     const only = products.length === 1 && products[0].variants.length === 1 ? products[0].variants[0] : null;
     return only ? { [only.id]: 1 } : {};
   });
-  const setQty = (id: number, n: number) => setQtyState((q) => ({ ...q, [id]: n }));
+  const stock = useStock(products.flatMap((product) => product.variants.map((v) => v.id)));
+  const [atStock, setAtStock] = useState<Record<number, true>>({});
+  // Never more than the counted stock: stop there and say so under the stepper.
+  const setQty = (id: number, n: number) => {
+    const max = stockMax(stock, id);
+    const over = max !== null && n > max;
+    setAtStock((a) => {
+      const rest = { ...a };
+      delete rest[id];
+      return over || (max !== null && n === max && a[id]) ? { ...rest, [id]: true } : rest;
+    });
+    setQtyState((q) => ({ ...q, [id]: over ? max : n }));
+  };
   const [requesting, setRequesting] = useState(false);
   const [added, setAdded] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
@@ -331,7 +358,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
                   {product.title}
                 </h3>
               )}
-              <PriceTable product={product} list={lists[i]} qty={qty} setQty={setQty} />
+              <PriceTable product={product} list={lists[i]} qty={qty} setQty={setQty} stock={stock} atStock={atStock} />
               {/* Under the table, so it explains rather than leads: the rows say "op aanvraag*". */}
               {soldOut && (
                 <p className="flex items-start gap-2 border-t border-line bg-ground/60 px-4 py-2.5 text-xs leading-5 text-ink/65 sm:px-5">

@@ -10,6 +10,7 @@ import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } f
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
 import { stockNote } from "@/lib/order-limits";
+import { useStock } from "@/lib/stock";
 
 /*
  * /winkelmandje/: everything chosen on the price lists, with quantities to
@@ -116,16 +117,8 @@ export default function CartView() {
   const priced = cart.filter((l) => l.id > 0).map((l) => ({ id: l.id, qty: l.qty }));
   const [checkout, setCheckout] = useState<Availability | null>(null);
   const [asRequest, setAsRequest] = useState(false);
-  const [stock, setStock] = useState<Record<number, number>>({});
+  const stock = useStock(cart.map((l) => l.id));
   const [atStock, setAtStock] = useState<Record<number, true>>({});
-  const ids = [...new Set(cart.map((l) => l.id))].sort((a, b) => a - b).join(",");
-  useEffect(() => {
-    if (!ids) return;
-    fetch(`/api/afrekenen/voorraad/?ids=${ids}`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { stock?: Record<string, number> } | null) => d?.stock && setStock(Object.fromEntries(Object.entries(d.stock).map(([k, v]) => [Number(k), v]))))
-      .catch(() => {});
-  }, [ids]);
   // More than the counted stock: lower the line to it (0 counted stays "op bestelling").
   useEffect(() => {
     const lowered: Record<number, true> = {};
