@@ -5,6 +5,7 @@
  */
 
 import type { ShopMail } from "./mail";
+import { binaryAttachments } from "../mail-attachments";
 
 export type MailEnv = { EMAIL: SendEmail; QUOTE_TO?: string; QUOTE_FROM?: string };
 export type Mailer = (to: string, mail: ShopMail) => Promise<void>;
@@ -30,7 +31,7 @@ export function makeMailer(env: MailEnv): Mailer | null {
       subject: mail.subject,
       text: mail.text,
       html: mail.html,
-      attachments: mail.attachments,
+      attachments: binaryAttachments(mail.attachments),
     });
   };
 }
