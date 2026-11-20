@@ -8,6 +8,7 @@ import { renameDeep } from "@/lib/renames.mjs";
 import { REPLACED_SHOP_PHOTOS } from "@/lib/extra-photos";
 import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
 import { MERGED_HANDLES, withMerges } from "@/lib/merged-products";
+import { withRentals } from "@/lib/rentals";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
 // from natuurhout.shop (Shopify products.json, fetched 2026-08-17) per
@@ -83,8 +84,8 @@ function localShopLinks(html: string): string {
 // edits from D1 on top of these (worker/shop/catalog.ts).
 export const baseProducts = withPromotions(
   withPriceUpdates(
-    // Several webshop products shown as one (src/lib/merged-products.ts).
-    withMerges([...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
+    // Several webshop products shown as one (src/lib/merged-products.ts), and tools to rent (src/lib/rentals.ts).
+    withRentals(withMerges([...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
       ...product,
       bodyHtml: localShopLinks(product.bodyHtml),
       images: product.images.map((image) => {
@@ -92,7 +93,7 @@ export const baseProducts = withPromotions(
         const replaced = REPLACED_SHOP_PHOTOS[product.handle]?.[file];
         return replaced ? { ...image, ...replaced, width: 1600, height: 1600 } : image;
       }),
-    }))),
+    })))),
   ),
 ).filter((product) => !(product.handle in REMOVED_PRODUCTS));
 /** Edits from the backend, as last published (src/lib/catalog-overrides.ts). */

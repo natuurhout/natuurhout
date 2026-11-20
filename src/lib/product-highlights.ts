@@ -436,7 +436,7 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
     plus: [
       ["Spaart de paalkop", "houten of rubberen kop: de paal splijt niet."],
       ["Gemaakt voor houten palen", "veilig en efficiënt kloppen."],
-      ["Ook te huur", "€10, met €50 borg die u terugkrijgt."],
+      ["Ook te huur", "de rubberen slaghamer: €60, dat is €10 huur en €50 borg die u terugkrijgt."],
     ],
     uses: ["Kastanje en robinia palen inkloppen", "Hekwerk plaatsen", "Eenmalig project? Huur hem"],
   },

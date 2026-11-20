@@ -24,6 +24,8 @@ metadata, images, or configuration. Heed deprecation notices.
   Several webshop products can be shown as one product with a choice
   (`src/lib/merged-products.ts`, e.g. the grondboren under `/shop/grondboor/`;
   variant ids stay the same, old URLs redirect in `next.config.ts`).
+  Tools to rent (grondboor, rubberen slaghamer: €60 = €10 huur + €50 borg)
+  are an extra choice with a negative id (`src/lib/rentals.ts`).
 - Legacy media is mirrored at its original path below
   `public/wp-content/uploads/`. Never reintroduce WordPress hotlinks.
 

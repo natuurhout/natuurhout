@@ -1,5 +1,6 @@
 "use client";
 
+import { rentNote } from "@/lib/rentals";
 import Link from "next/link";
 import { Check, Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -201,10 +202,7 @@ function PriceTable({
 }
 
 // Small print under a product's price list (Xander).
-const RENT = "Ook te huur bij Natuurhout: €10, met €50 borg die u terugkrijgt bij het terugbrengen.";
 const NOTES: Record<string, string> = {
-  "tuin-voorhamer": RENT,
-  grondboor: "Huren: u betaalt €60, dat is €10 huur en €50 borg. De borg krijgt u terug als u de grondboor terugbrengt.",
   palen: "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
   "kastanje-palen-copy": "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
 };
@@ -307,8 +305,8 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
                   </span>
                 </p>
               )}
-              {NOTES[product.handle] && (
-                <p className="border-t border-line px-4 py-2.5 text-xs text-ink/55 sm:px-5">{NOTES[product.handle]}</p>
+              {(NOTES[product.handle] ?? rentNote(product.handle)) && (
+                <p className="border-t border-line px-4 py-2.5 text-xs text-ink/55 sm:px-5">{NOTES[product.handle] ?? rentNote(product.handle)}</p>
               )}
             </div>
           );

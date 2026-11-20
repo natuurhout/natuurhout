@@ -89,11 +89,11 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Kan ik een landelijke afsluiting zelf plaatsen?",
-      text: "Ja. Met een grondboor, een slaghamer, houtschroeven en een spantouw plaatst u hekwerk zelf. Natuurhout verhuurt een slaghamer of handboor voor €10, met €50 borg. Onze handleiding legt het stap voor stap uit.",
+      text: "Ja. Met een grondboor, een slaghamer, houtschroeven en een spantouw plaatst u hekwerk zelf. Natuurhout verhuurt een rubberen slaghamer of een grondboor voor €10, met €50 borg. Onze handleiding legt het stap voor stap uit.",
       body: (
         <>
-          Ja. Met een grondboor, een slaghamer, houtschroeven en een spantouw plaatst u hekwerk zelf. Natuurhout verhuurt een slaghamer of
-          handboor voor €10, met €50 borg. Onze{" "}
+          Ja. Met een grondboor, een slaghamer, houtschroeven en een spantouw plaatst u hekwerk zelf. Natuurhout verhuurt een rubberen
+          slaghamer of een grondboor voor €10, met €50 borg. Onze{" "}
           <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className={textLink}>handleiding</Link> legt het stap voor stap uit.
         </>
       ),
