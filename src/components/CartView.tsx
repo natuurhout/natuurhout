@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Clock, CreditCard, Lock, Minus, Plus, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
 import { DeliveryEstimator } from "@/components/DeliveryCheck";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
+import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
@@ -37,9 +38,10 @@ function CheckoutCard({ total, online, href, onRequest }: { total: number; onlin
       <h2 className="font-display text-xl font-semibold text-ink">Afrekenen</h2>
       <p className="mt-1.5 text-sm leading-6 text-ink/70">
         {online
-          ? "Betaal meteen online met Bancontact, Visa, Mastercard, KBC/CBC, Belfius of iDEAL, of via overschrijving."
+          ? "Betaal meteen online of via overschrijving."
           : "Betaal via overschrijving: u krijgt meteen het rekeningnummer en een QR-code om te scannen met uw bank-app."}
       </p>
+      {online && <PaymentLogos className="mt-3" />}
       <ul className="mt-4 space-y-2.5 text-sm leading-6 text-ink/75">
         <li className="flex gap-2.5">
           <Store aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
@@ -57,7 +59,7 @@ function CheckoutCard({ total, online, href, onRequest }: { total: number; onlin
         {online && (
           <li className="flex gap-2.5">
             <Lock aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
-            <span>Beveiligd betalen via MultiSafepay.</span>
+            <SecuredBy />
           </li>
         )}
       </ul>

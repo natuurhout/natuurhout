@@ -4,6 +4,7 @@ import { rentNote } from "@/lib/rentals";
 import { variantPhoto } from "@/lib/product-copy";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/catalog";
 import { addToCart, cartCount, useCart } from "@/lib/cart";
 import { orderTerm } from "@/lib/made-to-order";
-import { oakWithPostsaver } from "@/lib/price-updates";
+import { OAK_WITH_POSTSAVER_HANDLE, oakWithPostsaver } from "@/lib/price-updates";
 
 /*
  * Price list buy box: one row per shop variant with its price and a quantity,
@@ -27,7 +28,9 @@ import { oakWithPostsaver } from "@/lib/price-updates";
  * This site replaced natuurhout.shop (Xander, Oct 2026) and has no online
  * checkout. The chosen lines go into the winkelmandje (src/lib/cart.ts, sent
  * from /winkelmandje/ together with what was chosen on other pages), or are
- * sent straight away from here ("Meteen bestellen"); either way as an order
+ * bought straight away ("Meteen bestellen": into the basket and on to the
+ * checkout /afrekenen/, Nov 2026). Request-only lines (oak posts with a
+ * postsaver: no online price) still go out as an order request
  * (OrderRequestForm) that
  * Natuurhout confirms it by mail, with payment details and the pick-up or
  * delivery arrangement. Sold-out variants stay orderable "op bestelling":
@@ -276,6 +279,9 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
     unit: parseFloat(l.variant.price),
   }));
   const showForm = requesting && lines.length > 0;
+  const router = useRouter();
+  // The checkout only prices catalogue variants; request-only lines need the form.
+  const requestOnly = lines.some((l) => l.product.handle === OAK_WITH_POSTSAVER_HANDLE);
 
   function addLines() {
     addToCart(
@@ -292,6 +298,12 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
     setAdded(pieces);
     setRequesting(false);
     setQtyState({});
+  }
+
+  function buyNow() {
+    if (requestOnly) return openForm();
+    addLines();
+    router.push("/afrekenen/");
   }
 
   function openForm() {
@@ -361,9 +373,9 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
                 <ShoppingCart className="h-4 w-4" />
                 In winkelmandje
               </button>
-              <button type="button" onClick={openForm} className={`${button} border border-brand/25 bg-white text-ink hover:border-accent hover:text-accent-deep`}>
+              <button type="button" onClick={buyNow} className={`${button} border border-brand/25 bg-white text-ink hover:border-accent hover:text-accent-deep`}>
                 <Send className="h-4 w-4" />
-                {onOrder.length > 0 ? "Meteen aanvragen" : "Meteen bestellen"}
+                {requestOnly ? "Meteen aanvragen" : "Meteen bestellen"}
               </button>
             </div>
           ) : (
@@ -388,7 +400,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
             <p className="mt-3 text-sm text-ink/65">
               In uw winkelmandje: {inCart} {inCart === 1 ? "stuk" : "stuks"}.{" "}
               <Link href="/winkelmandje/" className="font-semibold text-accent-deep underline underline-offset-2 hover:text-ink">
-                Bekijk en verstuur
+                Bekijk en reken af
               </Link>
             </p>
           )
@@ -397,10 +409,10 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
       <p className="mt-2.5 text-xs leading-5 text-ink/55">
         {onOrder.length > 0 ? (
           <>
-            Uw keuze bevat artikelen op bestelling: u vraagt ze aan en wij mailen u de levertermijn.
+            Uw keuze bevat artikelen op bestelling: u bestelt ze gewoon mee en wij mailen u de levertermijn.
           </>
         ) : inStock.length > 0 ? (
-          "U stuurt ons uw bestelling; wij bevestigen ze per mail, met de afspraak voor levering of afhalen en hoe u betaalt."
+          "Betaal meteen online (Bancontact, kaart, iDEAL) of via overschrijving."
         ) : (
           "Kies hierboven per uitvoering hoeveel u wilt en leg het in uw winkelmandje: zo bestelt u producten van verschillende pagina's in één keer, ook wat op bestelling is."
         )}{" "}

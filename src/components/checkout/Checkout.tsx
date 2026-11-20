@@ -7,6 +7,7 @@ import { DeliveryLine, DeliveryMinimum, PriceError, PriceFailure, postPrice, use
 import { setCartQty, useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/catalog";
 import { ADDRESS, PHONE } from "@/lib/contact";
+import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
 
 /*
  * /afrekenen/ (checkout v2): the basket from /winkelmandje/, paid at once.
@@ -487,7 +488,10 @@ export default function Checkout() {
                 icon={<CreditCard className="h-4 w-4 text-accent" />}
                 title={avail && !avail.online ? "Online betalen (TEST)" : "Online betalen"}
               >
-                Bancontact, Visa, Mastercard, KBC/CBC, Belfius of iDEAL, via de beveiligde betaalpagina van MultiSafepay.
+                <PaymentLogos className="mt-1.5" />
+                <span className="mt-2 block">
+                  <SecuredBy />
+                </span>
               </Choice>
             )}
             <Choice checked={method === "overschrijving"} onSelect={() => setMethod("overschrijving")} icon={<Landmark className="h-4 w-4 text-accent" />} title="Overschrijving">
