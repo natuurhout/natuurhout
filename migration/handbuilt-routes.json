@@ -40,7 +40,7 @@
     {
       "pathname": "/project/hazelaarrasterwerk/",
       "approvedBy": "Xander",
-      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page. Nov 2026 (Xander): the emoji go out of the page (src/lib/renames.mjs EMOJI_FREE, also applied by the audit), and a new title, description, h1 and short intro are written for search and ads (approvedTitle, approvedDescription, approvedHeading; the intro is in src/lib/legacy-product.ts).",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page. Nov 2026 (Xander): the emoji go out of the page (src/lib/renames.mjs stripEmoji, site-wide, also applied by the audit), and a new title, description, h1 and short intro are written for search and ads (approvedTitle, approvedDescription, approvedHeading; the intro is in src/lib/legacy-product.ts).",
       "approvedTitle": "Hazelaar hekwerk | Budgetvriendelijke tuinafsluiting | Natuurhout",
       "approvedDescription": "Hazelaar hekwerk: natuurlijke, budgetvriendelijke tuinafsluiting die zo’n 10 jaar meegaat. Van 60 tot 150 cm hoog, op voorraad in Zele. Levering in heel België.",
       "approvedHeading": "Hazelaar hekwerk – sierlijk vlechtwerk met een natuurlijk karakter",

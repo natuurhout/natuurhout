@@ -29,8 +29,8 @@ metadata, images, or configuration. Heed deprecation notices.
   Website title, description and own photos (with a photo per choice in the
   price list) can replace a webshop product's in `src/lib/product-copy.ts`
   (e.g. hang- en sluitwerk; photos in `public/fotos/web/hang-sluitwerk/`).
-  Pages/products without emoji: `EMOJI_FREE` in `src/lib/renames.mjs` (applied to the
-  snapshot and the shop copy, and by the audit). Approved new title/description/h1 of a
+  No emoji on the website: `stripEmoji` in `src/lib/renames.mjs` removes them from the
+  snapshot and the shop copy (the audit applies it too); the check mark ✓ stays. Approved new title/description/h1 of a
   rebuilt `/project/…` page come from `migration/handbuilt-routes.json`
   (`approvedSeo()` in `src/lib/legacy.ts`).
 - Legacy media is mirrored at its original path below
