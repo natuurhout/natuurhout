@@ -198,13 +198,15 @@
     {
       "pathname": "/over-ons/",
       "approvedBy": "Xander",
-      "reason": "Over ons rebuilt on Xander's request: the text opens the page and the photos sit between the sections instead of a block of thumbnails above it. Every heading, paragraph, photo and photo link of the snapshot stays on the page. Nov 2026 (Xander): new title, description and h1 for search (approvedTitle, approvedDescription, approvedHeading); the English eyebrow \"Something About Us\" replaced by a Dutch one (removedContent); a section on the three woods added: hazelaar as the budget-friendly fence lasting about 10 years, kastanje, and robinia lasting longer than kastanje, with their price per metre and links to the products. Nov 2026 (Xander): the \"Assortiment kastanjehout\" heading and paragraph (which still listed furniture) are replaced by \"Ons assortiment: hekwerk, poorten en palen\" with every product group and its links (removedContent).",
+      "reason": "Over ons rebuilt on Xander's request: the text opens the page and the photos sit between the sections instead of a block of thumbnails above it. Every heading, paragraph, photo and photo link of the snapshot stays on the page. Nov 2026 (Xander): new title, description and h1 for search (approvedTitle, approvedDescription, approvedHeading); the English eyebrow \"Something About Us\" replaced by a Dutch one (removedContent); a section on the three woods added: hazelaar as the budget-friendly fence lasting about 10 years, kastanje, and robinia lasting longer than kastanje, with their price per metre and links to the products. Nov 2026 (Xander): the \"Assortiment kastanjehout\" heading and paragraph (which still listed furniture) are replaced by \"Ons assortiment: hekwerk, poorten en palen\" with every product group and its links (removedContent). Nov 2026 (Xander): title, description and h1 put tuinafsluitingen first, and the two opening paragraphs (kastanje only) are rewritten: started with and specialised in kastanje, now also robinia and hazelaar (removedContent).",
       "preserveContent": true,
-      "approvedTitle": "Over ons: hekwerk in kastanje, robinia en hazelaar | Natuurhout",
-      "approvedDescription": "Natuurhout uit Zele: familiebedrijf met 15 jaar ervaring in natuurlijke afsluitingen. Budgetvriendelijk hazelaar, klassiek kastanje en extra duurzaam robinia.",
-      "approvedHeading": "Over Natuurhout: natuurlijke afsluitingen uit Zele",
+      "approvedTitle": "Tuinafsluitingen in kastanje, robinia en hazelaar | Over Natuurhout",
+      "approvedDescription": "Natuurhout uit Zele: begonnen en gespecialiseerd in kastanje, nu ook robinia en hazelaar. Tuinafsluitingen, hekwerk, poorten en palen, geleverd in heel België.",
+      "approvedHeading": "Over Natuurhout: tuinafsluitingen uit Zele",
       "removedContent": [
         "Something About Us",
+        "Natuurhout.be…duurzaam hekwerk & kastanje houten erfafscheiding Wij leveren duurzaam natuurlijk kastanjehout en sfeervolle tuinproducten van onbehandeld kastanjehout en eiken aan particulieren, overheid en het bedrijfsleven.",
+        "Ons assortiment kastanjehout omvat naast verschillende soorten kastanje hekwerk ook poorten, houten palen, tuinschermen. De afrastering is te gebruiken als erfafscheiding, maar ook als schapenhek of omheining voor bijvoorbeeld paarden-, koeien- en hertenweides. Andere toepassingen zijn windbreking, het creëren van afzonderlijke ruimtes, het beveiligen van zwembad en/of vijver en het afschermen van lelijke plekken (bijv. composthoop).",
         "Assortiment kastanjehout",
         "Ons assortiment bevat verschillende maten en soorten hekwerk, poorten, palen, post en rail en ook meubilair. Als u graag in het bezit wilt komen van dit sfeervolle natuurproduct, kunt u het zelf ophalen, meteen bestellen of eventueel contact met ons opnemen voor het maken van een op uw wensen gebaseerde offerte."
       ]

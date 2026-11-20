@@ -25,10 +25,10 @@ import { PHONE } from "@/lib/contact";
  */
 const page = getLegacyPageByPath("/over-ons/");
 
-const TITLE = "Over ons: hekwerk in kastanje, robinia en hazelaar | Natuurhout";
+const TITLE = "Tuinafsluitingen in kastanje, robinia en hazelaar | Over Natuurhout";
 const DESCRIPTION =
-  "Natuurhout uit Zele: familiebedrijf met 15 jaar ervaring in natuurlijke afsluitingen. Budgetvriendelijk hazelaar, klassiek kastanje en extra duurzaam robinia.";
-const HEADING = "Over Natuurhout: natuurlijke afsluitingen uit Zele";
+  "Natuurhout uit Zele: begonnen en gespecialiseerd in kastanje, nu ook robinia en hazelaar. Tuinafsluitingen, hekwerk, poorten en palen, geleverd in heel België.";
+const HEADING = "Over Natuurhout: tuinafsluitingen uit Zele";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -312,6 +312,33 @@ function Range() {
   );
 }
 
+/*
+ * The opening text, replacing the snapshot's two paragraphs (kastanje only)
+ * on Xander's request, Nov 2026: tuinafsluitingen and afsluitingen first,
+ * started with and specialised in kastanje, now robinia and hazelaar too.
+ */
+function Intro() {
+  return (
+    <div className="mt-6 space-y-4 text-[17px] leading-8 text-ink/80">
+      <p>
+        Natuurhout is een familiebedrijf uit Zele, gespecialiseerd in natuurlijke <strong className="font-semibold text-ink">tuinafsluitingen</strong>{" "}
+        en afsluitingen voor weides. We zijn begonnen met kastanjehout en zijn daarin gespecialiseerd. Intussen leveren we ook{" "}
+        <Link href="/project/robinia-rasterwerk/" className={inline}>robinia</Link> en{" "}
+        <Link href="/project/hazelaarrasterwerk/" className={inline}>hazelaar</Link>: allemaal onbehandeld hout, voor particulieren, overheden en
+        bedrijven.
+      </p>
+      <p>
+        Ons assortiment omvat{" "}
+        <Link href="/project/rasterwerk-kastanjehout/" className={inline}>kastanje hekwerk</Link>, robinia en hazelaar hekwerk,{" "}
+        <Link href="/houten-tuinpoorten/" className={inline}>houten poorten</Link>, palen en vlechtschermen. Een afsluiting van natuurhout
+        gebruikt u als tuinafsluiting of erfafscheiding, maar ook als schapenhek of omheining voor paarden-, koeien- en hertenweides. Andere
+        toepassingen zijn windbreking, het creëren van afzonderlijke ruimtes, het beveiligen van een zwembad of vijver en het afschermen van
+        lelijke plekken, zoals de composthoop.
+      </p>
+    </div>
+  );
+}
+
 /** Where Natuurhout comes from and how the range grew (Xander, Nov 2026), with links to the products. */
 function History() {
   return (
@@ -365,8 +392,6 @@ function Section({
 export default function AboutPage() {
   if (!page) throw new Error("The WordPress /over-ons/ snapshot is missing.");
   const blocks = page.blocks;
-  const eyebrow = blocks.find((b) => b.type === "heading" && b.level === 3);
-  const intro = eyebrow && eyebrow.type === "heading" ? after(blocks, eyebrow.text) : [];
   const strong = "Kastanjehout is sterk, veelzijdig en mooi";
   const uses = "Toepassingen kastanjehout";
 
@@ -381,9 +406,7 @@ export default function AboutPage() {
           Familiebedrijf uit Zele · 15 jaar ervaring
         </p>
         <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-5xl">{HEADING}</h1>
-        <div className="mt-6">
-          <Paragraphs blocks={intro} />
-        </div>
+        <Intro />
       </header>
 
       {/* Stock and yard */}
