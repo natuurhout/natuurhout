@@ -251,7 +251,9 @@ export function pairedWith(product: Product | undefined): Product[] {
   if (!product) return [];
   const w = (Object.keys(FENCE) as (keyof typeof FENCE)[]).find((key) => FENCE[key] === product.handle);
   if (!w) return [];
-  return [GATE[w], POSTS[w]].map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
+  // Kastanje: also the geschroefde poort and the halfronde palen (Xander, Nov 2026).
+  const handles = w === "kastanje" ? [GATE.kastanje, "kastanje-poort-geschroefd", POSTS.kastanje, "halfronde-palen"] : [GATE[w], POSTS[w]];
+  return handles.map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
 }
 
 export function boughtTogether(product: Product, limit = 4): Product[] {
