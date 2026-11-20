@@ -77,6 +77,7 @@ export const productMenu: MenuGroup[] = [
       "hazelaar-poort",
       "cleft-field-poorten",
       "hardhouten-veldpoort",
+      "beslag-hang-sluitwerk",
     ],
     links: [
       { href: "/project/franse-poorten/", label: "Kastanje premium poorten" },
@@ -86,6 +87,7 @@ export const productMenu: MenuGroup[] = [
       { href: "/project/hazelaar-poorten/", label: "Hazelaar poorten" },
       { href: "/shop/robinia-poort/", label: "Robinia poort" },
       { href: "/project/cleft-field-veldpoorten/", label: "Cleft & Field veldpoorten" },
+      { href: "/shop/beslag-hang-sluitwerk/", label: "Hang- en sluitwerk" },
     ],
   },
   {

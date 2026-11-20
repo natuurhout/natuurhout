@@ -26,6 +26,9 @@ metadata, images, or configuration. Heed deprecation notices.
   variant ids stay the same, old URLs redirect in `next.config.ts`).
   Tools to rent (grondboor, rubberen slaghamer: €60 = €10 huur + €50 borg)
   are an extra choice with a negative id (`src/lib/rentals.ts`).
+  Website title, description and own photos (with a photo per choice in the
+  price list) can replace a webshop product's in `src/lib/product-copy.ts`
+  (e.g. hang- en sluitwerk; photos in `public/fotos/web/hang-sluitwerk/`).
 - Legacy media is mirrored at its original path below
   `public/wp-content/uploads/`. Never reintroduce WordPress hotlinks.
 

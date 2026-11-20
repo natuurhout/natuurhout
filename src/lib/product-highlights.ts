@@ -444,6 +444,8 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
     plus: [
       ["Alles voor de poort", "scharnieren, sluitingen, grendel en grondpen."],
       ["Voor tuinpoort én veldpoort", "aparte sets per type poort."],
+      ["Verzinkt", "bestand tegen weer en wind."],
+      ["Foto per onderdeel", "in de prijslijst ziet u meteen wat u bestelt."],
     ],
     uses: ["Cleft & Field poorten en hardhouten veldpoorten", "Tuinpoorten", "Versleten beslag vervangen"],
   },

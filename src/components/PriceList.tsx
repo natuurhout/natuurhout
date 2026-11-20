@@ -1,6 +1,8 @@
 "use client";
 
 import { rentNote } from "@/lib/rentals";
+import { variantPhoto } from "@/lib/product-copy";
+import Image from "next/image";
 import Link from "next/link";
 import { Check, Clock, Minus, Plus, Send, ShoppingCart } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -113,6 +115,23 @@ function Stepper({
   );
 }
 
+/** A choice's own photo beside its name; it opens large in the product's photo viewer. */
+function VariantPhoto({ photo, children }: { photo: { src: string; alt: string }; children: React.ReactNode }) {
+  return (
+    <span className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+      <a
+        href={photo.src}
+        data-lightbox-src={photo.src}
+        className="relative block h-8 w-10 shrink-0 cursor-zoom-in overflow-hidden rounded-md border border-line bg-[#f0f0f0] sm:h-11 sm:w-14"
+        aria-label={`Foto: ${photo.alt}`}
+      >
+        <Image src={photo.src} alt="" fill sizes="56px" className="object-cover" />
+      </a>
+      <span>{children}</span>
+    </span>
+  );
+}
+
 function PriceTable({
   product,
   list: { columns, rows },
@@ -167,7 +186,13 @@ function PriceTable({
                     c === 0 ? "font-medium" : ""
                   }`}
                 >
-                  {c === 0 && continued ? <span className="sr-only">{cell}</span> : cell}
+                  {c === 0 && !continued && variantPhoto(product.handle, variant.id) ? (
+                    <VariantPhoto photo={variantPhoto(product.handle, variant.id)!}>{cell}</VariantPhoto>
+                  ) : c === 0 && continued ? (
+                    <span className="sr-only">{cell}</span>
+                  ) : (
+                    cell
+                  )}
                   {c === cells.length - 1 && roll !== null && (
                     <span className="block text-xs font-normal text-ink/50">rol van {roll} m</span>
                   )}

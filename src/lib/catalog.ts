@@ -9,6 +9,7 @@ import { REPLACED_SHOP_PHOTOS } from "@/lib/extra-photos";
 import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
 import { MERGED_HANDLES, withMerges } from "@/lib/merged-products";
 import { withRentals } from "@/lib/rentals";
+import { PRODUCT_COPY } from "@/lib/product-copy";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
 // from natuurhout.shop (Shopify products.json, fetched 2026-08-17) per
@@ -87,8 +88,10 @@ export const baseProducts = withPromotions(
     // Several webshop products shown as one (src/lib/merged-products.ts), and tools to rent (src/lib/rentals.ts).
     withRentals(withMerges([...renameDeep(productsData as Product[]), ...WEBSITE_PRODUCTS].map((product) => ({
       ...product,
-      bodyHtml: localShopLinks(product.bodyHtml),
-      images: product.images.map((image) => {
+      // Website title, description and photos where Natuurhout replaced the webshop's (src/lib/product-copy.ts).
+      title: PRODUCT_COPY[product.handle]?.title ?? product.title,
+      bodyHtml: localShopLinks(PRODUCT_COPY[product.handle]?.bodyHtml ?? product.bodyHtml),
+      images: PRODUCT_COPY[product.handle]?.images ?? product.images.map((image) => {
         const file = image.src.split("?")[0].split("/").pop() ?? "";
         const replaced = REPLACED_SHOP_PHOTOS[product.handle]?.[file];
         return replaced ? { ...image, ...replaced, width: 1600, height: 1600 } : image;

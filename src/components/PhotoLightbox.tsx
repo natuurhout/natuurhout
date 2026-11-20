@@ -35,9 +35,10 @@ export default function PhotoLightbox({ photos, onChange }: { photos: LightboxPh
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const link = (event.target as Element | null)?.closest<HTMLElement>("a[data-lightbox-index]");
+      const link = (event.target as Element | null)?.closest<HTMLElement>("a[data-lightbox-index], a[data-lightbox-src]");
       if (!link) return;
-      const i = Number(link.dataset.lightboxIndex);
+      // By position, or by photo (a price list's photo per choice): only a photo this viewer holds.
+      const i = link.dataset.lightboxSrc !== undefined ? photos.findIndex((photo) => photo.src === link.dataset.lightboxSrc) : Number(link.dataset.lightboxIndex);
       if (!Number.isInteger(i) || i < 0 || i >= count) return;
       event.preventDefault();
       opener.current = link;
@@ -45,7 +46,7 @@ export default function PhotoLightbox({ photos, onChange }: { photos: LightboxPh
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
-  }, [count]);
+  }, [count, photos]);
 
   const open = index !== null;
 
