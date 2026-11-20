@@ -167,6 +167,7 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
     if (path === "/api/afrekenen/" && post) return checkout.place(request, env);
     if (path === "/api/afrekenen/opnieuw/" && post) return checkout.retry(request, env);
     if (path === "/api/afrekenen/status/" && request.method === "GET") return checkout.status(request, env);
+    if (path === "/api/afrekenen/beschikbaar/" && request.method === "GET") return checkout.availability(env);
     if (path === "/api/multisafepay/webhook/" && post) return checkout.webhook(request, env);
     return new Response(null, { status: 405 });
   }

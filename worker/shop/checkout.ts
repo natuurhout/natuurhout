@@ -6,6 +6,7 @@
  *   POST /api/afrekenen/           place the order; online → MultiSafepay payment page,
  *                                  transfer → payment request mail (PDF + QR)
  *   GET  /api/afrekenen/status/    the return page asks how the payment stands
+ *   GET  /api/afrekenen/beschikbaar/  can people check out (settings complete), and pay online?
  *   POST /api/afrekenen/opnieuw/   pay again after a failed/cancelled payment, or switch to transfer
  *   POST /api/multisafepay/webhook/  MultiSafepay tells us a payment changed
  *
@@ -155,7 +156,8 @@ function parseCustomer(body: Record<string, unknown>, delivery: boolean): Custom
   };
   if (c.name.length < 2) return { error: "Vul uw naam in." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.email)) return { error: "Vul een geldig e-mailadres in." };
-  if (!c.phone) return { error: "Vul uw telefoonnummer in." };
+  // A mobile number is needed to arrange the delivery; for pickup it is optional.
+  if (delivery && !c.phone) return { error: "Vul uw gsm-nummer in: zo kunnen we u bereiken voor de levering." };
   if (delivery && (!c.street || !c.postcode || !c.city)) return { error: "Vul het volledige leveringsadres in." };
   if (body.terms !== true) return { error: "Ga akkoord met de algemene voorwaarden." };
   return c;
@@ -249,6 +251,8 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
   const [shop, checkout] = await Promise.all([getSettings(db), getCheckoutSettings(db)]);
   if (missingSettings(shop).length) return json({ error: "Online bestellen is nog niet ingesteld. Bel of mail ons voor uw bestelling." }, 503);
   if (method === "online" && !mspKey(env, checkout.mspMode)) return json({ error: "Online betalen is even niet beschikbaar. Kies betalen via overschrijving." }, 503);
+  // In test mode only a deliberate test (the page opened with ?test) pays online: a customer never lands on a test payment page.
+  if (method === "online" && checkout.mspMode === "test" && body.test !== true) return json({ error: "Online betalen is nog niet geopend. Kies betalen via overschrijving." }, 503);
 
   const p = await price(db, parseBasket(body), wantsDelivery, customer.postcode, customer.city);
   if (p.invalid.length) return json({ error: "Enkele producten kunnen niet online besteld worden. Haal ze uit uw winkelmandje en vraag er een offerte voor.", invalid: p.invalid }, 400);
@@ -361,6 +365,21 @@ async function byToken(db: D1Database, number: string, t: string): Promise<Order
   let diff = 0;
   for (let i = 0; i < t.length; i++) diff |= t.charCodeAt(i) ^ order.checkout_token.charCodeAt(i);
   return diff === 0 ? order : null;
+}
+
+/**
+ * Can people check out? `ready`: company and bank settings complete (bank
+ * transfer works); `online`: MultiSafepay live with its key; `testOnline`:
+ * test mode with a key (only for a page opened with ?test). The winkelmandje
+ * links to /afrekenen/ only when `ready`.
+ */
+export async function availability(env: CheckoutEnv): Promise<Response> {
+  if (!env.DB) return json({ ready: false, online: false, testOnline: false });
+  await ensureSchema(env.DB);
+  const [shop, checkout] = await Promise.all([getSettings(env.DB), getCheckoutSettings(env.DB)]);
+  const ready = missingSettings(shop).length === 0;
+  const keyed = Boolean(mspKey(env, checkout.mspMode));
+  return json({ ready, online: ready && keyed && checkout.mspMode === "live", testOnline: ready && keyed && checkout.mspMode === "test" });
 }
 
 export async function status(request: Request, env: CheckoutEnv): Promise<Response> {

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
-import { ArrowLeft, Clock, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Clock, CreditCard, Lock, Minus, Plus, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
 import { DeliveryEstimator } from "@/components/DeliveryCheck";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
@@ -14,6 +14,12 @@ import { orderTerm } from "@/lib/made-to-order";
  * change, a "Leveringskost berekenen" box (price and minimum for a postcode,
  * DeliveryEstimator) and one order form that sends it all (OrderRequestForm),
  * which starts from that postcode. Once the order arrived, the basket empties.
+ *
+ * Paying (Xander, Nov 2026): when checkout is ready (GET /api/afrekenen/beschikbaar/:
+ * company and bank details complete), the right column offers "Afrekenen"
+ * (/afrekenen/: pickup or delivery, online payment or bank transfer) and the
+ * order form stays one click away for whoever wants a confirmation first.
+ * Request-only items (maatwerk) always go through the order form.
  */
 
 // Request-only price lists that live on another product's page.
@@ -22,6 +28,56 @@ const PAGE: Record<string, string> = {
   "eiken-palen-met-postsaver": "/shop/eiken-palen/",
 };
 const pageOf = (line: CartLine) => PAGE[line.handle] ?? `/shop/${line.handle}/`;
+
+type Availability = { ready: boolean; online: boolean; testOnline: boolean };
+
+function CheckoutCard({ total, online, href, onRequest }: { total: number; online: boolean; href: string; onRequest: () => void }) {
+  return (
+    <div className="rounded-card border border-line bg-white p-5 sm:p-6">
+      <h2 className="font-display text-xl font-semibold text-ink">Afrekenen</h2>
+      <p className="mt-1.5 text-sm leading-6 text-ink/70">
+        {online
+          ? "Betaal meteen online met Bancontact, Visa, Mastercard, KBC/CBC, Belfius of iDEAL, of via overschrijving."
+          : "Betaal via overschrijving: u krijgt meteen het rekeningnummer en een QR-code om te scannen met uw bank-app."}
+      </p>
+      <ul className="mt-4 space-y-2.5 text-sm leading-6 text-ink/75">
+        <li className="flex gap-2.5">
+          <Store aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
+          <span>
+            <strong className="text-ink">Afhalen in Zele:</strong> gratis. We laten weten wanneer uw bestelling klaarstaat.
+          </span>
+        </li>
+        <li className="flex gap-2.5">
+          <Truck aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
+          <span>
+            <strong className="text-ink">Laten leveren:</strong> met onze eigen wagen, in heel België. Geef uw gsm-nummer op: we mailen u wanneer
+            we komen leveren en bellen als dat nodig is.
+          </span>
+        </li>
+        {online && (
+          <li className="flex gap-2.5">
+            <Lock aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
+            <span>Beveiligd betalen via MultiSafepay.</span>
+          </li>
+        )}
+      </ul>
+      <div className="mt-5 flex items-baseline justify-between border-t border-line pt-4">
+        <span className="text-sm text-ink/70">Producten incl. btw</span>
+        <span className="text-xl font-semibold tabular-nums">{formatPrice(total)}</span>
+      </div>
+      <p className="mt-1 text-xs text-ink/55">De leveringskost ziet u bij het afrekenen, zodra uw postcode bekend is.</p>
+      <Link
+        href={href}
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-accent-deep"
+      >
+        <CreditCard aria-hidden className="h-5 w-5" /> Afrekenen <ArrowRight aria-hidden className="h-4 w-4" />
+      </Link>
+      <button type="button" onClick={onRequest} className="mt-3 w-full text-center text-sm font-medium text-ink/60 underline underline-offset-2 hover:text-accent-deep">
+        Liever eerst een bevestiging per mail? Bestelling versturen zonder te betalen
+      </button>
+    </div>
+  );
+}
 
 function Qty({ line }: { line: CartLine }) {
   const button = "grid h-9 w-9 place-items-center text-ink/60 transition-colors hover:text-accent-deep";
@@ -44,6 +100,18 @@ export default function CartView() {
   const [place, setPlace] = useState<{ postcode: string; city: string } | null>(null);
   const onPostcode = useCallback((postcode: string, city: string) => setPlace({ postcode, city }), []);
   const priced = cart.filter((l) => l.id > 0).map((l) => ({ id: l.id, qty: l.qty }));
+  const [checkout, setCheckout] = useState<Availability | null>(null);
+  const [asRequest, setAsRequest] = useState(false);
+  useEffect(() => {
+    fetch("/api/afrekenen/beschikbaar/", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((a: Availability | null) => a && setCheckout(a))
+      .catch(() => {});
+  }, []);
+  // Maatwerk and other request-only lines cannot be paid online.
+  const requestOnly = cart.some((l) => l.handle in PAGE);
+  const canPay = Boolean(checkout?.ready) && !requestOnly;
+  const checkoutHref = `/afrekenen/${place?.postcode ? `?postcode=${place.postcode}${place.city ? `&gemeente=${encodeURIComponent(place.city)}` : ""}` : ""}`;
   const onOrder = cart.filter((l) => !l.available);
   const notes = [...new Set(onOrder.map((l) => orderTerm(l.handle).note))];
   const requestLines: RequestLine[] = cart.map((l) => ({
@@ -140,16 +208,27 @@ export default function CartView() {
           </div>
         </section>
       )}
-      <section aria-label="Bestelling versturen" className="lg:sticky lg:top-24">
-        <OrderRequestForm
-          lines={requestLines}
-          onOrder={sent ? sent.onOrder : onOrder.length > 0}
-          place={place}
-          onSent={() => {
-            setSent({ onOrder: onOrder.length > 0 });
-            clearCart();
-          }}
-        />
+      <section aria-label={canPay && !asRequest && !sent ? "Afrekenen" : "Bestelling versturen"} className="lg:sticky lg:top-24">
+        {canPay && !asRequest && !sent ? (
+          <CheckoutCard total={cartTotal(cart)} online={Boolean(checkout?.online)} href={checkoutHref} onRequest={() => setAsRequest(true)} />
+        ) : (
+          <>
+            {canPay && !sent && (
+              <button type="button" onClick={() => setAsRequest(false)} className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-deep hover:text-ink">
+                <ArrowLeft aria-hidden className="h-4 w-4" /> Toch meteen afrekenen en betalen
+              </button>
+            )}
+            <OrderRequestForm
+              lines={requestLines}
+              onOrder={sent ? sent.onOrder : onOrder.length > 0}
+              place={place}
+              onSent={() => {
+                setSent({ onOrder: onOrder.length > 0 });
+                clearCart();
+              }}
+            />
+          </>
+        )}
       </section>
     </div>
   );

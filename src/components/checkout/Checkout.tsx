@@ -96,6 +96,27 @@ export default function Checkout() {
   const formRef = useRef<HTMLFormElement>(null);
   const set = (patch: Partial<typeof f>) => setF((old) => ({ ...old, ...patch }));
 
+  // Can people pay here, and online? (GET /api/afrekenen/beschikbaar/). Online
+  // payment shows only when MultiSafepay is live, or in test mode for a page
+  // opened with ?test (the server checks the same).
+  const [avail, setAvail] = useState<{ ready: boolean; online: boolean; testOnline: boolean } | null>(null);
+  const [testRun, setTestRun] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setTestRun(params.has("test"));
+    // The postcode from the winkelmandje's delivery box.
+    const pc = (params.get("postcode") ?? "").replace(/\D/g, "").slice(0, 4);
+    if (pc) setF((old) => (old.postcode ? old : { ...old, postcode: pc, city: params.get("gemeente")?.slice(0, 60) ?? old.city }));
+    fetch("/api/afrekenen/beschikbaar/", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((a) => a && setAvail(a))
+      .catch(() => {});
+  }, []);
+  const onlineAllowed = avail === null || avail.online || (avail.testOnline && testRun);
+  useEffect(() => {
+    if (!onlineAllowed) setMethod("overschrijving");
+  }, [onlineAllowed]);
+
   const basket = cart.map((l) => ({ id: l.id, qty: l.qty }));
   const basketKey = JSON.stringify(basket);
   const postcode = f.postcode.trim();
@@ -174,7 +195,7 @@ export default function Checkout() {
 
   const errors: Record<string, string> = {};
   if (!EMAIL.test(f.email.trim())) errors.email = "Vul een geldig e-mailadres in.";
-  if (!f.phone.trim()) errors.phone = "Vul uw telefoonnummer in.";
+  if (delivery && !f.phone.trim()) errors.phone = "Vul uw gsm-nummer in: zo kunnen we u bereiken voor de levering.";
   if (f.name.trim().length < 2) errors.name = "Vul uw naam in.";
   if (delivery && !f.street.trim()) errors.street = "Vul straat en nummer in.";
   if (delivery && !/^\d{4}$/.test(postcode)) errors.postcode = "Een Belgische postcode van 4 cijfers.";
@@ -207,6 +228,7 @@ export default function Checkout() {
           lines: basket,
           delivery,
           method,
+          test: testRun && avail?.testOnline === true,
           ...f,
           company: business ? f.company : "",
           vat: business ? f.vat : "",
@@ -236,6 +258,21 @@ export default function Checkout() {
         <p className="mt-2 text-sm leading-6 text-ink/70">Kies eerst producten in de prijslijsten.</p>
         <Link href="/shop/" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent-deep hover:underline">
           <ArrowLeft className="h-4 w-4" /> Naar de webshop
+        </Link>
+      </div>
+    );
+  }
+
+  // Company or bank details not filled in yet in the backend: no checkout, the request form works.
+  if (avail && !avail.ready) {
+    return (
+      <div className="max-w-2xl rounded-card border border-line bg-white p-6 sm:p-8">
+        <p className="font-display text-xl font-semibold">Online afrekenen is nog niet beschikbaar</p>
+        <p className="mt-2 text-sm leading-6 text-ink/70">
+          Verstuur uw bestelling vanuit het winkelmandje: wij bevestigen ze per mail, met de betaalgegevens. Of bel {PHONE.label}.
+        </p>
+        <Link href="/winkelmandje/" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent-deep hover:underline">
+          <ArrowLeft className="h-4 w-4" /> Terug naar het winkelmandje
         </Link>
       </div>
     );
@@ -367,8 +404,9 @@ export default function Checkout() {
             <Field label="E-mailadres *" error={shown.email}>
               <input type="email" className={input} autoComplete="email" value={f.email} aria-invalid={Boolean(shown.email)} onChange={(e) => set({ email: e.target.value })} />
             </Field>
-            <Field label="Telefoon of gsm *" error={shown.phone}>
+            <Field label={delivery ? "Gsm-nummer *" : "Telefoon of gsm (optioneel)"} error={shown.phone}>
               <input type="tel" className={input} autoComplete="tel" value={f.phone} aria-invalid={Boolean(shown.phone)} onChange={(e) => set({ phone: e.target.value })} />
+              {delivery && !shown.phone && <span className="mt-1 block text-xs text-ink/55">Nodig voor de levering: zo kunnen we u bereiken.</span>}
             </Field>
           </div>
         </section>
@@ -392,7 +430,9 @@ export default function Checkout() {
               icon={<Truck className="h-4 w-4 text-accent" />}
               title={availability?.delivery?.ok ? `Leveren · ${availability.delivery.price === 0 ? "gratis" : formatPrice(availability.delivery.price)}` : "Leveren"}
             >
-              {deliveryBlocked ? "Niet mogelijk voor deze bestelling: zie hieronder." : "Met onze eigen wagen; we bellen om een moment af te spreken."}
+              {deliveryBlocked
+                ? "Niet mogelijk voor deze bestelling: zie hieronder."
+                : "Met onze eigen wagen. We mailen u wanneer we komen leveren en bellen u op uw gsm als dat nodig is."}
             </Choice>
             <Choice checked={!delivery} onSelect={() => choose(false)} icon={<Store className="h-4 w-4 text-accent" />} title="Afhalen in Zele (gratis)">
               {ADDRESS.street}, {ADDRESS.city}. We laten weten wanneer het klaarstaat.
@@ -440,9 +480,16 @@ export default function Checkout() {
             <Lock className="h-3.5 w-3.5" aria-hidden /> Alle betalingen zijn beveiligd.
           </p>
           <div className="mt-3">
-            <Choice checked={method === "online"} onSelect={() => setMethod("online")} icon={<CreditCard className="h-4 w-4 text-accent" />} title="Online betalen">
-              Bancontact, Visa, Mastercard, KBC/CBC, Belfius of iDEAL, via de beveiligde betaalpagina van MultiSafepay.
-            </Choice>
+            {onlineAllowed && (
+              <Choice
+                checked={method === "online"}
+                onSelect={() => setMethod("online")}
+                icon={<CreditCard className="h-4 w-4 text-accent" />}
+                title={avail && !avail.online ? "Online betalen (TEST)" : "Online betalen"}
+              >
+                Bancontact, Visa, Mastercard, KBC/CBC, Belfius of iDEAL, via de beveiligde betaalpagina van MultiSafepay.
+              </Choice>
+            )}
             <Choice checked={method === "overschrijving"} onSelect={() => setMethod("overschrijving")} icon={<Landmark className="h-4 w-4 text-accent" />} title="Overschrijving">
               U krijgt ons rekeningnummer en een gestructureerde mededeling (met QR-code). We maken de bestelling klaar zodra de betaling binnen is.
             </Choice>
