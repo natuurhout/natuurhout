@@ -22,6 +22,11 @@ type Merge = {
   option: string;
   bodyHtml: string;
   parts: Part[];
+  /**
+   * Choices that are not in the webshop (negative ids, like the website
+   * products): they are in the catalogue, so cart, order and checkout price them.
+   */
+  extra?: Product["variants"];
 };
 
 /** "7.5cm" → "7,5 cm" */
@@ -36,6 +41,9 @@ export const MERGED_PRODUCTS: Merge[] = [
       { handle: "grondboor-kopie", variant: (title) => `Grondboor ø${cm(title)}` },
       { handle: "grondboor", variant: () => "Spiraalboor ø8 cm" },
     ],
+    // Renting (Xander, Nov 2026): €10 rent + €50 deposit, paid together; the
+    // deposit is paid back when the grondboor comes back.
+    extra: [{ id: -900101, title: "Huren: grondboor ø7,5 of ø9 cm (€10 huur + €50 borg)", price: "60.00", compare_at: null, available: true }],
     bodyHtml: [
       "<p>Een stevige grondboor om gaten te maken voor houten palen zoals kastanje en robinia: de palen staan sneller en steviger. Kies hieronder welke boor u wilt.</p>",
       "<h3>Grondboor ø7,5 of ø9 cm</h3>",
@@ -54,6 +62,8 @@ export const MERGED_PRODUCTS: Merge[] = [
       "<li><strong>Dikte buizen:</strong> 2,5 cm, voor een stevige constructie</li>",
       "<li>Stevig staal, geschikt voor harde grond</li>",
       "</ul>",
+      "<h3>Huren</h3>",
+      "<p>Eenmalig project? Huur de grondboor (ø7,5 of ø9 cm): u betaalt €60, dat is €10 huur en €50 borg. De borg krijgt u terug als u de grondboor terugbrengt.</p>",
     ].join(""),
   },
 ];
@@ -72,7 +82,10 @@ export function withMerges<P extends Product>(products: P[]): P[] {
       return product ? [{ part, product }] : [];
     });
     if (!parts.length) continue;
-    const variants = parts.flatMap(({ part, product }) => product.variants.map((variant) => ({ ...variant, title: part.variant(variant.title) })));
+    const variants = [
+      ...parts.flatMap(({ part, product }) => product.variants.map((variant) => ({ ...variant, title: part.variant(variant.title) }))),
+      ...(merge.extra ?? []),
+    ];
     const prices = variants.map((variant) => parseFloat(variant.price)).filter((n) => Number.isFinite(n));
     const first = parts[0].product;
     const published = parts.map(({ product }) => product.publishedAt).filter((d): d is string => Boolean(d)).sort();

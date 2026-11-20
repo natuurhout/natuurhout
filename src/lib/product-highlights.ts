@@ -428,7 +428,7 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
       ["Kies uw boor", "grondboor ø7,5 of ø9 cm (1250 mm lang), of spiraalboor ø8 cm."],
       ["Precies passende gaten", "voor ronde palen: ze staan sneller en steviger."],
       ["Spiraalboor", "de boorkop van 32 cm haalt de aarde in één keer boven."],
-      ["Ook te huur", "de grondboor ø7,5 / ø9 cm: €10, met €50 borg die u terugkrijgt."],
+      ["Ook te huur", "€60: €10 huur en €50 borg die u terugkrijgt."],
     ],
     uses: ["Gaten voor kastanje of robinia palen", "Diepe gaten voor poortpalen", "Palen in harde of stenige grond", "Eenmalig project? Huur hem"],
   },
