@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Calculator, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import { getLegacyPageByPath, type LegacyBlock } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
+import { pricePerMeterFrom } from "@/lib/catalog";
+import { categories } from "@/lib/categories";
+import { PHONE } from "@/lib/contact";
 
 /*
  * "Over ons", rebuilt (handbuilt-routes.json, preserveContent): the text now
@@ -13,14 +16,145 @@ import { QUOTE_HREF } from "@/lib/navigation";
  * of 150px thumbnails above the text. Every heading, paragraph, photo and
  * photo link of the frozen snapshot is still on the page, verbatim. A photo
  * opens large in a pop-up (PhotoLightbox) with the others, not in a new tab.
+ *
+ * Nov 2026 (Xander): a sharper title, description and h1 (handbuilt-routes:
+ * approvedTitle/-Description/-Heading), a Dutch eyebrow instead of the
+ * snapshot's "Something About Us", and the three woods side by side: hazelaar
+ * as the budget fence (about 10 years), kastanje the classic, robinia lasting
+ * longer than kastanje, each with its price per metre and product links.
  */
 const page = getLegacyPageByPath("/over-ons/");
 
+const TITLE = "Over ons: hekwerk in kastanje, robinia en hazelaar | Natuurhout";
+const DESCRIPTION =
+  "Natuurhout uit Zele: familiebedrijf met 15 jaar ervaring in natuurlijke afsluitingen. Budgetvriendelijk hazelaar, klassiek kastanje en extra duurzaam robinia.";
+const HEADING = "Over Natuurhout: natuurlijke afsluitingen uit Zele";
+
 export const metadata: Metadata = {
-  title: page?.title,
-  description: page?.description || undefined,
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
   alternates: { canonical: page?.canonical },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: page?.canonical, locale: "nl_BE", type: "website" },
 };
+
+const tilePhoto = (href: string) => categories.find((tile) => tile.href === href)?.src;
+
+/** The three woods, from the budget fence to the longest-lasting one (Xander, Nov 2026). */
+const WOODS = [
+  {
+    name: "Hazelaar",
+    badge: "Budgetvriendelijk",
+    life: "Zo’n 10 jaar",
+    href: "/project/hazelaarrasterwerk/",
+    perMeter: pricePerMeterFrom("hazelaar-hekwerk"),
+    text: "De voordeligste natuurlijke afsluiting. Hazelaar hekwerk gaat zo’n 10 jaar mee zonder behandeling, en geeft uw tuin meteen een warme, landelijke uitstraling. Ideaal als u duurzaam wilt afsluiten met een kleiner budget.",
+    links: [
+      { href: "/project/hazelaarrasterwerk/", label: "Hazelaar hekwerk" },
+      { href: "/project/hazelaarvlechtschermen/", label: "Hazelaar vlechtschermen" },
+      { href: "/project/hazelaar-poorten/", label: "Hazelaar poorten" },
+    ],
+  },
+  {
+    name: "Kastanje",
+    badge: "De klassieker",
+    life: "15 tot 25 jaar",
+    href: "/project/rasterwerk-kastanjehout/",
+    perMeter: pricePerMeterFrom("kastanje-rasterwerk"),
+    text: "Onbehandeld kastanjehout is van nature beschermd door looizuur. Kastanje hekwerk gaat 15 tot 25 jaar mee en heeft het breedste assortiment: hekwerk in vele hoogtes, poorten (ook op maat) en palen.",
+    links: [
+      { href: "/project/rasterwerk-kastanjehout/", label: "Kastanje hekwerk" },
+      { href: "/project/franse-poorten/", label: "Kastanje poorten" },
+      { href: "/project/kastanjepalen/", label: "Kastanje palen" },
+    ],
+  },
+  {
+    name: "Robinia",
+    badge: "Langste levensduur",
+    life: "25 tot 40 jaar",
+    href: "/project/robinia-rasterwerk/",
+    perMeter: pricePerMeterFrom("robinia-hekwerk"),
+    text: "Nog duurzamer dan kastanje: robinia is de hardste en meest duurzame Europese houtsoort (duurzaamheidsklasse 1). Robinia hekwerk gaat 25 tot 40 jaar mee, zonder onderhoud. De keuze voor wie één keer en voor lang wil afsluiten.",
+    links: [
+      { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
+      { href: "/project/robinia-palen/", label: "Robinia palen" },
+      { href: "/shop/robinia-poort/", label: "Robinia poort" },
+    ],
+  },
+];
+
+function Woods() {
+  return (
+    <section aria-labelledby="houtsoorten" className="mt-16 lg:mt-20">
+      <h2 id="houtsoorten" className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+        Drie houtsoorten, voor elk budget en elke levensduur
+      </h2>
+      <p className="mt-3 max-w-3xl text-[17px] leading-8 text-ink/80">
+        Naast kastanje leveren we ook hazelaar en robinia. Zo vindt u bij ons altijd een natuurlijke afsluiting die past: van een
+        budgetvriendelijke afsluiting in hazelaar die zo’n 10 jaar duurzaam meegaat, tot robinia, dat nog langer meegaat dan kastanje. Alle
+        drie onbehandeld, uit voorraad in Zele, met levering in heel België.
+      </p>
+      <ul className="mt-8 grid gap-5 md:grid-cols-3">
+        {WOODS.map((wood) => {
+          const photo = tilePhoto(wood.href);
+          return (
+            <li key={wood.name} className="flex flex-col overflow-hidden rounded-card border border-line bg-white">
+              <Link href={wood.href} className="group relative block aspect-[4/3] overflow-hidden bg-brand-soft">
+                {photo && (
+                  <Image
+                    src={photo}
+                    alt={`${wood.name} hekwerk van Natuurhout`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                )}
+                <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-accent-deep shadow-sm">{wood.badge}</span>
+              </Link>
+              <div className="flex flex-1 flex-col p-5">
+                <h3 className="font-display text-xl font-bold text-ink">
+                  <Link href={wood.href} className="hover:text-accent-deep">
+                    {wood.name} hekwerk
+                  </Link>
+                </h3>
+                <dl className="mt-3 grid grid-cols-2 gap-3 rounded-xl bg-brand-soft/60 px-3.5 py-2.5 text-sm">
+                  <div>
+                    <dt className="text-xs text-ink/55">Levensduur</dt>
+                    <dd className="font-semibold text-ink">{wood.life}</dd>
+                  </div>
+                  {wood.perMeter && (
+                    <div>
+                      <dt className="text-xs text-ink/55">Hekwerk</dt>
+                      <dd className="font-semibold text-ink">vanaf {wood.perMeter}/m</dd>
+                    </div>
+                  )}
+                </dl>
+                <p className="mt-3 text-[15px] leading-7 text-ink/75">{wood.text}</p>
+                <ul className="mt-auto space-y-1 border-t border-line pt-4 text-sm">
+                  {wood.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="group/l inline-flex items-center gap-1.5 font-semibold text-accent-deep hover:text-ink">
+                        {link.label} <ArrowRight aria-hidden className="h-3.5 w-3.5 transition-transform group-hover/l:translate-x-0.5" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink/70">
+        Twijfelt u tussen de houtsoorten?
+        <a href={PHONE.href} className="inline-flex items-center gap-1.5 font-semibold text-accent-deep hover:text-ink">
+          <Phone aria-hidden className="h-4 w-4" /> Bel {PHONE.label}
+        </a>
+        <Link href="/calculator/" className="inline-flex items-center gap-1.5 font-semibold text-accent-deep hover:text-ink">
+          <Calculator aria-hidden className="h-4 w-4" /> Bereken een richtprijs
+        </Link>
+      </p>
+    </section>
+  );
+}
 
 const UP = "/wp-content/uploads";
 type Photo = { src: string; alt: string };
@@ -114,13 +248,11 @@ export default function AboutPage() {
 
       {/* Text first */}
       <header className="max-w-3xl">
-        {eyebrow && eyebrow.type === "heading" && (
-          <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent-deep">
-            <span aria-hidden className="h-px w-8 bg-accent" />
-            {eyebrow.text}
-          </h2>
-        )}
-        <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-5xl">{page.heading}</h1>
+        <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent-deep">
+          <span aria-hidden className="h-px w-8 bg-accent" />
+          Familiebedrijf uit Zele · 15 jaar ervaring
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-5xl">{HEADING}</h1>
         <div className="mt-6">
           <Paragraphs blocks={intro} />
         </div>
@@ -132,6 +264,8 @@ export default function AboutPage() {
           <Figure key={p.src} photo={p} className={`aspect-[4/3] ${i === 0 ? "col-span-2 md:col-span-1" : ""}`} sizes="(max-width: 768px) 50vw, 33vw" />
         ))}
       </div>
+
+      <Woods />
 
       {/* Team */}
       <section aria-labelledby="team" className="mt-16 lg:mt-20">

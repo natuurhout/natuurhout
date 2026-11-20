@@ -198,8 +198,12 @@
     {
       "pathname": "/over-ons/",
       "approvedBy": "Xander",
-      "reason": "Over ons rebuilt on Xander's request: the text opens the page and the photos sit between the sections instead of a block of thumbnails above it. Every heading, paragraph, photo and photo link of the snapshot stays on the page.",
-      "preserveContent": true
+      "reason": "Over ons rebuilt on Xander's request: the text opens the page and the photos sit between the sections instead of a block of thumbnails above it. Every heading, paragraph, photo and photo link of the snapshot stays on the page. Nov 2026 (Xander): new title, description and h1 for search (approvedTitle, approvedDescription, approvedHeading); the English eyebrow \"Something About Us\" replaced by a Dutch one (removedContent); a section on the three woods added: hazelaar as the budget-friendly fence lasting about 10 years, kastanje, and robinia lasting longer than kastanje, with their price per metre and links to the products.",
+      "preserveContent": true,
+      "approvedTitle": "Over ons: hekwerk in kastanje, robinia en hazelaar | Natuurhout",
+      "approvedDescription": "Natuurhout uit Zele: familiebedrijf met 15 jaar ervaring in natuurlijke afsluitingen. Budgetvriendelijk hazelaar, klassiek kastanje en extra duurzaam robinia.",
+      "approvedHeading": "Over Natuurhout: natuurlijke afsluitingen uit Zele",
+      "removedContent": ["Something About Us"]
     },
     {
       "pathname": "/producten/",
