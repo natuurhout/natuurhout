@@ -2,7 +2,7 @@ import { load } from "cheerio/slim";
 import { CUSTOM_GATE_HEIGHTS, CUSTOM_GATE_TABLE } from "@/lib/calculator-pricing";
 import { getProduct, type Product } from "@/lib/catalog";
 import { PAGE_EXTRA_PHOTOS } from "@/lib/extra-photos";
-import { getLegacyPageByPath, type LegacyPage } from "@/lib/legacy";
+import { approvedSeo, getLegacyPageByPath, type LegacyPage } from "@/lib/legacy";
 import { classify, escapeHtml, splitSections, type TabId } from "@/lib/product-info";
 
 /*
@@ -122,6 +122,16 @@ function legacyClassify(title: string, html: string): LegacyTab {
   return classify(title);
 }
 
+/**
+ * A short intro under the h1 written for search and ads (Xander, Nov 2026),
+ * instead of the opening sentences of the page's own text (which stays in
+ * the Omschrijving tab).
+ */
+const LEADS: Record<string, string> = {
+  "/project/hazelaarrasterwerk/":
+    "Hazelaar hekwerk is de budgetvriendelijke natuurlijke tuinafsluiting: met de hand gevlochten, onbehandeld en zo’n 10 jaar duurzaam. Op voorraad in Zele in hoogtes van 60 tot 150 cm, met levering in heel België.",
+};
+
 /** The opening sentences, up to ~260 characters, for the lead under the h1. */
 function clip(text: string) {
   if (text.length <= 260) return text;
@@ -134,7 +144,8 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
   if (!isLegacyProductPage(page.pathname)) return null;
   const $ = load(page.html, null, false);
 
-  const heading = $("h1").first().text().replace(/\s+/g, " ").trim() || page.heading;
+  // An approved new h1 (handbuilt-routes.json) replaces the snapshot's.
+  const heading = approvedSeo(page.pathname).approvedHeading ?? ($("h1").first().text().replace(/\s+/g, " ").trim() || page.heading);
 
   // Photos: the header image and the gallery, each with the link WordPress
   // wrapped it in (the full-size file) and its gallery caption.
@@ -157,7 +168,7 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
       return {
         href,
         rel: $(a).attr("rel") === "next" ? ("next" as const) : ("prev" as const),
-        title: target?.heading || $(a).text().trim(),
+        title: approvedSeo(href).approvedHeading || target?.heading || $(a).text().trim(),
       };
     })
     .filter((link) => link.href.startsWith("/"));
@@ -198,7 +209,7 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     .toArray()
     .map((p) => $text(p).text().replace(/\s+/g, " ").trim())
     .find((text) => text.length > 60);
-  const lead = opening ? clip(opening) : "";
+  const lead = LEADS[page.pathname] ?? (opening ? clip(opening) : "");
 
   // Approved removals (handbuilt-routes.json: removedContent), e.g. an expired promo banner.
   const dropped = new Set(REMOVED_PHOTOS[page.pathname] ?? []);

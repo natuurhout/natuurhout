@@ -13,8 +13,22 @@ export const RENAMES_APPROVAL = {
   reason:
     "'Kastanje premium poorten' wordt in Vlaanderen meer gezocht dan 'Franse poorten'; de URL's blijven ongewijzigd. " +
     "Oct 2026: deze website vervangt natuurhout.shop, dus de link 'www.natuurhout.shop – voor rechtstreekse bestelling' " +
-    "wijst naar de shop op deze site (natuurhout.be/shop).",
+    "wijst naar de shop op deze site (natuurhout.be/shop). " +
+    "Nov 2026: geen emoji's op de pagina's in EMOJI_FREE (hazelaar hekwerk).",
 };
+
+/*
+ * Pages (WordPress pathname) and webshop products (handle) shown without
+ * emoji (Xander, Nov 2026: "haal de emoji weg"). Only the emoji go, with the
+ * space after them; every word stays.
+ */
+export const EMOJI_FREE = new Set(["/project/hazelaarrasterwerk/", "hazelaar-hekwerk"]);
+const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\u{FE0F}?[ \u00A0]?/gu;
+
+/** @param {string} value */
+export function stripEmoji(value) {
+  return value.replace(EMOJI, "");
+}
 
 // Longest phrases first: each rule only sees what earlier rules left over.
 // Only the gate names change; "franse uitvoering" (the French-style fencing)
@@ -65,12 +79,18 @@ export function applyRenames(value) {
  * @param {T} value
  * @returns {T}
  */
-export function renameDeep(value) {
-  if (typeof value === "string") return /** @type {T} */ (applyRenames(value));
-  if (Array.isArray(value)) return /** @type {T} */ (value.map(renameDeep));
+export function renameDeep(value, noEmoji = false) {
+  if (typeof value === "string") {
+    const renamed = applyRenames(value);
+    return /** @type {T} */ (noEmoji ? stripEmoji(renamed) : renamed);
+  }
+  if (Array.isArray(value)) return /** @type {T} */ (value.map((child) => renameDeep(child, noEmoji)));
   if (value && typeof value === "object") {
+    // A page or product listed in EMOJI_FREE: everything inside it loses its emoji.
+    const record = /** @type {Record<string, unknown>} */ (value);
+    const strip = noEmoji || EMOJI_FREE.has(String(record.pathname ?? "")) || EMOJI_FREE.has(String(record.handle ?? ""));
     return /** @type {T} */ (
-      Object.fromEntries(Object.entries(value).map(([key, child]) => [key, renameDeep(child)]))
+      Object.fromEntries(Object.entries(record).map(([key, child]) => [key, renameDeep(child, strip)]))
     );
   }
   return value;

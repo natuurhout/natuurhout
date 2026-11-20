@@ -1,4 +1,5 @@
 import legacyPagesJson from "@/data/legacy-pages.json";
+import handBuiltJson from "../../migration/handbuilt-routes.json";
 import { renameDeep } from "@/lib/renames.mjs";
 
 export type LegacyBlock =
@@ -61,11 +62,27 @@ export function isPermanentlyNoindexLegacyPath(pathname: string) {
   return /^\/category\/(?:fit-row|life-style|post-slider|uncategorized|video)\/$/.test(pathname);
 }
 
+/**
+ * An approved new title, description or h1 for a rebuilt page (Xander), as
+ * recorded in migration/handbuilt-routes.json, the same file the built
+ * parity audit checks them against.
+ */
+type ApprovedSeo = { approvedTitle?: string; approvedDescription?: string; approvedHeading?: string };
+const APPROVED = new Map((handBuiltJson.routes as ({ pathname: string } & ApprovedSeo)[]).map((route) => [route.pathname, route]));
+export function approvedSeo(pathname: string): ApprovedSeo {
+  return APPROVED.get(pathname) ?? {};
+}
+
 export function legacyMetadataTitle(page: LegacyPage) {
   if (page.pathname === "/project/project-overmere-2/") {
     return "Project Overmere – Schutting in lariks schaaldelen | Natuurhout";
   }
-  return page.title;
+  return approvedSeo(page.pathname).approvedTitle ?? page.title;
+}
+
+/** The page's description for search engines (an approved one first). */
+export function legacyMetadataDescription(page: LegacyPage) {
+  return approvedSeo(page.pathname).approvedDescription ?? page.description;
 }
 
 export function legacyPathname(slug: string[]) {

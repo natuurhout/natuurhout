@@ -8,6 +8,7 @@ import Realisaties from "@/components/Realisaties";
 import {
   getLegacyPage,
   isPermanentlyNoindexLegacyPath,
+  legacyMetadataDescription,
   legacyMetadataTitle,
   legacyPages,
 } from "@/lib/legacy";
@@ -29,17 +30,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = getLegacyPage(slug);
   if (!page) return {};
   const title = legacyMetadataTitle(page);
+  const description = legacyMetadataDescription(page) || undefined;
 
   return {
     title,
-    description: page.description || undefined,
+    description,
     alternates: { canonical: page.canonical },
     robots: !siteIndexingEnabled || isPermanentlyNoindexLegacyPath(page.pathname)
       ? { index: false, follow: false }
       : undefined,
     openGraph: {
       title,
-      description: page.description || undefined,
+      description,
       url: page.canonical,
       locale: "nl_BE",
       type: page.kind === "page" ? "website" : "article",
