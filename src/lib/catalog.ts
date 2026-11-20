@@ -90,6 +90,11 @@ export const baseProducts = withPromotions(
       ...product,
       // Website title, description and photos where Natuurhout replaced the webshop's (src/lib/product-copy.ts).
       title: PRODUCT_COPY[product.handle]?.title ?? product.title,
+      options: PRODUCT_COPY[product.handle]?.options ?? product.options,
+      variants: [
+        ...product.variants.map((variant) => ({ ...variant, title: PRODUCT_COPY[product.handle]?.variantTitles?.[variant.id] ?? variant.title })),
+        ...(PRODUCT_COPY[product.handle]?.extraVariants ?? []),
+      ],
       bodyHtml: localShopLinks(PRODUCT_COPY[product.handle]?.bodyHtml ?? product.bodyHtml),
       images: PRODUCT_COPY[product.handle]?.images ?? product.images.map((image) => {
         const file = image.src.split("?")[0].split("/").pop() ?? "";

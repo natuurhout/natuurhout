@@ -1,4 +1,4 @@
-import type { ProductImage } from "@/lib/catalog";
+import type { ProductImage, ProductVariant } from "@/lib/catalog";
 
 /*
  * Website copy and photos that replace a webshop product's own (Xander, Nov
@@ -16,6 +16,15 @@ type Copy = {
   images?: ProductImage[];
   /** Photo per variant id (a src from `images`), shown in the price list. */
   variantPhotos?: Record<number, string>;
+  /** Price list column name, and names for webshop variants (by id), e.g. instead of "Default Title". */
+  options?: string[];
+  variantTitles?: Record<number, string>;
+  /**
+   * Extra choices sold on the website only (negative ids, like the website
+   * products): in the catalogue, so cart, orders and checkout price them.
+   * They do not count for the "vanaf" price on the product card.
+   */
+  extraVariants?: ProductVariant[];
 };
 
 const HS = "/fotos/web/hang-sluitwerk";
@@ -33,6 +42,12 @@ const HANG_SLUITWERK = {
 };
 
 export const PRODUCT_COPY: Record<string, Copy> = {
+  // A loose inbussleutel for the draadverbinders (Xander, Nov 2026).
+  "hekwerk-draadverbinders": {
+    options: ["Artikel"],
+    variantTitles: { 51315420463435: "Draadverbinder" },
+    extraVariants: [{ id: -900201, title: "Inbussleutel", price: "0.10", compare_at: null, available: true }],
+  },
   "beslag-hang-sluitwerk": {
     title: "Hang- en sluitwerk voor poorten",
     bodyHtml: [
