@@ -6,6 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductTabs, { type ProductTab } from "@/components/ProductTabs";
 import { compareAtPrice, formatPrice, productPage, splitRoll, type Product, type ProductVariant } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
+import type { Included } from "@/lib/product-info";
 import { orderTerm } from "@/lib/made-to-order";
 import { MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { WhatsAppIcon } from "@/components/WhatsApp";
@@ -206,8 +207,31 @@ function Pairs({ label, products }: { label: string; products: Product[] }) {
   );
 }
 
+/** "Inbegrepen in de prijs" box at the top of a gate's description. */
+function IncludedBox({ included }: { included: Included }) {
+  const list = (items: string[]) => (items.length > 1 ? `${items.slice(0, -1).join(", ")} en ${items[items.length - 1]}` : items[0]);
+  return (
+    <div className="mb-6 rounded-xl border border-accent/25 bg-accent/5 px-4 py-3.5 text-sm leading-6 text-ink/80">
+      <p className="flex gap-2">
+        <Check aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent-deep" />
+        <span>
+          <strong className="text-ink">Inbegrepen in de prijs:</strong> {list(included.inPrice)}.
+          {included.notIn && (
+            <>
+              {" "}
+              <strong className="text-ink">Niet inbegrepen:</strong> {included.notIn}.
+            </>
+          )}
+        </span>
+      </p>
+      {included.tip && <p className="mt-1 pl-6 text-ink/70">{included.tip}</p>}
+    </div>
+  );
+}
+
 export function productInfoTabs({
   omschrijving,
+  included,
   pairs,
   prijzen,
   facts,
@@ -219,6 +243,8 @@ export function productInfoTabs({
   fencing,
 }: {
   omschrijving: string;
+  /** What a gate's price includes (includedIn), at the top of the description. */
+  included?: Included;
   /** What is often bought with the product, shown small under the description (pairedWith). */
   pairs?: { label: string; products: Product[] };
   /** Price overview of a WordPress page; omitted when it already shows above. */
@@ -238,6 +264,7 @@ export function productInfoTabs({
       label: "Omschrijving",
       content: (
         <>
+          {included && <IncludedBox included={included} />}
           {omschrijving ? <Html html={omschrijving} /> : <p className="text-ink/60">Meer informatie volgt.</p>}
           {pairs && <Pairs label={pairs.label} products={pairs.products} />}
         </>

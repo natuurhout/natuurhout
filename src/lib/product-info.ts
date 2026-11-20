@@ -252,7 +252,30 @@ const PAIRS: Record<string, { label: string; handles: string[] }> = {
   "robinia-hekwerk": { label: "Vaak samen met dit hekwerk", handles: ["robinia-poort", "robinia-palen"] },
   "hazelaar-hekwerk": { label: "Vaak samen met dit hekwerk", handles: ["hazelaar-poort", "palen"] },
   "hazelaar-poort": { label: "Vaak samen met deze poort", handles: ["hazelaar-hekwerk", "palen"] },
+  // The robinia poort comes without posts: it hangs best on sawn robinia (Xander).
+  "robinia-poort": { label: "Vaak samen met deze poort", handles: ["vierkant-gezaagde-robinia-palen", "robinia-hekwerk"] },
 };
+
+/*
+ * What a gate's price includes, shown at the top of its description and
+ * under its price list (Xander, Nov 2026): every gate comes with its
+ * hardware; all but the robinia poort also with two gate posts.
+ */
+export type Included = { inPrice: string[]; notIn?: string; tip?: string };
+const INCLUDED: Record<string, Included> = {
+  "kastanje-poorten": { inPrice: ["2 poortpalen", "hang- en sluitwerk"] },
+  "kastanje-poort-geschroefd": { inPrice: ["2 poortpalen", "hang- en sluitwerk"] },
+  "hazelaar-poort": { inPrice: ["2 kastanje poortpalen", "hang- en sluitwerk"] },
+  "robinia-poort": {
+    inPrice: ["hang- en sluitwerk"],
+    notIn: "de poortpalen",
+    tip: "Meestal kopen klanten er gezaagde robinia palen bij: daar hangt deze poort het mooist aan.",
+  },
+};
+
+export function includedIn(product: Product | undefined): Included | undefined {
+  return product ? INCLUDED[product.handle] : undefined;
+}
 
 export function pairedWith(product: Product | undefined): { label: string; products: Product[] } | undefined {
   const pair = product ? PAIRS[product.handle] : undefined;

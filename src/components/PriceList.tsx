@@ -238,6 +238,10 @@ function PriceTable({
 
 // Small print under a product's price list (Xander).
 const NOTES: Record<string, string> = {
+  "robinia-poort": "Prijs inclusief hang- en sluitwerk, zonder poortpalen. Meestal gekocht met gezaagde robinia palen.",
+  "kastanje-poorten": "Prijs inclusief 2 poortpalen en hang- en sluitwerk.",
+  "kastanje-poort-geschroefd": "Prijs inclusief 2 poortpalen en hang- en sluitwerk.",
+  "hazelaar-poort": "Prijs inclusief 2 kastanje poortpalen en hang- en sluitwerk.",
   palen: "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
   "kastanje-palen-copy": "Palen van 150 cm kunnen ook 160 cm lang zijn, afhankelijk van de leverancier.",
 };

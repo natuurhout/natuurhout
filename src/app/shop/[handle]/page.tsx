@@ -7,7 +7,7 @@ import Realisaties from "@/components/Realisaties";
 import JsonLd from "@/components/JsonLd";
 import { getProduct, products } from "@/lib/catalog";
 import { realisatiesFor } from "@/lib/realisaties";
-import { boughtTogether, productFacts, productSections, pairedWith } from "@/lib/product-info";
+import { boughtTogether, includedIn, productFacts, productSections, pairedWith } from "@/lib/product-info";
 import { productHighlights } from "@/lib/product-highlights";
 import {
   productDescription,
@@ -67,6 +67,7 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
         tabs={productInfoTabs({
           ...productSections(product),
           pairs: pairedWith(product),
+          included: includedIn(product),
           highlights: productHighlights(product.handle),
           facts: productFacts(product),
           fencing: fenceKinds.test(product.handle),
