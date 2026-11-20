@@ -1818,21 +1818,21 @@
     "title": "ø81 x 600",
     "price": "11.50",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 51315348373835,
     "title": "ø94 x 750",
     "price": "12.50",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 51315348406603,
     "title": "ø101 x 600",
     "price": "13.50",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 51315348439371,
@@ -1844,7 +1844,7 @@
   ],
   "priceFrom": "11.50",
   "priceTo": "15.50",
-  "available": true,
+  "available": false,
   "tags": [
    "palen",
    "Plaatsing materiaal"

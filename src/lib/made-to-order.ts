@@ -29,6 +29,11 @@ const TERMS: Record<string, OrderTerm> = {
     badge: "Op aanvraag",
     note: "Snelbeton bestelt u via een aanvraag: we houden het klaar om af te halen in Zele of leveren het mee met uw bestelling. We bevestigen per mail.",
   },
+  // Not kept in stock (Xander, Nov 2026): ordered from the supplier, here in about 5 days.
+  "paalhouder-met-punt-rond": {
+    badge: "Op aanvraag",
+    note: "Niet op voorraad: we bestellen ze voor u. Normaal zijn ze binnen een vijftal dagen bij ons. We bevestigen de levertermijn per mail.",
+  },
   "cleft-field-poorten": {
     badge: "Op bestelling",
     note: "Levertijd ongeveer 4 à 5 weken, met de volgende vracht; uitzonderlijk langer door drukte of productie. We bevestigen de levertermijn per mail.",

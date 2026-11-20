@@ -253,9 +253,22 @@ const MIGRATIONS: string[][] = [
     51176452194635: 1, // 180cm / 100cm
     51176452227403: 4, // 180cm / 150cm
   }),
+  // 9: stock count of plaatsing materiaal, 20 November 2026: snelbeton (website product,
+  // negative id), the three grondboren and both slaghamers. The rental choices (negative
+  // ids in src/lib/rentals.ts) are not counted.
+  stockCount("snelbeton", "telling 2026-11-20", { [-900001]: 20 }), // 25 kg
+  stockCount("grondboor", "telling 2026-11-20", {
+    57163425251659: 5, // grondboor ø7,5 cm
+    57163425284427: 5, // grondboor ø9 cm
+    51682089861451: 5, // spiraalboor ø8 cm
+  }),
+  stockCount("tuin-voorhamer", "telling 2026-11-20", {
+    56669742924107: 5, // rubber
+    56669742956875: 3, // hout
+  }),
 ];
 
-/** SQL for a one-time stock count (see migrations 7 and 8). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 to 9). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [
