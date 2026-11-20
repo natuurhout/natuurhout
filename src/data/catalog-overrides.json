@@ -1,4 +1,41 @@
 {
   "products": {},
-  "variants": {}
+  "variants": {
+    "51176454717771": {
+      "available": true
+    },
+    "51176454783307": {
+      "available": true
+    },
+    "51176454816075": {
+      "available": true
+    },
+    "51176454848843": {
+      "available": true
+    },
+    "51176454881611": {
+      "available": false
+    },
+    "51176454914379": {
+      "available": true
+    },
+    "51176454947147": {
+      "available": true
+    },
+    "51176455012683": {
+      "available": true
+    },
+    "51176455045451": {
+      "available": true
+    },
+    "51176455078219": {
+      "available": true
+    },
+    "53687747019083": {
+      "available": true
+    },
+    "53687747051851": {
+      "available": true
+    }
+  }
 }
