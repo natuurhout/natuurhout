@@ -528,15 +528,18 @@ function GateEditor({ data, gate, index, total, set, remove }: {
   const pickType = (handle: string) =>
     set({ handle, height: null, variantId: null, customWidth: "", customHeight: "", saver: "none", poleHandle: null, poleVariantId: null, hinges: true, latch: null, groundPins: 0, black: false });
 
-  const typeCards = [
-    ...data.gates.map((g) => ({
+  // The order of data.gates (GATE_SOURCES), with the maatwerkpoort right after the geschroefde poort.
+  const custom = { handle: CUSTOM_GATE, title: "Kastanje premium maatwerkpoort", image: "/fotos/web/dubbele-maatwerkpoort.jpg", note: "uw eigen maten · incl. palen en beslag" };
+  const typeCards = data.gates.flatMap((g) => {
+    const card = {
       handle: g.handle,
       title: g.title,
       image: g.image,
       note: g.postsIncluded ? "incl. 2 poortpalen en beslag" : g.fieldGate ? "palen en beslag apart" : "incl. beslag, palen apart",
-    })),
-    { handle: CUSTOM_GATE, title: "Kastanje premium maatwerkpoort", image: "/fotos/web/dubbele-maatwerkpoort.jpg", note: "uw eigen maten · incl. palen en beslag" },
-  ];
+    };
+    return g.handle === "kastanje-poort-geschroefd" ? [card, custom] : [card];
+  });
+  if (!typeCards.includes(custom)) typeCards.splice(Math.min(2, typeCards.length), 0, custom);
 
   return (
     <section className={total > 1 || index > 0 ? "rounded-xl border border-line p-4 sm:p-5" : ""}>

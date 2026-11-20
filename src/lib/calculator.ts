@@ -84,15 +84,18 @@ function poleOptions(kinds: PoleKind[]): PoleOption[] {
 
 /* Gates ------------------------------------------------------------ */
 
+// In the order the calculator shows them (Natuurhout, Nov 2026): kastanje premium,
+// geschroefd, maatwerk premium, robinia, hazelaar, cleft & field, hardhout.
 const GATE_SOURCES: { handle: string; postsIncluded: boolean; fieldGate: boolean }[] = [
   // "inclusief 2 poortpalen en het hang- en sluitwerk"
   { handle: "kastanje-poorten", postsIncluded: true, fieldGate: false },
   { handle: "kastanje-poort-geschroefd", postsIncluded: true, fieldGate: false },
   // (The kastanje kaderpoort is a unique Sale item now, not a calculator choice.)
-  // "geleverd met stevige kastanje poortpalen en ... hang- en sluitwerk"
-  { handle: "hazelaar-poort", postsIncluded: true, fieldGate: false },
+  // (The calculator shows the kastanje premium maatwerkpoort here, see Steps.tsx.)
   // "Inclusief: hang- en sluitwerk. Exclusief: steunpalen"
   { handle: "robinia-poort", postsIncluded: false, fieldGate: false },
+  // "geleverd met stevige kastanje poortpalen en ... hang- en sluitwerk"
+  { handle: "hazelaar-poort", postsIncluded: true, fieldGate: false },
   // Field gates: posts and hardware sold separately
   { handle: "cleft-field-poorten", postsIncluded: false, fieldGate: true },
   { handle: "hardhouten-veldpoort", postsIncluded: false, fieldGate: true },
