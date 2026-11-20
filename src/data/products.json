@@ -2263,7 +2263,7 @@
     "title": "120cm / 6-8cm",
     "price": "5.50",
     "compare_at": null,
-    "available": false
+    "available": true
    },
    {
     "id": 51176453275979,
@@ -2277,7 +2277,7 @@
     "title": "120cm / 10-12cm",
     "price": "8.00",
     "compare_at": null,
-    "available": true
+    "available": false
    },
    {
     "id": 51176453079371,
@@ -2368,7 +2368,7 @@
     "title": "300cm / 6-8cm",
     "price": "12.50",
     "compare_at": null,
-    "available": false
+    "available": true
    },
    {
     "id": 51176453439819,

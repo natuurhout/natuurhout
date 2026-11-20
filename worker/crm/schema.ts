@@ -266,9 +266,33 @@ const MIGRATIONS: string[][] = [
     56669742924107: 5, // rubber
     56669742956875: 3, // hout
   }),
+  // 10: stock count of kastanje palen, 20 November 2026. 120cm ø10-12 is op aanvraag (0);
+  // the lengths Xander did not count get 200 as a ceiling. Orders of more than 300 palen
+  // go by mail (src/lib/order-limits.ts).
+  stockCount("palen", "telling 2026-11-20", {
+    51176453013835: 40, // 100cm / 6-8cm
+    51176453243211: 40, // 100cm / 8-10cm
+    51176453046603: 30, // 120cm / 6-8cm
+    51176453275979: 30, // 120cm / 8-10cm
+    51176453472587: 0, // 120cm / 10-12cm (op aanvraag)
+    51176453079371: 200, // 150cm / 6-8cm
+    51176453308747: 200, // 150cm / 8-10cm
+    51176453505355: 300, // 150cm / 10-12cm
+    51176453112139: 200, // 180cm / 6-8cm
+    51176453341515: 200, // 180cm / 8-10cm
+    51176453538123: 10, // 180cm / 10-12cm
+    51176453144907: 200, // 200cm / 6-8cm
+    51176453374283: 200, // 200cm / 8-10cm
+    51176453570891: 200, // 200cm / 10-12cm
+    51176453177675: 200, // 250cm / 6-8cm
+    51176453407051: 200, // 250cm / 8-10cm
+    51176453603659: 200, // 250cm / 10-12cm
+    51176453210443: 5, // 300cm / 6-8cm
+    51176453439819: 5, // 300cm / 8-10cm
+  }),
 ];
 
-/** SQL for a one-time stock count (see migrations 7 to 9). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 to 10). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [

@@ -26,6 +26,7 @@ import { createPayment, getPayment, methodName, mspKey, MspError, validSignature
 import { createOrder, getLines, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
 import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid";
 import { makeMailer, type MailEnv } from "./send";
+import { overLimit } from "../../src/lib/order-limits";
 import { formatIban, getSettings, missingSettings } from "./settings";
 
 export interface CheckoutEnv extends MspEnv, MailEnv {
@@ -257,6 +258,8 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
   const p = await price(db, parseBasket(body), wantsDelivery, customer.postcode, customer.city);
   if (p.invalid.length) return json({ error: "Enkele producten kunnen niet online besteld worden. Haal ze uit uw winkelmandje en vraag er een offerte voor.", invalid: p.invalid }, 400);
   if (!p.lines.length) return json({ error: "Uw winkelmandje is leeg." }, 400);
+  const limit = overLimit(p.lines);
+  if (limit) return json({ error: limit }, 400);
   if (wantsDelivery && !p.delivery?.ok)
     return json(
       {
