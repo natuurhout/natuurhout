@@ -1,6 +1,9 @@
 {
   "products": {},
   "variants": {
+    "-900001": {
+      "available": true
+    },
     "51176451998027": {
       "available": false
     },
@@ -55,10 +58,25 @@
     "51176455078219": {
       "available": true
     },
+    "51682089861451": {
+      "available": true
+    },
     "53687747019083": {
       "available": true
     },
     "53687747051851": {
+      "available": true
+    },
+    "56669742924107": {
+      "available": true
+    },
+    "56669742956875": {
+      "available": true
+    },
+    "57163425251659": {
+      "available": true
+    },
+    "57163425284427": {
       "available": true
     }
   }
