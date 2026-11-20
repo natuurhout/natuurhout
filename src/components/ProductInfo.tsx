@@ -176,10 +176,10 @@ function Highlights({ highlights, more }: { highlights: ProductHighlights; more:
 }
 
 /** Small cards under a fence's description: the gate and posts often bought with it. */
-function Pairs({ products }: { products: Product[] }) {
+function Pairs({ label, products }: { label: string; products: Product[] }) {
   return (
     <div className="mt-8 border-t border-line pt-5">
-      <p className="text-sm font-semibold text-ink">Vaak samen met dit hekwerk</p>
+      <p className="text-sm font-semibold text-ink">{label}</p>
       <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         {products.map((p) => {
           const photo = CARD_PHOTOS[p.handle] ?? p.images[0]?.src;
@@ -208,7 +208,7 @@ function Pairs({ products }: { products: Product[] }) {
 
 export function productInfoTabs({
   omschrijving,
-  pairs = [],
+  pairs,
   prijzen,
   facts,
   kenmerken,
@@ -219,8 +219,8 @@ export function productInfoTabs({
   fencing,
 }: {
   omschrijving: string;
-  /** Gate and posts that go with a fence, shown small under the description (pairedWith). */
-  pairs?: Product[];
+  /** What is often bought with the product, shown small under the description (pairedWith). */
+  pairs?: { label: string; products: Product[] };
   /** Price overview of a WordPress page; omitted when it already shows above. */
   prijzen?: ReactNode;
   facts: { label: string; value: string }[];
@@ -239,7 +239,7 @@ export function productInfoTabs({
       content: (
         <>
           {omschrijving ? <Html html={omschrijving} /> : <p className="text-ink/60">Meer informatie volgt.</p>}
-          {pairs.length > 0 && <Pairs products={pairs} />}
+          {pairs && <Pairs label={pairs.label} products={pairs.products} />}
         </>
       ),
     },

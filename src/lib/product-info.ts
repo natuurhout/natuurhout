@@ -242,18 +242,23 @@ function companions(product: Product): string[] {
   }
 }
 
-/**
- * The gate and posts that go with a fence, shown small under its description
- * (Xander, Nov 2026: they are often bought together). Only for the three
- * fences themselves.
+/*
+ * What is often bought with a product, shown as small cards at the end of
+ * its description (Xander, Nov 2026): a fence's gate and posts, a gate's
+ * fence and posts.
  */
-export function pairedWith(product: Product | undefined): Product[] {
-  if (!product) return [];
-  const w = (Object.keys(FENCE) as (keyof typeof FENCE)[]).find((key) => FENCE[key] === product.handle);
-  if (!w) return [];
-  // Kastanje: also the geschroefde poort and the halfronde palen (Xander, Nov 2026).
-  const handles = w === "kastanje" ? [GATE.kastanje, "kastanje-poort-geschroefd", POSTS.kastanje, "halfronde-palen"] : [GATE[w], POSTS[w]];
-  return handles.map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
+const PAIRS: Record<string, { label: string; handles: string[] }> = {
+  "kastanje-rasterwerk": { label: "Vaak samen met dit hekwerk", handles: ["kastanje-poorten", "kastanje-poort-geschroefd", "palen", "halfronde-palen"] },
+  "robinia-hekwerk": { label: "Vaak samen met dit hekwerk", handles: ["robinia-poort", "robinia-palen"] },
+  "hazelaar-hekwerk": { label: "Vaak samen met dit hekwerk", handles: ["hazelaar-poort", "palen"] },
+  "hazelaar-poort": { label: "Vaak samen met deze poort", handles: ["hazelaar-hekwerk", "palen"] },
+};
+
+export function pairedWith(product: Product | undefined): { label: string; products: Product[] } | undefined {
+  const pair = product ? PAIRS[product.handle] : undefined;
+  if (!pair) return undefined;
+  const products = pair.handles.map((handle) => getProduct(handle)).filter((p): p is Product => Boolean(p));
+  return products.length ? { label: pair.label, products } : undefined;
 }
 
 export function boughtTogether(product: Product, limit = 4): Product[] {
