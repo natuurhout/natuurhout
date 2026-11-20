@@ -437,7 +437,7 @@ export default function Checkout() {
             >
               {deliveryBlocked
                 ? "Niet mogelijk voor deze bestelling: zie hieronder."
-                : "Met onze eigen wagen. We mailen u wanneer we komen leveren en bellen u op uw gsm als dat nodig is."}
+                : "Wij voeren de leveringen zelf uit en contacteren u op voorhand wanneer we komen leveren."}
             </Choice>
             <Choice checked={!delivery} onSelect={() => choose(false)} icon={<Store className="h-4 w-4 text-accent" />} title="Afhalen in Zele (gratis)">
               {ADDRESS.street}, {ADDRESS.city}. We laten weten wanneer het klaarstaat.

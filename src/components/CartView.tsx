@@ -59,8 +59,8 @@ function CheckoutCard({ total, online, href, onRequest }: { total: number; onlin
         <li className="flex gap-2.5">
           <Truck aria-hidden className="mt-1 h-4 w-4 shrink-0 text-accent" />
           <span>
-            <strong className="text-ink">Laten leveren:</strong> met onze eigen wagen, in heel België. Geef uw gsm-nummer op: we mailen u wanneer
-            we komen leveren en bellen als dat nodig is.
+            <strong className="text-ink">Laten leveren:</strong> wij voeren de leveringen zelf uit en contacteren u op voorhand wanneer we
+            komen leveren.
           </span>
         </li>
         {online && (

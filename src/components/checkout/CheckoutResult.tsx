@@ -217,7 +217,7 @@ function Where({ s }: { s: Status }) {
             <br />
             {s.place.postcode} {s.place.city}
           </p>
-          <p className="mt-1.5 text-ink/60">Met onze eigen wagen. We mailen u wanneer we komen leveren en bellen als dat nodig is.</p>
+          <p className="mt-1.5 text-ink/60">Wij voeren de leveringen zelf uit en contacteren u op voorhand wanneer we komen leveren.</p>
         </div>
       </section>
     );
@@ -276,7 +276,7 @@ function Confirmation({ s }: { s: Status }) {
   const paid = s.state === "betaald";
   const name = s.firstName ? `, ${s.firstName}` : "";
   const finalStep: Step = s.delivery
-    ? { title: "Levering", icon: Truck, text: "We mailen u wanneer we komen leveren en bellen als dat nodig is." }
+    ? { title: "Levering", icon: Truck, text: "Wij voeren de levering zelf uit en contacteren u op voorhand wanneer we komen leveren." }
     : { title: "Afhalen in Zele", icon: Store, text: "We laten u weten wanneer uw bestelling klaarstaat." };
   const steps: Step[] = paid
     ? [
