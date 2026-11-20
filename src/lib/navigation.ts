@@ -60,6 +60,7 @@ export const productMenu: MenuGroup[] = [
     ],
     links: [
       { href: "/project/kastanjepalen/", label: "Kastanje palen" },
+      { href: "/shop/halfronde-palen/", label: "Halfronde kastanje palen" },
       { href: "/project/robinia-palen/", label: "Robinia palen" },
       { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "Gezaagde robinia palen" },
       { href: "/project/eiken-palen/", label: "Eiken palen" },

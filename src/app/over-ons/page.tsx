@@ -250,6 +250,7 @@ const RANGE: { name: string; links: { href: string; label: string }[] }[] = [
     name: "Palen",
     links: [
       { href: "/project/kastanjepalen/", label: "kastanje" },
+      { href: "/shop/halfronde-palen/", label: "halfronde kastanje" },
       { href: "/project/robinia-palen/", label: "robinia" },
       { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "gezaagde robinia" },
       { href: "/project/eiken-palen/", label: "eiken" },
