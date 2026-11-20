@@ -174,6 +174,29 @@ export function toggleType(s: State, id: ProductType): State {
   return { ...s, types, gates };
 }
 
+/*
+ * "Verwijderen" on a step (Xander, Nov 2026): a customer who picked too much in
+ * step 1 takes that product off where they are. The product's own steps go;
+ * what they filled in stays, should they pick it again. Palen belong to
+ * hekwerk/vlechtschermen and a gate added to hekwerk is removed in the gate
+ * step itself, so those steps have no button.
+ */
+export function removableType(step: StepId, types: ProductType[]): ProductType | null {
+  if (step === "hekwerk" || step === "vlechtschermen" || step === "postrail" || step === "plantenbakken") return step;
+  if (step === "poort") return types.includes("poorten") ? "poorten" : types.includes("cleftfield") ? "cleftfield" : null;
+  const pick = PICK_TYPES.find((t) => pickStep(t) === step);
+  return pick ?? null;
+}
+
+export function removeType(s: State, id: ProductType): State {
+  if (id === "poorten" || id === "cleftfield") {
+    // The gates go with it, unless hekwerk keeps its gate step.
+    const types = s.types.filter((t) => t !== "poorten" && t !== "cleftfield");
+    return { ...s, types, gates: types.includes("hekwerk") ? s.gates.filter((g) => g.handle !== CLEFT_FIELD) : [] };
+  }
+  return { ...s, types: s.types.filter((t) => t !== id) };
+}
+
 export function initialState(data: CalculatorData): State {
   return {
     types: [],

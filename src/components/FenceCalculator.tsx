@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import type { CalculatorData } from "@/lib/calculator-pricing";
 import {
@@ -12,6 +12,8 @@ import {
   pickStep,
   buildLines,
   initialState,
+  removableType,
+  removeType,
   steps,
   toggleType,
   total,
@@ -89,6 +91,17 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
     setIndex((i) => Math.min(flow.length - 1, i + 1));
   }
 
+  const removable = removableType(current, state.types);
+  function remove() {
+    if (!removable) return;
+    const nextState = removeType(state, removable);
+    setState(nextState);
+    setTried(false);
+    // Stay at this place in the (shorter) flow: the next step, or step 1 when nothing is left.
+    if (!nextState.types.length) setIndex(0);
+    else setIndex((i) => Math.min(i, steps(nextState.types).length - 1));
+  }
+
   function back() {
     setTried(false);
     setIndex((i) => Math.max(0, i - 1));
@@ -132,7 +145,19 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <div className="min-w-0 rounded-card bg-white p-5 shadow-sm ring-1 ring-line sm:p-8">
-          <h2 className="mb-6 font-display text-2xl font-semibold tracking-tight">{STEP_LABEL[current]}</h2>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+            <h2 className="font-display text-2xl font-semibold tracking-tight">{STEP_LABEL[current]}</h2>
+            {removable && (
+              <button
+                type="button"
+                onClick={remove}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-sm font-medium text-ink/65 transition-colors hover:border-red-700/40 hover:text-red-700"
+              >
+                <Trash2 aria-hidden className="h-4 w-4" />
+                {STEP_LABEL[current]} verwijderen
+              </button>
+            )}
+          </div>
 
           {current === "keuze" && <KeuzeStep data={data} state={state} update={update} />}
           {current === "hekwerk" && <HekwerkStep data={data} state={state} update={update} />}
