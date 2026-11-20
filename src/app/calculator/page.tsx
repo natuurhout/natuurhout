@@ -24,9 +24,9 @@ export default function CalculatorPage() {
           Bereken de richtprijs van uw afsluiting
         </h1>
         <p className="mt-5 leading-relaxed text-ink/70">
-          Stel uw afsluiting samen met hekwerk, palen en poort — of kies vlechtschermen, Post &amp; Rail of
-          plantenbakken. U ziet meteen een richtprijs op basis van de actuele webshopprijzen en vraagt in de
-          laatste stap uw offerte aan.
+          Stel uw afsluiting samen met hekwerk, palen en poort, of kies vlechtschermen, Post &amp; Rail,
+          plantenbakken, lariks, losse palen, hang- en sluitwerk of plaatsingsmateriaal. U ziet meteen een richtprijs op
+          basis van de actuele webshopprijzen en vraagt in de laatste stap uw offerte aan.
         </p>
       </div>
       <div className="mt-10">

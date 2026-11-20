@@ -23,6 +23,7 @@ import {
   type CalculatorData,
   type GateOption,
   type PoleOpt,
+  type PickType,
   type PoleKind,
   type PoleOption,
 } from "@/lib/calculator-pricing";
@@ -32,8 +33,31 @@ import {
  * no React: the component renders this, the quote e-mail serialises it.
  */
 
-export type ProductType = "hekwerk" | "vlechtschermen" | "postrail" | "poorten" | "cleftfield" | "plantenbakken";
-export type StepId = "keuze" | "hekwerk" | "vlechtschermen" | "postrail" | "palen" | "poort" | "plantenbakken" | "overzicht";
+export type ProductType = "hekwerk" | "vlechtschermen" | "postrail" | "poorten" | "cleftfield" | "plantenbakken" | PickType;
+export type StepId =
+  | "keuze"
+  | "hekwerk"
+  | "vlechtschermen"
+  | "postrail"
+  | "palen"
+  | "poort"
+  | "plantenbakken"
+  | "pick-palen"
+  | "pick-lariks"
+  | "pick-hangsluitwerk"
+  | "pick-materiaal"
+  | "overzicht";
+
+/** The products picked by the piece, in the order of their steps (Xander, Nov 2026). */
+export const PICK_TYPES: PickType[] = ["palen", "lariks", "hangsluitwerk", "materiaal"];
+export const PICK_LABEL: Record<PickType, string> = {
+  palen: "Losse palen",
+  lariks: "Lariks schaaldelen",
+  hangsluitwerk: "Hang- en sluitwerk",
+  materiaal: "Plaatsingsmateriaal",
+};
+export const pickStep = (type: PickType) => `pick-${type}` as StepId;
+export const isPickType = (t: string): t is PickType => (PICK_TYPES as string[]).includes(t);
 
 export const CUSTOM_GATE = "maatwerk";
 export const CLEFT_FIELD = "cleft-field-poorten";
@@ -86,6 +110,7 @@ export type State = {
   poles: PoleLine[];
   gates: Gate[];
   planters: Record<number, number>; // variantId → quantity
+  picks: Record<number, number>; // variantId → quantity (losse palen, lariks, hang- en sluitwerk, materiaal)
   contact: {
     name: string;
     email: string;
@@ -130,7 +155,8 @@ export function newGate(handle: string | null = null): Gate {
   };
 }
 
-export const PRODUCT_TYPES: ProductType[] = ["hekwerk", "vlechtschermen", "postrail", "poorten", "cleftfield", "plantenbakken"];
+// "cleftfield" stays for old ?keuze= links; the Cleft & Field gate is a choice under Poorten.
+export const PRODUCT_TYPES: ProductType[] = ["hekwerk", "vlechtschermen", "postrail", "poorten", "cleftfield", "plantenbakken", ...PICK_TYPES];
 
 /** Switches one product type on or off, with the gates that type implies. */
 export function toggleType(s: State, id: ProductType): State {
@@ -155,6 +181,7 @@ export function initialState(data: CalculatorData): State {
     poles: [{ id: newId(), handle: data.fencePoles[0]?.handle ?? "", variantId: null, count: null, saver: "none" }],
     gates: [],
     planters: {},
+    picks: {},
     contact: { name: "", email: "", phone: "", delivery: false, street: "", postcode: "", city: "", remarks: "" },
   };
 }
@@ -168,6 +195,7 @@ export function steps(types: ProductType[]): StepId[] {
   if (has("hekwerk") || has("vlechtschermen")) out.push("palen");
   if (has("hekwerk") || has("poorten") || has("cleftfield")) out.push("poort");
   if (has("plantenbakken")) out.push("plantenbakken");
+  for (const t of PICK_TYPES) if (has(t)) out.push(pickStep(t));
   out.push("overzicht");
   return out;
 }
@@ -180,6 +208,10 @@ export const STEP_LABEL: Record<StepId, string> = {
   palen: "Palen",
   poort: "Poort",
   plantenbakken: "Plantenbakken",
+  "pick-palen": PICK_LABEL.palen,
+  "pick-lariks": PICK_LABEL.lariks,
+  "pick-hangsluitwerk": PICK_LABEL.hangsluitwerk,
+  "pick-materiaal": PICK_LABEL.materiaal,
   overzicht: "Overzicht & offerte",
 };
 
@@ -572,7 +604,32 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
     }
   }
 
+  for (const t of PICK_TYPES) {
+    if (!has(t)) continue;
+    for (const product of data.picks[t]) {
+      for (const size of product.sizes) {
+        const qty = state.picks[size.variantId] ?? 0;
+        if (qty <= 0) continue;
+        const single = product.sizes.length === 1 && size.title === "Default Title";
+        lines.push({
+          group: PICK_LABEL[t],
+          label: single ? product.title : `${product.title}: ${size.title}`,
+          qty,
+          unit: size.price,
+          url: product.shopUrl,
+          ...onOrder(product.handle, size.available),
+        });
+      }
+    }
+  }
+
   return lines;
+}
+
+/** A pick step needs at least one piece. */
+export function pickProblem(data: CalculatorData, state: State, type: PickType): string | null {
+  const any = data.picks[type].some((p) => p.sizes.some((z) => (state.picks[z.variantId] ?? 0) > 0));
+  return any ? null : `Kies minstens één ${type === "palen" ? "paal" : "product"}.`;
 }
 
 export function total(lines: Line[]): number {

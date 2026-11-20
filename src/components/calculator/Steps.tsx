@@ -45,6 +45,7 @@ import {
   screenResolved,
   tallestHeight,
   toggleType,
+  PICK_LABEL,
   type Gate,
   type PostSaver,
   type ProductType,
@@ -52,6 +53,8 @@ import {
   type State,
 } from "@/components/calculator/model";
 import GateSwing from "@/components/calculator/GateSwing";
+import { variantPhoto } from "@/lib/product-copy";
+import type { PickType } from "@/lib/calculator-pricing";
 import { Chip, MetersInput, OptionCard, OrderNote, Question, Stepper, soldOutSuffix } from "@/components/calculator/ui";
 
 export type StepProps = {
@@ -62,21 +65,26 @@ export type StepProps = {
 
 /* 1. Keuze ---------------------------------------------------------- */
 
+// The Cleft & Field poorten are a choice under Poorten (Xander, Nov 2026); the
+// last four are picked by the piece (PickStep).
 const TYPES: { id: ProductType; title: string; text: string; image: string }[] = [
   { id: "hekwerk", title: "Hekwerk", text: "Kastanje, robinia of hazelaar rasterwerk op rol", image: CALCULATOR_HEKWERK_PHOTO },
-  { id: "poorten", title: "Poorten", text: "Tuin- en veldpoorten, ook enkel een poort", image: "/fotos/web/dubbele-maatwerkpoort.jpg" },
+  { id: "poorten", title: "Poorten", text: "Tuin- en veldpoorten (ook Cleft & Field), of enkel een poort", image: "/fotos/web/dubbele-maatwerkpoort.jpg" },
   { id: "vlechtschermen", title: "Vlechtschermen", text: "Hazelaar, gevlochten of met halve latten", image: CALCULATOR_VLECHTSCHERM_PHOTO },
   { id: "postrail", title: "Post & Rail", text: "Kastanje palen met 2 of 3 liggers", image: CALCULATOR_POSTRAIL_PHOTO },
-  { id: "cleftfield", title: "Cleft & Field poorten", text: "Robuuste veldpoorten in kastanje", image: "/fotos/web/untitled-design-3.jpg" },
+  { id: "palen", title: "Palen", text: "Kastanje, robinia, eik of halfrond, met of zonder postsaver", image: "/fotos/kastanje-palen.jpg" },
   { id: "plantenbakken", title: "Plantenbakken", text: "Moestuinbakken in hazelaar of cortenstaal", image: "/fotos/web/moestuinbak-hazelaar.jpg" },
+  { id: "lariks", title: "Lariks schaaldelen", text: "Planken en delen in lariks", image: "/fotos/web/lariks5-project-overemere-scaled.jpg" },
+  { id: "hangsluitwerk", title: "Hang- en sluitwerk", text: "Scharnieren, sluitingen, grendels en grondpennen", image: "/fotos/web/hang-sluitwerk/tuinheksluiting-met-pen.jpg" },
+  { id: "materiaal", title: "Plaatsingsmateriaal", text: "Schroeven, paalhouders, slaghamer, grondboor …", image: "/fotos/web/hang-sluitwerk/scharnierset-veldpoort.jpg" },
 ];
 
-export function KeuzeStep({ state, update }: StepProps) {
+export function KeuzeStep({ data, state, update }: StepProps) {
   function toggle(id: ProductType) {
     update((s) => toggleType(s, id));
   }
   return (
-    <Question title="Wat wilt u berekenen?" hint="Kies één of meer producten. U kunt ook enkel een poort of plantenbakken kiezen.">
+    <Question title="Wat wilt u berekenen?" hint="Kies één of meer producten. U kunt ook enkel een poort, palen of plaatsingsmateriaal kiezen.">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TYPES.map((t) => {
           const active = state.types.includes(t.id);
@@ -91,7 +99,7 @@ export function KeuzeStep({ state, update }: StepProps) {
               }`}
             >
               <span className="relative block aspect-[16/9] w-full bg-brand-soft">
-                <Image src={t.image} alt="" fill sizes="(max-width: 640px) 100vw, 280px" className="object-cover" />
+                <Image src={typeImage(data, t.id) ?? t.image} alt="" fill sizes="(max-width: 640px) 100vw, 280px" className="object-cover" />
                 <span
                   className={`absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-bold ${
                     active ? "border-accent bg-accent text-white" : "border-white bg-white/80 text-transparent"
@@ -912,4 +920,54 @@ export function PlantenbakkenStep({ data, state, update }: StepProps) {
 
 export function plantersProblem(state: State): string | null {
   return Object.values(state.planters).some((q) => q > 0) ? null : "Kies minstens één plantenbak.";
+}
+
+/* Products by the piece (Xander, Nov 2026) --------------------------- */
+
+/** The card photo for Plaatsingsmateriaal: the slaghamers (a product photo), else the fallback. */
+function typeImage(data: CalculatorData, id: ProductType): string | undefined {
+  if (id === "materiaal") return data.picks.materiaal.find((p) => p.handle === "tuin-voorhamer")?.image;
+  return undefined;
+}
+
+/** Every product of a pick type with all its variants, a quantity per variant. */
+export function PickStep({ data, state, update, type }: StepProps & { type: PickType }) {
+  return (
+    <div className="space-y-7">
+      {data.picks[type].map((p) => (
+        <Question key={p.handle} title={p.title}>
+          <div className="divide-y divide-line overflow-hidden rounded-xl border border-line">
+            {p.sizes.map((z) => {
+              const photo = variantPhoto(p.handle, z.variantId);
+              const label = z.title === "Default Title" ? p.title : z.title;
+              return (
+                <div key={z.variantId} className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {photo && (
+                      <span className="relative h-10 w-[3.25rem] shrink-0 overflow-hidden rounded-md border border-line bg-[#f0f0f0]">
+                        <Image src={photo.src} alt="" fill sizes="52px" className="object-cover" />
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink">{label}</p>
+                      <p className="text-xs text-ink/60">
+                        {formatPrice(z.price)}/stuk{soldOutSuffix(z.available)}
+                      </p>
+                    </div>
+                  </div>
+                  <Stepper
+                    label={`${p.title} ${label}`}
+                    value={state.picks[z.variantId] ?? 0}
+                    onChange={(v) => update((s) => ({ ...s, picks: { ...s.picks, [z.variantId]: v } }))}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          {p.sizes.some((z) => !z.available && (state.picks[z.variantId] ?? 0) > 0) && <OrderNote handle={p.handle} />}
+        </Question>
+      ))}
+      <p className="text-xs text-ink/55">{PICK_LABEL[type]}: de prijzen zijn per stuk, incl. btw.</p>
+    </div>
+  );
 }

@@ -6,6 +6,8 @@ import type {
   GateOption,
   GateSizeOpt,
   Opt,
+  PickOption,
+  PickType,
   PlanterOption,
   PoleKind,
   PoleOption,
@@ -198,6 +200,28 @@ function fieldGateHardware(): CalculatorData["fieldGateHardware"] {
   };
 }
 
+/*
+ * Products the customer simply picks by the piece (Xander, Nov 2026): every
+ * post, lariks, hang- en sluitwerk and the plaatsingsmateriaal, each with
+ * all its variants (the website-only rentals and the inbussleutel included).
+ */
+const PICK_HANDLES: Record<PickType, string[]> = {
+  palen: ["palen", "halfronde-palen", "robinia-palen", "vierkant-gezaagde-robinia-palen", "eiken-palen", "kastanje-palen-copy", "kastanje-paal-met-postsaver"],
+  lariks: ["lariks-planken-delen"],
+  hangsluitwerk: ["beslag-hang-sluitwerk"],
+  materiaal: ["houtschroeven", "paalhouder-met-punt-rond", "hekwerk-draadverbinders", "tuin-voorhamer", "grondboor", "snelbeton"],
+};
+
+function pickOptions(): CalculatorData["picks"] {
+  const pick = (handles: string[]): PickOption[] =>
+    handles.flatMap((handle) => {
+      const product = getProduct(handle);
+      if (!product) return [];
+      return [{ handle, title: product.title, shopUrl: productPage(product), image: CARD_PHOTOS[handle] ?? product.images[0]?.src, sizes: product.variants.map(opt) }];
+    });
+  return { palen: pick(PICK_HANDLES.palen), lariks: pick(PICK_HANDLES.lariks), hangsluitwerk: pick(PICK_HANDLES.hangsluitwerk), materiaal: pick(PICK_HANDLES.materiaal) };
+}
+
 function loosePostsavers(): CalculatorData["loosePostsavers"] {
   // "Postsaver ronde paal ø8-10cm" → "8-10cm"
   const product = getProduct("kastanje-paal-met-postsaver");
@@ -224,6 +248,7 @@ export function calculatorData(): CalculatorData {
     screens: screenOptions(),
     postRail: postRailPrices(),
     planters: planterOptions(),
+    picks: pickOptions(),
     fieldGateHardware: fieldGateHardware(),
     loosePostsavers: loosePostsavers(),
   };

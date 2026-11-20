@@ -44,6 +44,10 @@ export type ScreenOption = { handle: string; title: string; label: string; shopU
 
 export type PlanterOption = { handle: string; title: string; shopUrl: string; sizes: Opt[] };
 
+/** Products picked by quantity per variant, without a calculation (Xander, Nov 2026). */
+export type PickType = "palen" | "lariks" | "hangsluitwerk" | "materiaal";
+export type PickOption = PlanterOption & { image?: string };
+
 export type PostRailPrices = { post2: Opt; post3: Opt; rail: Opt; shopUrl: string };
 /** Field gates ship bare: the customer picks hinges, a latch and ground pins from the shop's beslag. */
 export type FieldGateHardware = { hinges: Opt; latches: Opt[]; groundPin: Opt | null; shopUrl: string };
@@ -59,6 +63,7 @@ export type CalculatorData = {
   screens: ScreenOption[];
   postRail: PostRailPrices | null;
   planters: PlanterOption[];
+  picks: Record<PickType, PickOption[]>;
   fieldGateHardware: FieldGateHardware | null;
   loosePostsavers: LoosePostsavers | null;
 };

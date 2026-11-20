@@ -5,8 +5,11 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import type { CalculatorData } from "@/lib/calculator-pricing";
 import {
+  PICK_TYPES,
   PRODUCT_TYPES,
   STEP_LABEL,
+  pickProblem,
+  pickStep,
   buildLines,
   initialState,
   steps,
@@ -20,6 +23,7 @@ import {
   HekwerkStep,
   KeuzeStep,
   PalenStep,
+  PickStep,
   PlantenbakkenStep,
   PoortStep,
   PostRailStep,
@@ -71,7 +75,10 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
         ? gateStepProblem(data, state)
         : current === "plantenbakken"
           ? plantersProblem(state)
-          : null;
+          : (() => {
+              const pick = PICK_TYPES.find((t) => pickStep(t) === current);
+              return pick ? pickProblem(data, state, pick) : null;
+            })();
 
   function next() {
     if (problem) {
@@ -134,6 +141,7 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
           {current === "palen" && <PalenStep data={data} state={state} update={update} />}
           {current === "poort" && <PoortStep data={data} state={state} update={update} />}
           {current === "plantenbakken" && <PlantenbakkenStep data={data} state={state} update={update} />}
+          {PICK_TYPES.map((t) => current === pickStep(t) && <PickStep key={t} type={t} data={data} state={state} update={update} />)}
           {current === "overzicht" && <OverviewStep data={data} state={state} update={update} lines={lines} />}
 
           {/* Wizard nav */}
