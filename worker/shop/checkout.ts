@@ -23,7 +23,7 @@ import { upsertContact } from "../crm/store";
 import { loadCatalog, variantLabel } from "./catalog";
 import { deliveryQuote, getCheckoutSettings } from "./delivery";
 import { createPayment, getPayment, methodName, mspKey, MspError, validSignature, type MspEnv, type MspMode } from "./msp";
-import { createOrder, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
+import { createOrder, getLines, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
 import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid";
 import { makeMailer, type MailEnv } from "./send";
 import { formatIban, getSettings, missingSettings } from "./settings";
@@ -395,7 +395,9 @@ export async function status(request: Request, env: CheckoutEnv): Promise<Respon
       console.error("Payment status check failed", order.number, error);
     }
   }
-  const shop = await getSettings(env.DB);
+  const [shop, rows] = await Promise.all([getSettings(env.DB), getLines(env.DB, order.id)]);
+  // Checkout stores delivery as a line without a handle (see place()).
+  const isDelivery = (l: { handle: string; product: string }) => !l.handle && l.product === "Levering";
   const state = order.status === "geannuleerd" ? "geannuleerd" : order.paid_at ? "betaald" : order.payment_method === "overschrijving" ? "overschrijving" : FAILED.has(order.psp_status ?? "") ? "mislukt" : "bezig";
   return json({
     number: order.number,
@@ -404,7 +406,11 @@ export async function status(request: Request, env: CheckoutEnv): Promise<Respon
     method: order.payment_method,
     paidWith: methodName(order.psp_method),
     email: order.email,
+    firstName: order.name.trim().split(/\s+/)[0] ?? "",
     delivery: order.delivery === 1,
+    place: order.delivery === 1 ? { street: order.street, postcode: order.postcode, city: order.city } : null,
+    lines: rows.filter((l) => !isDelivery(l)).map((l) => ({ handle: l.handle, product: l.product, label: l.label === l.product ? "" : l.label, qty: l.qty, total: round2(l.qty * l.unit) })),
+    deliveryCost: round2(rows.filter(isDelivery).reduce((sum, l) => sum + l.qty * l.unit, 0)),
     test: order.psp_mode === "test",
     transfer:
       order.payment_method === "overschrijving" && !order.paid_at

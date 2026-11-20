@@ -78,6 +78,12 @@
     20% { opacity: 0; transform: translateY(-6px); visibility: visible; }
     20.01%, 100% { opacity: 0; visibility: hidden; }
   }
+  /* Thank-you page check mark (/afrekenen/bedankt/). */
+  @keyframes pop {
+    0% { opacity: 0; transform: scale(0.6); }
+    70% { opacity: 1; transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
   @media (prefers-reduced-motion: reduce) {
     .usp-rotate > li { animation: none; visibility: hidden; }
     .usp-rotate > li:first-child { opacity: 1; visibility: visible; }

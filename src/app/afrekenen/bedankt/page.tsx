@@ -10,15 +10,9 @@ export const metadata: Metadata = {
 
 export default function BedanktPage() {
   return (
-    <div className="mx-auto w-full max-w-[72rem] px-4 py-10 sm:px-6 lg:px-10">
-      <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-        <span aria-hidden className="h-px w-8 bg-accent" />
-        Bestellen
-      </p>
-      <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Uw bestelling</h1>
-      <div className="mt-8">
-        <CheckoutResult />
-      </div>
+    // CheckoutResult renders the h1: it depends on how the payment stands.
+    <div className="mx-auto w-full max-w-[72rem] px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
+      <CheckoutResult />
     </div>
   );
 }
