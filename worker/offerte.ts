@@ -28,6 +28,7 @@
 import { confirmationMail, internalMail, parsePhotos, parseQuote, type Mail } from "../src/lib/quote-email";
 import { saveSubmission, setMailStatus, type MailStatus } from "./crm/store";
 import { placeWebsiteOrder, setOrderMailStatus } from "./shop/place";
+import { binaryAttachments } from "./mail-attachments";
 
 export interface OfferteEnv {
   EMAIL: SendEmail;
@@ -137,7 +138,7 @@ export async function POST(request: Request, env: OfferteEnv) {
       subject: mail.subject,
       text: mail.text,
       html: mail.html,
-      attachments: mail.attachments,
+      attachments: binaryAttachments(mail.attachments),
     });
 
   // 1. The request itself, to Natuurhout. This one must not be lost.
