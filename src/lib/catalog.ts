@@ -83,6 +83,17 @@ function localShopLinks(html: string): string {
 // Website promotions (src/lib/promotions.ts) are applied on top of the shop data.
 // baseProducts: everything except the backend edits; the Worker applies the live
 // edits from D1 on top of these (worker/shop/catalog.ts).
+/** Website-only choices, each before the webshop variant `before` names (else at the end). */
+function withExtras(variants: ProductVariant[], extras: ProductVariant[], before: Record<number, number>): ProductVariant[] {
+  const out = [...variants];
+  for (const extra of extras) {
+    const at = before[extra.id] === undefined ? -1 : out.findIndex((v) => v.id === before[extra.id]);
+    if (at < 0) out.push(extra);
+    else out.splice(at, 0, extra);
+  }
+  return out;
+}
+
 export const baseProducts = withPromotions(
   withPriceUpdates(
     // Several webshop products shown as one (src/lib/merged-products.ts), and tools to rent (src/lib/rentals.ts).
@@ -91,10 +102,11 @@ export const baseProducts = withPromotions(
       // Website title, description and photos where Natuurhout replaced the webshop's (src/lib/product-copy.ts).
       title: PRODUCT_COPY[product.handle]?.title ?? product.title,
       options: PRODUCT_COPY[product.handle]?.options ?? product.options,
-      variants: [
-        ...product.variants.map((variant) => ({ ...variant, title: PRODUCT_COPY[product.handle]?.variantTitles?.[variant.id] ?? variant.title })),
-        ...(PRODUCT_COPY[product.handle]?.extraVariants ?? []),
-      ],
+      variants: withExtras(
+        product.variants.map((variant) => ({ ...variant, title: PRODUCT_COPY[product.handle]?.variantTitles?.[variant.id] ?? variant.title })),
+        PRODUCT_COPY[product.handle]?.extraVariants ?? [],
+        PRODUCT_COPY[product.handle]?.extraBefore ?? {},
+      ),
       bodyHtml: localShopLinks(
         (PRODUCT_COPY[product.handle]?.bodyFixes ?? []).reduce(
           (html, [from, to]) => html.split(from).join(to),

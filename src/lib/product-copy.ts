@@ -27,6 +27,8 @@ type Copy = {
    * They do not count for the "vanaf" price on the product card.
    */
   extraVariants?: ProductVariant[];
+  /** Where an extra choice goes in the price list: before this webshop variant id (default: at the end). */
+  extraBefore?: Record<number, number>;
 };
 
 const HS = "/fotos/web/hang-sluitwerk";
@@ -53,6 +55,11 @@ export const PRODUCT_COPY: Record<string, Copy> = {
       ],
       ["klassieke houtverbindingen, pen-en-gatverbiding.", "vastgeschroefd en met deuvels verbonden, zeer stevig."],
     ],
+  },
+  // Hazelaar hekwerk 80cm (Xander, Nov 2026): not in the webshop; €3 less than 90cm, 5 m rolls.
+  "hazelaar-hekwerk": {
+    extraVariants: [{ id: -900301, title: "80cm / 3/5cm (5m rol)", price: "46.00", compare_at: null, available: true }],
+    extraBefore: { [-900301]: 51176449671499 }, // before 90cm / 3/5cm
   },
   // A loose inbussleutel for the draadverbinders (Xander, Nov 2026).
   "hekwerk-draadverbinders": {

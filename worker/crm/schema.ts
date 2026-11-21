@@ -307,9 +307,11 @@ const MIGRATIONS: string[][] = [
     51176449671499: 2, // 90cm / 3/5cm
     51176449704267: 1, // 90cm / 7/9cm
   }),
+  // 14: hazelaar hekwerk 80cm / 3/5cm, a website-only choice (src/lib/product-copy.ts): 12 rolls.
+  stockCount("hazelaar-hekwerk", "telling 2026-11-21", { [-900301]: 12 }),
 ];
 
-/** SQL for a one-time stock count (see migrations 7 to 13). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 to 14). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [
