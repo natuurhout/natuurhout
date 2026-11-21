@@ -221,8 +221,8 @@ function PriceTable({
               </td>
               <td className="px-4 py-2 text-right align-middle sm:px-5">
                 <Stepper value={n} label={label} onChange={(value) => setQty(variant.id, value)} />
-                {backorderNote(stock[variant.id], n) && (
-                  <span className="mt-1 ml-auto block max-w-56 text-left text-[11px] font-medium leading-4 text-accent-deep">{backorderNote(stock[variant.id], n)}</span>
+                {backorderNote(stock[variant.id], n, orderTerm(product.handle).later) && (
+                  <span className="mt-1 ml-auto block max-w-56 text-left text-[11px] font-medium leading-4 text-accent-deep">{backorderNote(stock[variant.id], n, orderTerm(product.handle).later)}</span>
                 )}
                 {!variant.available && !allOnOrder && (
                   <span className="mt-1 block text-[11px] font-medium text-ink/50">op aanvraag*</span>

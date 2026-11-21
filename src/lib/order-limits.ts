@@ -33,8 +33,9 @@ export function backorder(stock: number | null | undefined, qty: number): { inSt
 }
 
 /** Under a price list row or basket line that asks more than the counted stock. */
-export function backorderNote(stock: number | null | undefined, qty: number): string | null {
+export function backorderNote(stock: number | null | undefined, qty: number, later?: string): string | null {
   const b = backorder(stock, qty);
   if (!b) return null;
-  return `Nog ${b.inStock} op voorraad. De overige ${b.later} zijn in nabestelling: die komen mee met de volgende vracht (normaal binnen 4 à 5 weken). Liever eerst weten wanneer? Mail info@natuurhout.be.`;
+  // `later`: the product's own wording (src/lib/made-to-order.ts), e.g. hazelaar from Ukraine.
+  return `Nog ${b.inStock} op voorraad. De overige ${b.later} zijn in nabestelling: ${later ?? "die komen mee met de volgende vracht (normaal binnen 4 à 5 weken)."} Liever eerst weten wanneer? Mail info@natuurhout.be.`;
 }

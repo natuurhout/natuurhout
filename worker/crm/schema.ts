@@ -302,9 +302,14 @@ const MIGRATIONS: string[][] = [
     56930521973067: 1, // 100cm x 150cm
     56930522005835: 1, // 120cm x 150cm
   }),
+  // 13: hazelaar hekwerk 90cm, 21 November 2026. 80cm is not in the catalogue.
+  stockCount("hazelaar-hekwerk", "telling 2026-11-21", {
+    51176449671499: 2, // 90cm / 3/5cm
+    51176449704267: 1, // 90cm / 7/9cm
+  }),
 ];
 
-/** SQL for a one-time stock count (see migrations 7 to 12). Counts are integers from code, never user input. */
+/** SQL for a one-time stock count (see migrations 7 to 13). Counts are integers from code, never user input. */
 function stockCount(handle: string, author: string, counts: Record<number, number>): string[] {
   const at = "2026-11-20T00:00:00.000Z";
   return [

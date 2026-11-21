@@ -8,7 +8,12 @@
  * next freight from the supplier.
  */
 
-export type OrderTerm = { badge: string; note: string };
+export type OrderTerm = {
+  badge: string;
+  note: string;
+  /** What happens to the part of an order above the counted stock (src/lib/order-limits.ts → backorderNote). */
+  later?: string;
+};
 
 const MADE_TO_MEASURE: OrderTerm = {
   badge: "Op bestelling",
@@ -40,6 +45,13 @@ const TERMS: Record<string, OrderTerm> = {
   "paalhouder-met-punt-rond": {
     badge: "Op aanvraag",
     note: "Niet op voorraad: we bestellen ze voor u. Normaal zijn ze binnen een vijftal dagen bij ons. We bevestigen de levertermijn per mail.",
+  },
+  // Hazelaar comes from Ukraine (Xander, Nov 2026): sometimes hard to get and a long
+  // delivery, so no number of weeks: on request, we mail when it can be delivered.
+  "hazelaar-hekwerk": {
+    badge: "Op aanvraag",
+    note: "Ons hazelaar hekwerk komt uit Oekraïne. Het is soms moeilijk te verkrijgen en de levering kan lang duren. Vraag het gewoon aan: we laten u per mail weten wanneer we het kunnen leveren.",
+    later: "die vragen we voor u aan. Hazelaar komt uit Oekraïne en kan lang op zich laten wachten: we laten u per mail weten wanneer ze binnenkomen.",
   },
   "cleft-field-poorten": {
     badge: "Op bestelling",

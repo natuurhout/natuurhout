@@ -175,8 +175,8 @@ export default function CartView() {
                       </span>
                     )}
                   </p>
-                  {backorderNote(stock[line.id], line.qty) && (
-                    <p className="mt-1 text-xs leading-5 font-medium text-accent-deep">{backorderNote(stock[line.id], line.qty)}</p>
+                  {backorderNote(stock[line.id], line.qty, orderTerm(line.handle).later) && (
+                    <p className="mt-1 text-xs leading-5 font-medium text-accent-deep">{backorderNote(stock[line.id], line.qty, orderTerm(line.handle).later)}</p>
                   )}
                 </div>
                 <Qty line={line} />
