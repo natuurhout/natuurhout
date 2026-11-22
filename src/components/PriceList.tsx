@@ -225,7 +225,14 @@ function PriceTable({
                   <span className="mt-1 ml-auto block max-w-56 text-left text-[11px] font-medium leading-4 text-accent-deep">{backorderNote(stock[variant.id], n, orderTerm(product.handle).later)}</span>
                 )}
                 {!variant.available && !allOnOrder && (
-                  <span className="mt-1 block text-[11px] font-medium text-ink/50">op aanvraag*</span>
+                  <span className="mt-1 block text-[11px] font-medium leading-4 text-ink/55">
+                    {/* "Op aanvraag, gemaakt in ±3 werkdagen" → two lines that never break inside */}
+                    {(orderTerm(product.handle).short ?? "op aanvraag*").split(", ").map((part, i) => (
+                      <span key={i} className="block whitespace-nowrap">
+                        {part}
+                      </span>
+                    ))}
+                  </span>
                 )}
               </td>
             </tr>
@@ -347,7 +354,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
                 <p className="flex items-start gap-2 border-t border-line bg-ground/60 px-4 py-2.5 text-xs leading-5 text-ink/65 sm:px-5">
                   <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/45" />
                   <span>
-                    <strong className="font-semibold text-ink/80">{allOnProductOrder(product) ? orderTerm(product.handle).badge : "* Op aanvraag"}:</strong>{" "}
+                    <strong className="font-semibold text-ink/80">{allOnProductOrder(product) || orderTerm(product.handle).short ? orderTerm(product.handle).badge : "* Op aanvraag"}:</strong>{" "}
                     {orderTerm(product.handle).note}
                   </span>
                 </p>

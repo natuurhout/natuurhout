@@ -13,6 +13,8 @@ export type OrderTerm = {
   note: string;
   /** What happens to the part of an order above the counted stock (src/lib/order-limits.ts → backorderNote). */
   later?: string;
+  /** A few words under a sold-out row of the price list, instead of "op aanvraag*". */
+  short?: string;
 };
 
 const MADE_TO_MEASURE: OrderTerm = {
@@ -25,6 +27,7 @@ const TERMS: Record<string, OrderTerm> = {
   "kastanje-poort-geschroefd": {
     badge: "Op bestelling",
     note: "Niet op voorraad: we maken de poort voor u, klaar in ±3 werkdagen.",
+    short: "Op aanvraag, gemaakt in ±3 werkdagen",
   },
   "kastanje-poorten": MADE_TO_MEASURE,
   "maatwerk-poort": {
