@@ -26,6 +26,8 @@ import { createPayment, getPayment, methodName, mspKey, MspError, validSignature
 import { createOrder, getLines, getOrder, round2, VAT_RATE, type NewLine, type OrderRow } from "./orders";
 import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid";
 import { makeMailer, type MailEnv } from "./send";
+import { orderReceivedMail, shopInboxMail, type InboxState } from "./mail";
+import { binaryAttachments } from "../mail-attachments";
 import { backorder, overLimit } from "../../src/lib/order-limits";
 import { formatIban, getSettings, missingSettings } from "./settings";
 
@@ -224,20 +226,20 @@ async function startPayment(env: CheckoutEnv, db: D1Database, order: OrderRow, o
   return payment.payment_url;
 }
 
-async function notifyInbox(env: CheckoutEnv, order: OrderRow, how: string) {
+/** Natuurhout's own mail about a webshop order (worker/shop/mail.ts → shopInboxMail). Best effort. */
+async function notifyInbox(env: CheckoutEnv, db: D1Database, order: OrderRow, state: InboxState) {
   if (!env.EMAIL) return;
   const inbox = (env.QUOTE_TO || "info@natuurhout.be").split(",").map((s) => s.trim()).filter(Boolean);
-  const link = `https://beheer.natuurhout.be/bestellingen/${order.id}`;
-  const text = `Nieuwe bestelling ${order.number} via de webshop (${how}).\n\n${order.name} · ${order.email} · ${order.phone}\n${
-    order.delivery ? `Levering: ${order.street}, ${order.postcode} ${order.city}` : "Afhalen in Zele"
-  }\nTotaal: € ${order.total.toFixed(2).replace(".", ",")}\n\n${link}`;
   try {
+    const mail = shopInboxMail(order, await getLines(db, order.id), state, `https://beheer.natuurhout.be/bestellingen/${order.id}`);
     await env.EMAIL.send({
       from: { name: "Natuurhout webshop", email: "offerte@natuurhout.be" },
       to: inbox,
       replyTo: order.email,
-      subject: `Bestelling ${order.number}: ${order.name} (${how})`,
-      text,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+      attachments: binaryAttachments(mail.attachments),
     });
   } catch (error) {
     console.error("Inbox mail for checkout order failed", order.number, error);
@@ -319,11 +321,22 @@ export async function place(request: Request, env: CheckoutEnv): Promise<Respons
         await addOrderNote(db, order, "Betaalverzoek kon niet gemaild worden: stuur het opnieuw vanuit de bestelling.", null);
       }
     }
-    await notifyInbox(env, order, "overschrijving");
+    await notifyInbox(env, db, order, { kind: "transfer" });
     return json({ redirect: returnPath(order), number: order.number });
   }
 
-  await notifyInbox(env, order, `online${checkout.mspMode === "test" ? ", test" : ""}`);
+  await notifyInbox(env, db, order, { kind: "online", test: checkout.mspMode === "test" });
+  // The customer hears at once too (the invoice follows once paid), with a way back to pay:
+  // "&mislukt=1" shows "Opnieuw online betalen / Betalen via overschrijving" unless it is paid by then.
+  const mailer = makeMailer(env);
+  if (mailer) {
+    try {
+      await mailer(order.email, orderReceivedMail(order, await getLines(db, order.id), shop, `${origin}${returnPath(order)}&mislukt=1`));
+      await addOrderNote(db, order, `Bestelbevestiging gemaild naar ${order.email}`, null);
+    } catch (error) {
+      console.error("Order received mail failed", order.number, error);
+    }
+  }
   try {
     return json({ redirect: await startPayment(env, db, order, origin, ip), number: order.number });
   } catch (error) {
@@ -357,7 +370,7 @@ export async function syncPayment(env: CheckoutEnv, db: D1Database, order: Order
     if (order.psp_status !== "completed")
       await addOrderNote(db, order, "Let op: de online betaling is binnengekomen NA de annulering. Heropen de bestelling (Status corrigeren) of betaal terug via MultiSafepay.", null);
   } else if (status === "completed") {
-    await markPaid(db, makeMailer(env), order, {
+    const nowPaid = await markPaid(db, makeMailer(env), order, {
       amount: psp.amount / 100,
       at: now(),
       author: null,
@@ -365,6 +378,15 @@ export async function syncPayment(env: CheckoutEnv, db: D1Database, order: Order
       sendInvoice: true,
       invoice: mode === "live",
     });
+    if (nowPaid) {
+      const paidOrder = (await getOrder(db, order.id)) ?? order;
+      await notifyInbox(env, db, paidOrder, {
+        kind: "paid",
+        how: `online via MultiSafepay${method ? ` (${methodName(method)})` : ""}`,
+        amount: psp.amount / 100,
+        test: mode === "test",
+      });
+    }
     if (Math.abs(psp.amount / 100 - order.total) > 0.005)
       await addOrderNote(db, order, `Let op: betaald bedrag (€ ${(psp.amount / 100).toFixed(2)}) verschilt van het totaal (€ ${order.total.toFixed(2)}).`, null);
   }

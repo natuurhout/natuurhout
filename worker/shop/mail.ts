@@ -2,8 +2,10 @@
  * The shop's e-mails to customers, sent from offerte@natuurhout.be through
  * Email Sending (the EMAIL binding) with the PDF attached:
  * - payment request: order confirmed, pay by transfer (iBanFirst IBAN + reference);
- * - invoice / credit note.
- * Reply-To is Natuurhout's inbox.
+ * - invoice / credit note;
+ * - order received (online payment, at once: the invoice follows once paid).
+ * Reply-To is Natuurhout's inbox. Plus the mail to Natuurhout's own inbox for
+ * a webshop order (shopInboxMail): what was ordered, by whom, paid or not.
  */
 
 import { escapeHtml, type MailAttachment } from "../../src/lib/quote-email";
@@ -11,7 +13,14 @@ import { logoImage } from "../../src/lib/email-assets";
 import type { LineRow, OrderRow } from "./orders";
 import { formatIban, type ShopSettings } from "./settings";
 
-export type ShopMail = { subject: string; html: string; text: string; attachments: MailAttachment[] };
+export type ShopMail = {
+  subject: string;
+  html: string;
+  text: string;
+  attachments: MailAttachment[];
+  /** No BCC to the inbox: the inbox already gets its own mail about this order. */
+  noCopy?: boolean;
+};
 
 const eur = (n: number) => `€ ${n.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 const FONT = "font-family:Arial,Helvetica,sans-serif";
@@ -26,10 +35,14 @@ function layout(title: string, body: string): string {
 <p style="${FONT};font-size:12px;color:#888;margin:14px 0 0">Natuurhout · natuurhout.be</p></td></tr></table></body></html>`;
 }
 
-function linesHtml(lines: LineRow[], total: number): string {
+const lineName = (l: Pick<LineRow, "product" | "label">) => (l.product && l.product !== l.label ? `${l.product} – ${l.label}` : l.label);
+
+function linesHtml(lines: LineRow[], total: number, notes = false): string {
   const rows = lines
     .map(
-      (l) => `<tr><td style="padding:8px 8px 8px 0;border-bottom:1px solid #eee;${FONT};font-size:14px">${escapeHtml(l.product && l.product !== l.label ? `${l.product} – ${l.label}` : l.label)}</td>
+      (l) => `<tr><td style="padding:8px 8px 8px 0;border-bottom:1px solid #eee;${FONT};font-size:14px">${escapeHtml(lineName(l))}${
+        notes && l.note ? `<br><span style="font-size:12px;color:#b5651d">${escapeHtml(l.note)}</span>` : ""
+      }</td>
 <td style="padding:8px;border-bottom:1px solid #eee;${FONT};font-size:14px;text-align:right;white-space:nowrap">${l.qty} ×</td>
 <td style="padding:8px 0;border-bottom:1px solid #eee;${FONT};font-size:14px;text-align:right;white-space:nowrap">${eur(l.qty * l.unit)}</td></tr>`,
     )
@@ -48,6 +61,10 @@ function paymentHtml(s: ShopSettings, amount: number, reference: string): string
     s.bic.toUpperCase(),
   )}${row("Mededeling", reference)}</table>
 <p style="margin:10px 0 0;${FONT};font-size:13px;color:#6b7076">Gebruik de gestructureerde mededeling, dan koppelen we uw betaling meteen aan uw bestelling. In de PDF staat een QR-code die u met uw bank-app kunt scannen.</p></div>`;
+}
+
+function button(href: string, label: string): string {
+  return `<p style="margin:18px 0"><a href="${escapeHtml(href)}" style="display:inline-block;background:#d77d1f;color:#fff;text-decoration:none;font-weight:700;padding:11px 20px;border-radius:999px;${FONT};font-size:14px">${escapeHtml(label)}</a></p>`;
 }
 
 const logo: MailAttachment = { disposition: "inline", contentId: logoImage.cid, filename: logoImage.filename, type: "image/png", content: logoImage.base64 };
@@ -101,4 +118,105 @@ ${type === "factuur" && !paid ? paymentHtml(s, total, order.ogm) : paid ? `<p st
     text,
     attachments: [logo, pdf(`Natuurhout-${type}-${number}.pdf`, pdfB64)],
   };
+}
+
+/*
+ * Natuurhout's own mail about a webshop order (Xander, Nov 2026): everything
+ * to start preparing it (products with a gate's size and hinges, delivery,
+ * customer, remarks) and, in the subject, whether it is paid yet.
+ */
+export type InboxState =
+  | { kind: "transfer" }
+  | { kind: "online"; test: boolean }
+  | { kind: "paid"; how: string; amount: number; test: boolean };
+
+export function shopInboxMail(order: OrderRow, lines: LineRow[], state: InboxState, adminUrl: string): ShopMail {
+  const test = state.kind !== "transfer" && state.test ? " [TEST]" : "";
+  const subject =
+    state.kind === "paid"
+      ? `Betaald: bestelling ${order.number} – ${order.name} – klaarzetten${test}`
+      : `Nieuwe bestelling ${order.number} – ${order.name} – wacht op ${state.kind === "online" ? "online betaling" : "overschrijving"}${test}`;
+  const status =
+    state.kind === "paid"
+      ? { bg: "#e3f4e8", color: "#1d6b35", title: `Betaald: ${eur(state.amount)}`, body: `Betaald ${state.how}. De klant krijgt de factuur per mail. Deze bestelling mag klaargezet worden.` }
+      : state.kind === "online"
+        ? {
+            bg: "#fbeedd",
+            color: "#8a4b0f",
+            title: "Wacht op online betaling",
+            body: "De klant is doorgestuurd naar MultiSafepay. Zodra de betaling bevestigd is, krijg je een tweede mail \"Betaald\". Niet betaald na 3 dagen: de bestelling wordt vanzelf geannuleerd.",
+          }
+        : {
+            bg: "#fbeedd",
+            color: "#8a4b0f",
+            title: "Wacht op overschrijving",
+            body: `De klant kreeg de betaalgegevens met mededeling ${order.ogm}. Duid de betaling aan in de backend (Betaling ontvangen) zodra ze binnen is.`,
+          };
+  const where = order.delivery ? `Leveren: ${order.street}, ${order.postcode} ${order.city}` : "Afhalen in Zele";
+  const customer = [
+    `<strong>${escapeHtml(order.name)}</strong>${order.company ? ` · ${escapeHtml(order.company)}${order.vat_number ? ` (${escapeHtml(order.vat_number)})` : ""}` : ""}`,
+    `<a href="mailto:${escapeHtml(order.email)}" style="color:#b5651d">${escapeHtml(order.email)}</a>${order.phone ? ` · <a href="tel:${escapeHtml(order.phone.replace(/[^+\d]/g, ""))}" style="color:#b5651d">${escapeHtml(order.phone)}</a>` : ""}`,
+    escapeHtml(where),
+  ].join("<br>");
+  const html = layout(
+    state.kind === "paid" ? `Bestelling ${order.number} betaald` : `Nieuwe bestelling ${order.number}`,
+    `<div style="background:${status.bg};border-radius:10px;padding:14px 18px;margin:0 0 18px">
+<p style="margin:0 0 4px;${FONT};font-size:15px;font-weight:700;color:${status.color}">${escapeHtml(status.title)}</p>
+<p style="margin:0;${FONT};font-size:14px;color:#2b2f32">${escapeHtml(status.body)}</p></div>
+<p style="margin:0 0 6px;${FONT};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7076">Klant</p>
+<p style="margin:0 0 18px">${customer}</p>
+${order.remarks ? `<p style="margin:0 0 6px;${FONT};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7076">Opmerkingen</p><p style="margin:0 0 18px;white-space:pre-line">${escapeHtml(order.remarks)}</p>` : ""}
+<p style="margin:0 0 2px;${FONT};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7076">Bestelling</p>
+${linesHtml(lines, order.total, true)}
+${button(adminUrl, "Open in beheer")}
+<p style="margin:0;${FONT};font-size:13px;color:#6b7076">Antwoorden op deze mail gaat naar de klant.</p>`,
+  );
+  const text = [
+    `${state.kind === "paid" ? `Bestelling ${order.number} betaald` : `Nieuwe bestelling ${order.number}`}${test}`,
+    "",
+    `${status.title}. ${status.body}`,
+    "",
+    `Klant: ${order.name}${order.company ? `, ${order.company}${order.vat_number ? ` (${order.vat_number})` : ""}` : ""}`,
+    `${order.email}${order.phone ? ` · ${order.phone}` : ""}`,
+    where,
+    order.remarks ? `\nOpmerkingen:\n${order.remarks}` : "",
+    "",
+    "Bestelling:",
+    ...lines.map((l) => `- ${l.qty} × ${lineName(l)}: ${eur(l.qty * l.unit)}${l.note ? ` (${l.note})` : ""}`),
+    `Totaal incl. btw: ${eur(order.total)}`,
+    "",
+    adminUrl,
+  ].join("\n");
+  return { subject, html, text, attachments: [logo] };
+}
+
+/** To the customer at once for an online payment: the order, and a way back to pay if it did not go through. */
+export function orderReceivedMail(order: OrderRow, lines: LineRow[], s: ShopSettings, payUrl: string): ShopMail {
+  const hi = firstName(order.name) ? `Beste ${firstName(order.name)},` : "Beste klant,";
+  const when = order.delivery
+    ? "Wij voeren de leveringen zelf uit en contacteren u op voorhand wanneer we komen leveren."
+    : "We laten u weten wanneer u de bestelling in Zele kunt afhalen.";
+  const html = layout(
+    `Bestelling ${order.number} ontvangen`,
+    `<p style="margin:0 0 12px">${escapeHtml(hi)}</p><p style="margin:0 0 12px">Bedankt voor uw bestelling. Zodra uw online betaling bevestigd is, krijgt u de factuur per mail.</p>
+${linesHtml(lines, order.total)}
+<p style="margin:16px 0 0">Betaling niet afgerond? Via deze knop betaalt u opnieuw, of kiest u voor een overschrijving.</p>${button(payUrl, "Mijn bestelling bekijken")}
+<p style="margin:0 0 12px">${when}</p><p style="margin:0">Met vriendelijke groeten,<br>${escapeHtml(s.company)}</p>`,
+  );
+  const text = [
+    hi,
+    "",
+    `Bedankt voor uw bestelling ${order.number}. Zodra uw online betaling bevestigd is, krijgt u de factuur per mail.`,
+    "",
+    ...lines.map((l) => `- ${l.qty} × ${lineName(l)}: ${eur(l.qty * l.unit)}`),
+    `Totaal incl. btw: ${eur(order.total)}`,
+    "",
+    `Betaling niet afgerond? Betaal opnieuw of kies een overschrijving: ${payUrl}`,
+    "",
+    when,
+    "",
+    "Met vriendelijke groeten,",
+    s.company,
+  ].join("\n");
+  return { subject: `Bestelling ${order.number} ontvangen – Natuurhout`, html, text, attachments: [logo], noCopy: true };
 }

@@ -26,7 +26,7 @@ export function makeMailer(env: MailEnv): Mailer | null {
     await binding.send({
       from: address(fromValue),
       to: [to],
-      bcc: inbox,
+      ...(mail.noCopy ? {} : { bcc: inbox }),
       replyTo: inbox[0],
       subject: mail.subject,
       text: mail.text,
