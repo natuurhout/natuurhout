@@ -12,6 +12,8 @@ import { escapeHtml, type MailAttachment } from "../../src/lib/quote-email";
 import { logoImage } from "../../src/lib/email-assets";
 import type { LineRow, OrderRow } from "./orders";
 import { formatIban, type ShopSettings } from "./settings";
+import { ADDRESS, PHONE } from "../../src/lib/contact";
+import { HOURS_TEXT } from "../../src/lib/opening-hours";
 
 export type ShopMail = {
   subject: string;
@@ -219,4 +221,59 @@ ${linesHtml(lines, order.total)}
     s.company,
   ].join("\n");
   return { subject: `Bestelling ${order.number} ontvangen – Natuurhout`, html, text, attachments: [logo], noCopy: true };
+}
+
+/*
+ * "Klaar om af te halen" / "Klaar voor levering" in the backend (Xander, Nov 2026):
+ * tells the customer the order is ready, with what is in it; for pickup the
+ * address in Zele and the opening hours, for delivery that we call to agree a day.
+ */
+export function readyMail(order: OrderRow, lines: LineRow[], s: ShopSettings): ShopMail {
+  const hi = firstName(order.name) ? `Beste ${firstName(order.name)},` : "Beste klant,";
+  const goods = lines.filter((l) => l.product !== "Levering");
+  const list = goods.map((l) => `<li style="margin:0 0 4px">${l.qty} × ${escapeHtml(lineName(l))}</li>`).join("");
+  const hours = HOURS_TEXT.map((h) => `<tr><td style="padding:2px 16px 2px 0;${FONT};font-size:14px;color:#6b7076">${escapeHtml(h.days)}</td><td style="padding:2px 0;${FONT};font-size:14px">${escapeHtml(h.hours)}</td></tr>`).join("");
+  const pickup = `<div style="background:#fbeedd;border-radius:10px;padding:16px 18px;margin:18px 0">
+<p style="margin:0 0 6px;${FONT};font-size:15px;font-weight:700">Afhalen in Zele</p>
+<p style="margin:0 0 10px;${FONT};font-size:14px"><a href="${escapeHtml(ADDRESS.maps)}" style="color:#b5651d">${escapeHtml(ADDRESS.street)}, ${escapeHtml(ADDRESS.city)}</a></p>
+<table role="presentation" cellpadding="0" cellspacing="0">${hours}</table>
+<p style="margin:10px 0 0;${FONT};font-size:13px;color:#6b7076">Vermeld uw bestelnummer ${escapeHtml(order.number)}. We helpen u graag met inladen.</p></div>`;
+  const delivery = `<div style="background:#fbeedd;border-radius:10px;padding:16px 18px;margin:18px 0">
+<p style="margin:0 0 6px;${FONT};font-size:15px;font-weight:700">Levering</p>
+<p style="margin:0;${FONT};font-size:14px">Wij voeren de leveringen zelf uit. We contacteren u om een leverdag af te spreken${order.phone ? ` (op ${escapeHtml(order.phone)})` : ""}.</p>
+<p style="margin:6px 0 0;${FONT};font-size:14px;color:#6b7076">Leveradres: ${escapeHtml([order.street, [order.postcode, order.city].filter(Boolean).join(" ")].filter(Boolean).join(", "))}</p></div>`;
+  const html = layout(
+    `Uw bestelling ${order.number} staat klaar`,
+    `<p style="margin:0 0 12px">${escapeHtml(hi)}</p><p style="margin:0 0 12px">${
+      order.delivery ? "Goed nieuws: uw bestelling is klaar voor levering." : "Goed nieuws: uw bestelling staat klaar om af te halen."
+    }</p>
+<ul style="margin:0 0 4px;padding-left:20px">${list}</ul>
+${order.delivery ? delivery : pickup}
+<p style="margin:0 0 12px">Vragen? Antwoord gewoon op deze mail of bel ons op ${escapeHtml(PHONE.label)}.</p><p style="margin:0">Met vriendelijke groeten,<br>${escapeHtml(s.company)}</p>`,
+  );
+  const text = [
+    hi,
+    "",
+    order.delivery ? `Uw bestelling ${order.number} is klaar voor levering.` : `Uw bestelling ${order.number} staat klaar om af te halen.`,
+    "",
+    ...goods.map((l) => `- ${l.qty} × ${lineName(l)}`),
+    "",
+    ...(order.delivery
+      ? [
+          `Wij voeren de leveringen zelf uit. We contacteren u om een leverdag af te spreken${order.phone ? ` (op ${order.phone})` : ""}.`,
+          `Leveradres: ${[order.street, [order.postcode, order.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}`,
+        ]
+      : [`Afhalen in Zele: ${ADDRESS.street}, ${ADDRESS.city}`, ...HOURS_TEXT.map((h) => `${h.days}: ${h.hours}`), `Vermeld uw bestelnummer ${order.number}.`]),
+    "",
+    `Vragen? Antwoord op deze mail of bel ${PHONE.label}.`,
+    "",
+    "Met vriendelijke groeten,",
+    s.company,
+  ].join("\n");
+  return {
+    subject: order.delivery ? `Bestelling ${order.number} klaar voor levering – Natuurhout` : `Bestelling ${order.number} staat klaar om af te halen – Natuurhout`,
+    html,
+    text,
+    attachments: [logo],
+  };
 }

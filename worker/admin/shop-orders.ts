@@ -6,7 +6,7 @@
 
 import { now } from "../crm/schema";
 import { loadCatalog, variantLabel, type LiveProduct } from "../shop/catalog";
-import { invoiceMail, paymentRequestMail } from "../shop/mail";
+import { invoiceMail, paymentRequestMail, readyMail } from "../shop/mail";
 import {
   EDITABLE,
   getLines,
@@ -214,7 +214,7 @@ ${kpi("Geannuleerd", String(inPeriod(sCancelled)), sCancelled, "Geannuleerd in d
 ${
   results.length
     ? html`<form method="post" action="${ctx.base}/bestellingen/bulk" data-bulk>
-<div class="bulk"><b><span data-selected>0</span> geselecteerd</b><button class="btn ghost sm" name="action" value="ready">Markeren als klaar</button><button class="btn ghost sm" name="action" value="delivered">Markeren als geleverd</button></div>
+<div class="bulk"><b><span data-selected>0</span> geselecteerd</b><label class="check small"><input type="checkbox" name="mail" value="1" checked> Klant mailen</label><button class="btn ghost sm" name="action" value="ready">Markeren als klaar</button><button class="btn ghost sm" name="action" value="delivered">Markeren als geleverd</button></div>
 ${orderTable(ctx, results, true, true)}</form>`
     : html`<p class="muted" style="padding:24px 16px">${q ? "Geen bestellingen gevonden." : "Nog geen bestellingen."}</p>`
 }
@@ -268,7 +268,13 @@ export async function orderBulk(ctx: Ctx, form: FormData): Promise<Response> {
     if (!order || !allowed[action].includes(order.status as OrderStatus)) continue;
     const one = new FormData();
     one.set("action", action);
-    await orderPost(ctx, id, one);
+    if (field(form, "mail") === "1") one.set("mail", "1");
+    try {
+      await orderPost(ctx, id, one);
+    } catch (error) {
+      // A mail that failed must not stop the other orders (their status is set; mail again from the order).
+      if (!(error instanceof HttpError)) throw error;
+    }
   }
   return seeOther(ctx, `/bestellingen${ctx.url.search}`, "saved");
 }
@@ -499,7 +505,10 @@ export async function orderDetail(ctx: Ctx, id: number): Promise<Response> {
   // Fulfilment card: the goods, and the next delivery step.
   const fulfilActions: Safe[] = [];
   if (status === "betaald") fulfilActions.push(html`<form method="post" action="${post}">${hidden("delivered")}<button class="btn ghost">${order.delivery ? "Markeren als geleverd" : "Markeren als afgehaald"}</button></form>`);
-  if (status === "betaald") fulfilActions.push(html`<form method="post" action="${post}">${hidden("ready")}<button>${order.delivery ? "Klaar voor levering" : "Klaar om af te halen"}</button></form>`);
+  if (status === "betaald")
+    fulfilActions.push(
+      html`<form method="post" action="${post}" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">${hidden("ready")}${mailCheck("mail", "Klant mailen")}<button>${order.delivery ? "Klaar voor levering" : "Klaar om af te halen"}</button></form>`,
+    );
   if (status === "klaar") fulfilActions.push(html`<form method="post" action="${post}">${hidden("delivered")}<button>${order.delivery ? "Markeren als geleverd" : "Markeren als afgehaald"}</button></form>`);
 
   const fulfilCard = html`<section class="card"><div class="head" style="margin-bottom:10px"><h2 style="display:flex;gap:8px;align-items:center">${fulfilBadge(order) || badge("Geannuleerd", "", "plain")}</h2>${
@@ -559,7 +568,7 @@ ${
       }</span><span></span>`
     : ""
 }
-<span>Betaald door klant</span><span class="m">${order.paid_at ? `overschrijving ${when(order.paid_at)}` : html`mededeling <code>${order.ogm}</code>`}</span><span class="r">${euro(paid)}</span>
+<span>Betaald door klant</span><span class="m">${order.paid_at ? `${paidHow(order)} ${when(order.paid_at)}` : html`mededeling <code>${order.ogm}</code>`}</span><span class="r">${euro(paid)}</span>
 ${order.paid_at && Math.abs(paid - order.total) > 0.005 ? html`<span class="warn">Verschil</span><span></span><span class="r warn">${euro(round2(paid - order.total))}</span>` : ""}
 </div></div>${payStep}</section>`;
 
@@ -664,6 +673,12 @@ async function mailInvoice(ctx: Ctx, order: OrderRow, inv: InvoiceRow) {
   await ctx.mail!(order.email, invoiceMail(order, inv.number, inv.type, inv.total, data.seller, pdf));
   await ctx.db.prepare("UPDATE invoices SET emailed_at = ? WHERE id = ?").bind(now(), inv.id).run();
   await orderNote(ctx, order, `${inv.type === "factuur" ? "Factuur" : "Creditnota"} ${inv.number} gemaild naar ${order.email}`);
+}
+
+/** How the customer paid, for "Betaald door klant": online with the method MultiSafepay reports, else by transfer. */
+function paidHow(order: OrderRow): string {
+  if (order.payment_method === "online" && order.psp_status === "completed") return `online${order.psp_method ? ` (${methodName(order.psp_method)})` : ""}`;
+  return "overschrijving";
 }
 
 const mailFailed = (error: unknown) => {
@@ -791,6 +806,16 @@ export async function orderPost(ctx: Ctx, id: number, form: FormData): Promise<R
     }
     case "ready":
       await setStatus("klaar");
+      // "Uw bestelling staat klaar" (afhalen: adres + openingsuren; levering: we bellen voor een dag).
+      if (wantsMail) {
+        try {
+          const [lines, settings] = await Promise.all([getLines(ctx.db, id), getSettings(ctx.db)]);
+          await ctx.mail!(order.email, readyMail(order, lines, settings));
+          await orderNote(ctx, order, `Mail "${order.delivery ? "klaar voor levering" : "klaar om af te halen"}" gestuurd naar ${order.email}`);
+        } catch (error) {
+          throw mailFailed(error);
+        }
+      }
       return seeOther(ctx, `/bestellingen/${id}`, "saved");
     case "delivered":
       await setStatus("geleverd", ", delivered_at = ?", at);
