@@ -34,7 +34,7 @@ const SHOP_PRODUCTS: Record<string, string[]> = {
   "/project/postsaver-voor-palen/": ["kastanje-paal-met-postsaver", "kastanje-palen-copy"],
   "/project/post-rail-2/": ["post-rail-omheining"],
   "/project/lariks-schaal-delen-2/": ["lariks-planken-delen"],
-  "/project/raamwerkpoort/": ["kastanje-kaderpoort-geschroefd", "kastanje-kaderpoort-premium", "kastanje-kaderpoort"],
+  "/project/raamwerkpoort/": ["kastanje-kaderpoort-geschroefd", "kastanje-kaderpoort-premium"],
   "/project/kastanje-poorten-geschroefd/": ["kastanje-poort-geschroefd"],
   "/project/robinia-palen/": ["robinia-palen"],
   "/project/boerenlandhekken/": [],
