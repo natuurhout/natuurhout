@@ -33,6 +33,9 @@ metadata, images, or configuration. Heed deprecation notices.
   in `src/components/calculator/model.ts`); out-of-stock lines other than those and
   geschroefde poorten (±3 werkdagen) go as an offerteaanvraag. A cart line's `note`
   (a gate's size and hinges) is added to the order line's label.
+  Staffelprijzen (`src/lib/volume-pricing.ts`, tested by `npm test`): lariks schaaldelen
+  € 4,55/m from 100 m in total (lengths mixed); applied in the winkelmandje, price list,
+  calculator, /afrekenen/ and the Worker (checkout + order requests).
   Website title, description and own photos (with a photo per choice in the
   price list) can replace a webshop product's in `src/lib/product-copy.ts`
   (e.g. hang- en sluitwerk; photos in `public/fotos/web/hang-sluitwerk/`).
