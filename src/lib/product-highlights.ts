@@ -160,6 +160,24 @@ const HIGHLIGHTS: Record<string, ProductHighlights> = {
     ],
     uses: ["Toegang in een hazelaar hekwerk", "Moestuin of kippenren", "Landelijke voortuin", "Doorgang tussen twee tuindelen"],
   },
+  "kastanje-kaderpoort-geschroefd": {
+    plus: [
+      ["Kader zonder latten", "in de stijl van kastanje rasterwerk; u vult het zelf in."],
+      ["Geschroefd", "de kastanje delen stevig vastgeschroefd met houtschroeven."],
+      ["Compleet geleverd", "met 2 kastanje poortpalen en hang- en sluitwerk."],
+      ["Op maat van uw doorgang", "hoogtes van 80 tot 180 cm, breedtes van 100 tot 210 cm."],
+    ],
+    uses: ["Poort in een kastanje hekwerk", "Opvullen met eigen latten of gaas", "Moestuin of weide"],
+  },
+  "kastanje-kaderpoort-premium": {
+    plus: [
+      ["Kader zonder latten", "in de stijl van kastanje rasterwerk; u vult het zelf in."],
+      ["Pen-en-gatverbindingen", "ambachtelijk gemaakt en extra stevig."],
+      ["Compleet geleverd", "met 2 kastanje poortpalen en hang- en sluitwerk."],
+      ["Op maat van uw doorgang", "hoogtes van 80 tot 180 cm, breedtes van 100 tot 210 cm."],
+    ],
+    uses: ["Brede doorgang in een kastanje hekwerk", "Opvullen met eigen latten of gaas", "Ingang van tuin of weide"],
+  },
   "kastanje-kaderpoort": {
     plus: [
       ["Kader zonder latten", "150 cm hoog en 168 cm breed; u vult hem zelf met latten of een stuk hekwerk."],

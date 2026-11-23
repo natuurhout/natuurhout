@@ -224,7 +224,7 @@ function PriceTable({
                 {backorderNote(stock[variant.id], n, orderTerm(product.handle).later) && (
                   <span className="mt-1 ml-auto block max-w-56 text-left text-[11px] font-medium leading-4 text-accent-deep">{backorderNote(stock[variant.id], n, orderTerm(product.handle).later)}</span>
                 )}
-                {!variant.available && !allOnOrder && (
+                {!variant.available && (!allOnOrder || orderTerm(product.handle).short) && (
                   <span className="mt-1 block text-[11px] font-medium leading-4 text-ink/55">
                     {/* "Op aanvraag, gemaakt in ±3 werkdagen" → two lines that never break inside */}
                     {(orderTerm(product.handle).short ?? "op aanvraag*").split(", ").map((part, i) => (

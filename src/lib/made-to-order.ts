@@ -30,6 +30,17 @@ const TERMS: Record<string, OrderTerm> = {
     short: "Op aanvraag, gemaakt in ±3 werkdagen",
   },
   "kastanje-poorten": MADE_TO_MEASURE,
+  // Website products (src/lib/website-products.ts): made to order.
+  "kastanje-kaderpoort-geschroefd": {
+    badge: "Op aanvraag",
+    note: "We maken de kaderpoort voor u: klaar in ±3 werkdagen.",
+    short: "Op aanvraag, gemaakt in ±3 werkdagen",
+  },
+  "kastanje-kaderpoort-premium": {
+    badge: "Op aanvraag",
+    note: "We maken de kaderpoort voor u: klaar in ±3 werkdagen.",
+    short: "Op aanvraag, gemaakt in ±3 werkdagen",
+  },
   "maatwerk-poort": {
     badge: "Op bestelling",
     note: "Wordt op maat voor u gemaakt: levering in ±2 weken.",

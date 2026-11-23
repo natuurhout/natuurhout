@@ -265,6 +265,8 @@ export type Included = { inPrice: string[]; notIn?: string; tip?: string };
 const INCLUDED: Record<string, Included> = {
   "kastanje-poorten": { inPrice: ["2 poortpalen", "hang- en sluitwerk"] },
   "kastanje-poort-geschroefd": { inPrice: ["2 poortpalen", "hang- en sluitwerk"] },
+  "kastanje-kaderpoort-geschroefd": { inPrice: ["2 poortpalen", "hang- en sluitwerk"] },
+  "kastanje-kaderpoort-premium": { inPrice: ["2 poortpalen", "hang- en sluitwerk"] },
   "hazelaar-poort": { inPrice: ["2 kastanje poortpalen", "hang- en sluitwerk"] },
   "robinia-poort": {
     inPrice: ["hang- en sluitwerk"],
