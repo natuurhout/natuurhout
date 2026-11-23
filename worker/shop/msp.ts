@@ -88,6 +88,14 @@ export type MspOrder = {
 
 export const getPayment = (env: MspEnv, mode: MspMode, orderId: string) => call<MspOrder>(env, mode, "GET", `/orders/${encodeURIComponent(orderId)}`);
 
+/** Refund (part of) a paid order, back the way the customer paid. Amount in euro. */
+export const refundPayment = (env: MspEnv, mode: MspMode, orderId: string, amount: number, description: string) =>
+  call<{ transaction_id?: string | number; refund_id?: string | number }>(env, mode, "POST", `/orders/${encodeURIComponent(orderId)}/refunds`, {
+    currency: "EUR",
+    amount: Math.round(amount * 100),
+    description: description.slice(0, 200),
+  });
+
 /**
  * Webhook signature: Auth header = base64("timestamp:hex(HMAC-SHA512(timestamp + ':' + body, api key))").
  * Returns true when it matches the given key.

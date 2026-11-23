@@ -309,6 +309,13 @@ const MIGRATIONS: string[][] = [
   }),
   // 14: hazelaar hekwerk 80cm / 3/5cm, a website-only choice (src/lib/product-copy.ts): 12 rolls.
   stockCount("hazelaar-hekwerk", "telling 2026-11-21", { [-900301]: 12 }),
+  // 15: refunds of cancelled, paid orders (worker/admin/shop-orders.ts): online through
+  // MultiSafepay's refund API, or a bank transfer marked by hand.
+  [
+    `ALTER TABLE orders ADD COLUMN refunded_at TEXT`,
+    `ALTER TABLE orders ADD COLUMN refund_amount REAL`,
+    `ALTER TABLE orders ADD COLUMN refund_ref TEXT`, // 'multisafepay <refund id>' or 'overschrijving'
+  ],
 ];
 
 /** SQL for a one-time stock count (see migrations 7 to 14). Counts are integers from code, never user input. */

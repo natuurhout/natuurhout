@@ -277,3 +277,42 @@ ${order.delivery ? delivery : pickup}
     attachments: [logo],
   };
 }
+
+/*
+ * Cancelled and/or refunded (backend, Xander Nov 2026): what happens to the
+ * money, with the credit note attached when there is one.
+ */
+export type RefundState =
+  | { kind: "none" } // nothing was paid
+  | { kind: "pending"; amount: number } // paid, refund still to do
+  | { kind: "online"; amount: number; method: string } // refunded through MultiSafepay
+  | { kind: "transfer"; amount: number }; // refunded by bank transfer
+
+export function cancelMail(order: OrderRow, s: ShopSettings, opts: { cancelled: boolean; refund: RefundState; credit?: { number: string; pdf: string } }): ShopMail {
+  const hi = firstName(order.name) ? `Beste ${firstName(order.name)},` : "Beste klant,";
+  const r = opts.refund;
+  const money =
+    r.kind === "online"
+      ? `We hebben ${eur(r.amount)} teruggestort via MultiSafepay, op dezelfde manier als u betaalde${r.method ? ` (${r.method})` : ""}. Afhankelijk van uw bank staat het bedrag binnen enkele werkdagen op uw rekening.`
+      : r.kind === "transfer"
+        ? `We hebben ${eur(r.amount)} teruggestort op uw rekening. Afhankelijk van uw bank ziet u het binnen enkele werkdagen.`
+        : r.kind === "pending"
+          ? `U betaalde al ${eur(r.amount)}: dat bedrag storten we zo snel mogelijk terug. We laten u weten wanneer het gebeurd is.`
+          : "U hoeft niets te betalen.";
+  const intro = opts.cancelled ? `Uw bestelling ${order.number} is geannuleerd.` : `Goed nieuws over uw geannuleerde bestelling ${order.number}.`;
+  const credit = opts.credit ? `In bijlage vindt u de creditnota ${opts.credit.number}.` : "";
+  const html = layout(
+    opts.cancelled ? `Bestelling ${order.number} geannuleerd` : `Terugbetaling bestelling ${order.number}`,
+    `<p style="margin:0 0 12px">${escapeHtml(hi)}</p><p style="margin:0 0 12px">${escapeHtml(intro)}</p>
+<div style="background:#fbeedd;border-radius:10px;padding:14px 18px;margin:16px 0"><p style="margin:0;${FONT};font-size:15px">${escapeHtml(money)}</p></div>
+${credit ? `<p style="margin:0 0 12px">${escapeHtml(credit)}</p>` : ""}
+<p style="margin:0 0 12px">Vragen? Antwoord gewoon op deze mail of bel ons op ${escapeHtml(PHONE.label)}.</p><p style="margin:0">Met vriendelijke groeten,<br>${escapeHtml(s.company)}</p>`,
+  );
+  const text = [hi, "", intro, "", money, credit ? `\n${credit}` : "", "", `Vragen? Antwoord op deze mail of bel ${PHONE.label}.`, "", "Met vriendelijke groeten,", s.company].join("\n");
+  return {
+    subject: opts.cancelled ? `Bestelling ${order.number} geannuleerd – Natuurhout` : `Terugbetaling bestelling ${order.number} – Natuurhout`,
+    html,
+    text,
+    attachments: [logo, ...(opts.credit ? [pdf(`Natuurhout-creditnota-${opts.credit.number}.pdf`, opts.credit.pdf)] : [])],
+  };
+}

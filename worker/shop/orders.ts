@@ -70,6 +70,10 @@ export type OrderRow = {
   psp_transaction?: string | null;
   psp_method?: string | null;
   psp_attempts?: number;
+  /** Refund of a cancelled, paid order (migration 15). */
+  refunded_at?: string | null;
+  refund_amount?: number | null;
+  refund_ref?: string | null;
 };
 export type LineRow = {
   id: number;

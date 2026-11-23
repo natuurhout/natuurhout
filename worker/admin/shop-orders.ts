@@ -6,7 +6,7 @@
 
 import { now } from "../crm/schema";
 import { loadCatalog, variantLabel, type LiveProduct } from "../shop/catalog";
-import { invoiceMail, paymentRequestMail, readyMail } from "../shop/mail";
+import { cancelMail, invoiceMail, paymentRequestMail, readyMail, type RefundState } from "../shop/mail";
 import {
   EDITABLE,
   getLines,
@@ -32,7 +32,7 @@ import {
 } from "../shop/orders";
 import { invoicePdf, orderPdf, pdfBase64 } from "../shop/pdf";
 import { syncPayment } from "../shop/checkout";
-import { methodName } from "../shop/msp";
+import { methodName, refundPayment, type MspMode } from "../shop/msp";
 import { getSettings, missingSettings } from "../shop/settings";
 import { euro, html, icon, lines as multiline, raw, when, ago, type Safe } from "./html";
 import { field, HttpError, like, notFound, respond, seeOther, userOptions, who, type Ctx } from "./pages";
@@ -55,8 +55,9 @@ const badge = (label: string, tone: "" | "attention" | "warning" | "info" | "suc
   html`<span class="b ${tone} ${progress}">${label}</span>`;
 
 /** Shopify-style "Payment status". */
-export function paymentBadge(o: Pick<OrderRow, "status" | "paid_at">): Badge {
-  if (o.status === "geannuleerd") return o.paid_at ? badge("Gecrediteerd", "", "half") : badge("Geannuleerd", "", "plain");
+export function paymentBadge(o: Pick<OrderRow, "status" | "paid_at" | "refunded_at">): Badge {
+  if (o.status === "geannuleerd" && o.refunded_at) return badge("Terugbetaald", "", "done");
+  if (o.status === "geannuleerd") return o.paid_at ? badge("Terug te betalen", "attention", "half") : badge("Geannuleerd", "", "plain");
   if (o.paid_at || o.status === "betaald" || o.status === "klaar" || o.status === "geleverd") return badge("Betaald", "", "done");
   if (o.status === "bevestigd") return badge("Wacht op betaling", "attention", "todo");
   return badge("Te bevestigen", "warning", "todo");
@@ -549,6 +550,10 @@ ${fulfilActions.length ? html`<div class="actions" style="justify-content:flex-e
       "mail",
       "Factuur maken en mailen",
     )}<div class="actions" style="justify-content:flex-end;margin-top:10px"><button>Betaling ontvangen</button></div></form>`;
+  if (status === "geannuleerd" && order.paid_at && !order.refunded_at)
+    payStep = canRefundOnline(order)
+      ? html`<form method="post" action="${post}" class="sec">${hidden("refund")}<input type="hidden" name="how" value="online"><p class="muted small" style="margin:0 0 8px">Geannuleerd, maar al online betaald: betaal ${euro(paidAmount(order))} terug op dezelfde manier als de klant betaalde${order.psp_method ? ` (${methodName(order.psp_method)})` : ""}. Het geld gaat van je MultiSafepay-saldo.</p>${mailCheck("mail", "Klant mailen (met creditnota)")}<div class="actions" style="justify-content:flex-end;margin-top:10px"><button data-confirm="${euro(paidAmount(order))} terugbetalen via MultiSafepay?">${euro(paidAmount(order))} terugbetalen via MultiSafepay</button></div></form>`
+      : html`<form method="post" action="${post}" class="sec">${hidden("refund")}<input type="hidden" name="how" value="overschrijving"><p class="muted small" style="margin:0 0 8px">Geannuleerd, maar al betaald via overschrijving: stort het bedrag terug via je bank (naar de rekening waarvan de klant betaalde) en duid het hier aan.</p><div class="fields"><label>Teruggestort bedrag<input name="amount" inputmode="decimal" value="${String(paidAmount(order)).replace(".", ",")}"></label><label>Datum<input name="date" type="date" value="${todayBE()}"></label></div>${mailCheck("mail", "Klant mailen (met creditnota)")}<div class="actions" style="justify-content:flex-end;margin-top:10px"><button>Markeren als terugbetaald</button></div></form>`;
   const paid = order.paid_amount ?? (order.paid_at ? order.total : 0);
   const payCard = html`<section class="card"><h2>${paymentBadge(order)}</h2>
 <div class="box" style="padding:12px"><div class="sumrows">
@@ -570,6 +575,7 @@ ${
 }
 <span>Betaald door klant</span><span class="m">${order.paid_at ? `${paidHow(order)} ${when(order.paid_at)}` : html`mededeling <code>${order.ogm}</code>`}</span><span class="r">${euro(paid)}</span>
 ${order.paid_at && Math.abs(paid - order.total) > 0.005 ? html`<span class="warn">Verschil</span><span></span><span class="r warn">${euro(round2(paid - order.total))}</span>` : ""}
+${order.refunded_at ? html`<span>Terugbetaald</span><span class="m">${order.refund_ref?.startsWith("multisafepay") ? `via MultiSafepay${order.refund_ref.length > 12 ? ` (${order.refund_ref.slice(13)})` : ""}` : "via overschrijving"} ${when(order.refunded_at)}</span><span class="r">− ${euro(order.refund_amount ?? paid)}</span>` : ""}
 </div></div>${payStep}</section>`;
 
   const docsCard = invoices.results.length
@@ -615,7 +621,15 @@ ${!hasOpenInvoice && ["betaald", "klaar", "geleverd", "bevestigd"].includes(stat
 ${order.request_id ? html`<a href="${ctx.base}/aanvragen/${order.request_id}">Oorspronkelijke aanvraag</a>` : ""}
 ${
   status !== "geannuleerd" && status !== "geleverd"
-    ? html`<hr><form method="post" action="${post}">${hidden("cancel")}<button class="danger" data-confirm="${hasInvoice ? "Bestelling annuleren? Er wordt een creditnota gemaakt." : "Bestelling annuleren?"}">Bestelling annuleren</button></form>`
+    ? html`<hr><form method="post" action="${post}">${hidden("cancel")}${
+        order.paid_at && canRefundOnline(order)
+          ? html`<label class="check small"><input type="checkbox" name="refund" value="1" checked> ${euro(paidAmount(order))} terugbetalen via MultiSafepay</label>`
+          : order.paid_at
+            ? html`<p class="muted small" style="margin:0 0 6px">Betaald via overschrijving: stort ${euro(paidAmount(order))} terug via je bank en duid het daarna aan bij Betaling.</p>`
+            : ""
+      }${canMail ? html`<label class="check small"><input type="checkbox" name="mail" value="1" checked> Klant mailen</label>` : ""}<button class="danger" data-confirm="${
+        hasInvoice ? "Bestelling annuleren? Er wordt een creditnota gemaakt." : "Bestelling annuleren?"
+      }">Bestelling annuleren</button></form>`
     : ""
 }</div></details>`;
 
@@ -673,6 +687,33 @@ async function mailInvoice(ctx: Ctx, order: OrderRow, inv: InvoiceRow) {
   await ctx.mail!(order.email, invoiceMail(order, inv.number, inv.type, inv.total, data.seller, pdf));
   await ctx.db.prepare("UPDATE invoices SET emailed_at = ? WHERE id = ?").bind(now(), inv.id).run();
   await orderNote(ctx, order, `${inv.type === "factuur" ? "Factuur" : "Creditnota"} ${inv.number} gemaild naar ${order.email}`);
+}
+
+const paidAmount = (order: OrderRow) => order.paid_amount ?? order.total;
+const canRefundOnline = (order: OrderRow) => order.payment_method === "online" && order.psp_status === "completed" && Boolean(order.psp_order_id);
+
+/** Refund the whole paid amount through MultiSafepay, back the way the customer paid. */
+async function refundOnline(ctx: Ctx, order: OrderRow): Promise<RefundState> {
+  const amount = paidAmount(order);
+  const mode = (order.psp_mode === "live" ? "live" : "test") as MspMode;
+  const res = await refundPayment(ctx.checkout, mode, order.psp_order_id!, amount, `Terugbetaling bestelling ${order.number}`);
+  const ref = `multisafepay${res.refund_id ? ` ${res.refund_id}` : res.transaction_id ? ` ${res.transaction_id}` : ""}`;
+  await ctx.db.prepare("UPDATE orders SET refunded_at = ?, refund_amount = ?, refund_ref = ?, updated_at = ? WHERE id = ?").bind(now(), amount, ref, now(), order.id).run();
+  await orderNote(ctx, order, `Terugbetaald via MultiSafepay: ${euro(amount)}${mode === "test" ? " (TEST)" : ""}`);
+  return { kind: "online", amount, method: order.psp_method ? methodName(order.psp_method) : "" };
+}
+
+async function lastCredit(ctx: Ctx, orderId: number): Promise<InvoiceRow | undefined> {
+  return (await ctx.db.prepare("SELECT * FROM invoices WHERE order_id = ? AND type = 'creditnota' ORDER BY id DESC LIMIT 1").bind(orderId).first<InvoiceRow>()) ?? undefined;
+}
+
+/** "Bestelling geannuleerd" / "Terugbetaling": what happens to the money, credit note attached. */
+async function sendCancelMail(ctx: Ctx, order: OrderRow, cancelled: boolean, refund: RefundState, credit?: InvoiceRow) {
+  const settings = await getSettings(ctx.db);
+  const creditPdf = credit ? { number: credit.number, pdf: pdfBase64(invoicePdf(credit.number, credit.type, JSON.parse(credit.data) as InvoiceData)) } : undefined;
+  await ctx.mail!(order.email, cancelMail(order, settings, { cancelled, refund, credit: creditPdf }));
+  if (credit) await ctx.db.prepare("UPDATE invoices SET emailed_at = ? WHERE id = ?").bind(now(), credit.id).run();
+  await orderNote(ctx, order, `Mail "${cancelled ? "bestelling geannuleerd" : "terugbetaling"}" gestuurd naar ${order.email}${credit ? ` (met creditnota ${credit.number})` : ""}`);
 }
 
 /** How the customer paid, for "Betaald door klant": online with the method MultiSafepay reports, else by transfer. */
@@ -825,7 +866,54 @@ export async function orderPost(ctx: Ctx, id: number, form: FormData): Promise<R
       await releaseStock(ctx.db, id, ctx.user.email, "bestelling geannuleerd");
       await setStatus("geannuleerd", ", cancelled_at = ?", at);
       const inv = await openInvoice(ctx.db, id);
-      if (inv) await makeInvoice(ctx, order, false, "creditnota", inv);
+      const credit = inv ? await makeInvoice(ctx, order, false, "creditnota", inv) : undefined;
+      // Paid online: give the money back through MultiSafepay at once (when ticked).
+      let refund: RefundState = order.paid_at ? { kind: "pending", amount: paidAmount(order) } : { kind: "none" };
+      let refundError = "";
+      if (order.paid_at && field(form, "refund") === "1" && canRefundOnline(order)) {
+        try {
+          refund = await refundOnline(ctx, order);
+        } catch (error) {
+          refundError = (error as Error).message;
+          await orderNote(ctx, order, `Terugbetaling via MultiSafepay mislukt: ${refundError}`);
+        }
+      }
+      if (wantsMail) {
+        try {
+          await sendCancelMail(ctx, order, true, refund, credit);
+        } catch (error) {
+          throw mailFailed(error);
+        }
+      }
+      if (refundError) throw new HttpError(502, `De bestelling is geannuleerd, maar de terugbetaling via MultiSafepay lukte niet: ${refundError}. Probeer opnieuw bij Betaling.`);
+      return seeOther(ctx, `/bestellingen/${id}`, "saved");
+    }
+    case "refund": {
+      // A cancelled, paid order: online through MultiSafepay, or a bank transfer marked by hand.
+      if (order.status !== "geannuleerd" || !order.paid_at || order.refunded_at) throw new HttpError(400, "Deze bestelling kan niet terugbetaald worden.");
+      let refund: RefundState;
+      if (field(form, "how") === "online") {
+        if (!canRefundOnline(order)) throw new HttpError(400, "Deze bestelling werd niet online betaald.");
+        try {
+          refund = await refundOnline(ctx, order);
+        } catch (error) {
+          await orderNote(ctx, order, `Terugbetaling via MultiSafepay mislukt: ${(error as Error).message}`);
+          throw new HttpError(502, `MultiSafepay: ${(error as Error).message}`);
+        }
+      } else {
+        const amount = round2(parseFloat(field(form, "amount").replace(",", ".")) || paidAmount(order));
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(field(form, "date")) ? `${field(form, "date")}T12:00:00.000Z` : at;
+        await ctx.db.prepare("UPDATE orders SET refunded_at = ?, refund_amount = ?, refund_ref = 'overschrijving', updated_at = ? WHERE id = ?").bind(date, amount, at, id).run();
+        await orderNote(ctx, order, `Terugbetaald via overschrijving: ${euro(amount)}`);
+        refund = { kind: "transfer", amount };
+      }
+      if (wantsMail) {
+        try {
+          await sendCancelMail(ctx, order, false, refund, await lastCredit(ctx, id));
+        } catch (error) {
+          throw mailFailed(error);
+        }
+      }
       return seeOther(ctx, `/bestellingen/${id}`, "saved");
     }
     case "status": {
