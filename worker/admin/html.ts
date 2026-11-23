@@ -4,6 +4,8 @@
  * inject markup. Arrays are joined; null/undefined/false render nothing.
  */
 
+import { ADMIN_FAVICON } from "./favicon";
+
 export class Safe {
   constructor(readonly value: string) {}
   toString() {
@@ -429,6 +431,7 @@ ${tab("instellingen", "/instellingen", "Instellingen", "settings")}
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#ebebeb">
 <title>${opts.title} · Natuurhout beheer</title>
+<link rel="icon" type="image/png" sizes="64x64" href="${ADMIN_FAVICON}">
 <style>${raw(CSS)}</style>
 <script src="${base}/app.js" defer></script></head><body>
 <div class="layout"><aside><a class="brand" href="${base}/"><span class="logo">${icon("tree")}</span><span>Natuurhout<small>Beheer</small></span></a>${nav}</aside>
