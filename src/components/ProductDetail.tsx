@@ -53,11 +53,17 @@ export function ProductHero({
   images,
   products,
   children,
+  intro,
+  fullLead = false,
 }: {
   heading: string;
   lead: string;
   images: GalleryImage[];
   products: Product[];
+  /** Shown right under the intro, above the price list (e.g. the price per metre). */
+  intro?: ReactNode;
+  /** Show the whole intro (a summary written to be read on its own), not three lines. */
+  fullLead?: boolean;
   /** Shown under the price list, or instead of it when there are no shop products. */
   children?: ReactNode;
 }) {
@@ -75,7 +81,8 @@ export function ProductHero({
 
       <div className="min-w-0">
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{heading}</h1>
-        {lead && <p className="mt-3 line-clamp-3 max-w-2xl leading-7 text-ink/75">{lead}</p>}
+        {lead && <p className={`mt-3 max-w-2xl leading-7 text-ink/75 ${fullLead ? "" : "line-clamp-3"}`}>{lead}</p>}
+        {intro}
         <a href="#productinfo" className="mt-1 inline-flex text-sm font-medium text-accent hover:text-accent-deep">
           Lees meer over dit product ↓
         </a>

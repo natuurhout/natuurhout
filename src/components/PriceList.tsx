@@ -17,6 +17,7 @@ import {
 } from "@/lib/catalog";
 import { addToCart, cartCount, useCart } from "@/lib/cart";
 import { orderTerm } from "@/lib/made-to-order";
+import { volumeUnits } from "@/lib/volume-pricing";
 import { backorderNote } from "@/lib/order-limits";
 import { useStock } from "@/lib/stock";
 import { oakWithPostsaver } from "@/lib/price-updates";
@@ -285,18 +286,21 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
   const inStock = lines.filter((l) => l.variant.available);
   const onOrder = lines.filter((l) => !l.variant.available);
   const pieces = lines.reduce((n, l) => n + l.quantity, 0);
-  const total = lines.reduce((sum, l) => sum + parseFloat(l.variant.price) * l.quantity, 0);
-  const saved = lines.reduce((sum, l) => {
-    const was = compareAtPrice(l.variant);
-    return was === null ? sum : sum + (was - parseFloat(l.variant.price)) * l.quantity;
+  // Staffelprijzen (src/lib/volume-pricing.ts): e.g. lariks € 4,55/m from 100 m in this selection.
+  const staffel = volumeUnits(lines.map((l) => ({ handle: l.product.handle, title: l.variant.title, qty: l.quantity })));
+  const unitOf = (i: number) => staffel[i] ?? parseFloat(lines[i].variant.price);
+  const total = lines.reduce((sum, l, i) => sum + unitOf(i) * l.quantity, 0);
+  const saved = lines.reduce((sum, l, i) => {
+    const was = compareAtPrice(l.variant) ?? (staffel[i] !== null ? parseFloat(l.variant.price) : null);
+    return was === null ? sum : sum + (was - unitOf(i)) * l.quantity;
   }, 0);
-  const requestLines: RequestLine[] = lines.map((l) => ({
+  const requestLines: RequestLine[] = lines.map((l, i) => ({
     id: l.variant.id,
     group: l.product.title,
-    label: rowLabel(l.row),
+    label: staffel[i] !== null ? `${rowLabel(l.row)} (staffelprijs)` : rowLabel(l.row),
     detail: l.variant.available ? "Op voorraad" : orderTerm(l.product.handle).badge,
     qty: l.quantity,
-    unit: parseFloat(l.variant.price),
+    unit: unitOf(i),
   }));
   const showForm = requesting && lines.length > 0;
   const router = useRouter();
@@ -374,7 +378,7 @@ export default function PriceList({ products: shown }: { products: Product[] }) 
           <dd className="text-right tabular-nums">{formatPrice(total)}</dd>
           {saved > 0 && (
             <>
-              <dt className="text-accent-deep">U bespaart</dt>
+              <dt className="text-accent-deep">{staffel.some((u) => u !== null) ? "Staffelprijs: u bespaart" : "U bespaart"}</dt>
               <dd className="text-right tabular-nums text-accent-deep">−{formatPrice(saved)}</dd>
             </>
           )}

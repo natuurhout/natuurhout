@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Calculator, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
+import LariksGuide, { LARIKS_PATH, LariksPriceLine, lariksLead } from "@/components/LariksGuide";
 import Realisaties from "@/components/Realisaties";
 import { ProductHero } from "@/components/ProductDetail";
 import { BoughtTogether, PriceTableHtml, ProductInfo, productInfoTabs, ShopPriceMatrix } from "@/components/ProductInfo";
@@ -52,6 +53,9 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
     .slice(0, 4);
   const listed = info.products.length > 0;
   const fencing = !/moestuinbak|vlechtscherm|lariks/.test(page.pathname);
+  // Lariks schaaldelen (Xander, Nov 2026): a summary to be read on its own, the price per metre, and a guide below.
+  const lariks = page.pathname === LARIKS_PATH && primary ? primary : undefined;
+  const lead = lariks ? lariksLead(lariks) : info.lead;
 
   return (
     <div className="mx-auto w-full max-w-[80rem] px-4 py-8 sm:px-6 lg:px-10" data-legacy-product={page.pathname}>
@@ -67,7 +71,14 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
       </nav>
 
       <div className="mt-6">
-        <ProductHero heading={info.heading} lead={info.lead} images={info.photos} products={info.products}>
+        <ProductHero
+          heading={info.heading}
+          lead={lead}
+          fullLead={Boolean(lariks)}
+          intro={lariks ? <LariksPriceLine product={lariks} /> : undefined}
+          images={info.photos}
+          products={info.products}
+        >
           {listed && info.sections.prijzen && (
             <a href="#tab-prijstabel" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-deep">
               Bekijk alle prijzen in één overzicht <ArrowRight className="h-4 w-4" />
@@ -109,6 +120,8 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
           )}
         </ProductHero>
       </div>
+
+      {lariks && <LariksGuide product={lariks} lead={lead} images={["/fotos/web/lariks5-project-overemere-scaled.jpg", ...lariks.images.map((i) => i.src)]} />}
 
       <ProductInfo
         tabs={productInfoTabs({

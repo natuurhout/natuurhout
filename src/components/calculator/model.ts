@@ -1,5 +1,6 @@
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
+import { volumeUnits } from "@/lib/volume-pricing";
 import { MAATWERK_POORT, customGateVariantId } from "@/lib/order-only-products";
 import {
   BLACK_HARDWARE_SURCHARGE,
@@ -709,6 +710,15 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
     }
   }
 
+  // Staffelprijzen (src/lib/volume-pricing.ts): e.g. lariks € 4,55/m from 100 m in total.
+  const units = volumeUnits(lines.map((l) => ({ handle: l.variant?.handle ?? "", title: l.variant?.title ?? "", qty: l.qty })));
+  lines.forEach((l, i) => {
+    const unit = units[i];
+    if (unit !== null && l.unit !== null && unit < l.unit) {
+      l.unit = unit;
+      l.detail = [l.detail, "staffelprijs vanaf 100 m"].filter(Boolean).join("; ");
+    }
+  });
   return lines;
 }
 

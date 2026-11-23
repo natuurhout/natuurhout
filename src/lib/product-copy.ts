@@ -14,6 +14,8 @@ type Copy = {
   bodyHtml?: string;
   /** Corrections in the webshop description: [exact text, replacement], applied in order. */
   bodyFixes?: [string, string][];
+  /** Alt text for the webshop photos (when they keep the webshop's generic one). */
+  imageAlt?: string;
   /** Replaces the webshop photos, in this order (the first is the card photo). */
   images?: ProductImage[];
   /** Photo per variant id (a src from `images`), shown in the price list. */
@@ -46,6 +48,8 @@ const HANG_SLUITWERK = {
 };
 
 export const PRODUCT_COPY: Record<string, Copy> = {
+  // Lariks (Nov 2026): the webshop photos had "Lariks planken/delen"; not seen from here, so a neutral description.
+  "lariks-planken-delen": { imageAlt: "Larikse schaaldelen van ±22 mm dik" },
   // The robinia poort is screwed and dowelled, not mortise and tenon (Xander, Nov 2026).
   "robinia-poort": {
     bodyFixes: [

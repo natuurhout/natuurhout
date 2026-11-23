@@ -7,6 +7,7 @@ import { DeliveryEstimator } from "@/components/DeliveryCheck";
 import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestForm";
 import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
+import { volumeProgress, withVolumePrices } from "@/lib/volume-pricing";
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
 import { backorderNote } from "@/lib/order-limits";
@@ -106,6 +107,9 @@ function Qty({ line }: { line: CartLine }) {
 
 export default function CartView() {
   const cart = useCart();
+  // Staffelprijzen (src/lib/volume-pricing.ts): e.g. lariks € 4,55/m from 100 m in total.
+  const lines = withVolumePrices(cart, (l) => l.label);
+  const lariks = volumeProgress("lariks-planken-delen", cart.map((l) => ({ handle: l.handle, title: l.label, qty: l.qty })));
   const [sent, setSent] = useState<{ onOrder: boolean } | null>(null);
   const [place, setPlace] = useState<{ postcode: string; city: string } | null>(null);
   const onPostcode = useCallback((postcode: string, city: string) => setPlace({ postcode, city }), []);
@@ -124,7 +128,7 @@ export default function CartView() {
   const checkoutHref = `/afrekenen/${place?.postcode ? `?postcode=${place.postcode}${place.city ? `&gemeente=${encodeURIComponent(place.city)}` : ""}` : ""}`;
   const onOrder = cart.filter((l) => !l.available);
   const notes = [...new Set(onOrder.map((l) => orderTerm(l.handle).note))];
-  const requestLines: RequestLine[] = cart.map((l) => ({
+  const requestLines: RequestLine[] = lines.map((l) => ({
     id: l.id,
     group: l.product,
     label: l.note ? `${l.label} (${l.note})` : l.label,
@@ -159,7 +163,7 @@ export default function CartView() {
       {cart.length > 0 && (
         <section aria-label="Gekozen producten">
           <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-white">
-            {cart.map((line) => (
+            {lines.map((line) => (
               <li key={line.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3.5 sm:px-5">
                 <div className="min-w-0 flex-1 basis-56">
                   <Link href={pageOf(line)} className="font-semibold text-ink hover:text-accent-deep">
@@ -168,7 +172,8 @@ export default function CartView() {
                   <p className="text-sm text-ink/65">{line.label}</p>
                   {line.note && <p className="text-xs leading-5 text-ink/60">{line.note}</p>}
                   <p className="text-xs text-ink/55">
-                    {formatPrice(line.unit)} per stuk
+                    {line.was !== undefined && <span className="mr-1 line-through">{formatPrice(line.was)}</span>}
+                    {formatPrice(line.unit)} per stuk{line.was !== undefined ? " (staffelprijs)" : ""}
                     {!line.available && (
                       <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 font-semibold text-accent-deep">
                         {orderTerm(line.handle).badge}
@@ -196,8 +201,15 @@ export default function CartView() {
             <span className="text-sm">
               Totaal incl. btw ({cartCount(cart)} {cartCount(cart) === 1 ? "stuk" : "stuks"})
             </span>
-            <span className="text-xl font-semibold tabular-nums">{formatPrice(cartTotal(cart))}</span>
+            <span className="text-xl font-semibold tabular-nums">{formatPrice(cartTotal(lines))}</span>
           </div>
+          {lariks && lariks.metres > 0 && (
+            <p className="mt-2 rounded-xl bg-brand-soft/60 px-4 py-2.5 text-sm text-ink/75">
+              {lariks.reached
+                ? `Staffelprijs lariks: € 4,55 per meter (u bestelt ${lariks.metres} m).`
+                : `Lariks schaaldelen: nog ${lariks.missing} m tot de staffelprijs van € 4,55 per meter (vanaf 100 m, lengtes gemengd).`}
+            </p>
+          )}
           <DeliveryEstimator lines={priced} onPostcode={onPostcode} />
           {notes.length > 0 && (
             <div className="mt-4 flex gap-2 rounded-xl border border-accent/25 bg-accent/5 px-3.5 py-3 text-sm leading-6 text-ink/80">
@@ -224,7 +236,7 @@ export default function CartView() {
       )}
       <section aria-label={canPay && !asRequest && !sent ? "Afrekenen" : "Bestelling versturen"} className="lg:sticky lg:top-24">
         {canPay && !asRequest && !sent ? (
-          <CheckoutCard total={cartTotal(cart)} online={Boolean(checkout?.online)} href={checkoutHref} onRequest={() => setAsRequest(true)} />
+          <CheckoutCard total={cartTotal(lines)} online={Boolean(checkout?.online)} href={checkoutHref} onRequest={() => setAsRequest(true)} />
         ) : (
           <>
             {canPay && !sent && (

@@ -124,6 +124,28 @@ const ABOUT: Record<string, string> = {
   ].join(""),
 };
 
+/**
+ * Approved corrections of the snapshot's own text (handbuilt-routes.json:
+ * removedContent holds the old wording). Lariks: the lengths list missed the
+ * 2 m that the price list has (Xander, Nov 2026).
+ */
+const TEXT_FIXES: Record<string, [RegExp, string][]> = {
+  "/project/lariks-schaal-delen-2/": [[/(Lengtes verkrijgbaar in\s*<strong>(?:&nbsp;|\u00a0|\s)*)3, 4 en 5 meter/, "$12, 3, 4 en 5 meter"]],
+};
+
+/** Descriptive alt texts for snapshot photos that had none (WordPress left alt=""). */
+const PHOTO_ALTS: Record<string, string> = {
+  "/wp-content/uploads/2019/10/Lariks5-Project-Overemere-scaled.jpg": "Schutting in larikse schaaldelen rond een tuin in Overmere",
+  "/wp-content/uploads/2016/01/Lariks-Project-Overmere-scaled.jpg": "Tuinafsluiting in lariks schaaldelen rond een gazon, project Overmere",
+  "/wp-content/uploads/2015/12/1b847dde-b5e9-4348-9d9f-7570627e0574.jpg": "Container bekleed met larikse schaaldelen, met kastanje hekwerk ervoor",
+  "/wp-content/uploads/2019/10/Lariks-afsluiting-Project-Overemere-scaled.jpg": "Close-up van horizontale lariks schaaldelen met de natuurlijke rand van de stam",
+  "/wp-content/uploads/2019/10/Lariks3-Project-Overemere-scaled.jpg": "Schutting van larikse schaaldelen tussen houten palen, project Overmere",
+  "/wp-content/uploads/2015/12/kinderhuisje.jpg": "Kinderhuisje gebouwd met larikse schaaldelen",
+  "/wp-content/uploads/2015/12/opbouw-kinderhuisje-1.jpg": "Opbouw van een kinderhuisje in lariks schaaldelen",
+  "/wp-content/uploads/2015/12/Schutting-scaled.jpg": "Schutting van horizontale larikse schaaldelen",
+  "/wp-content/uploads/2016/01/30690e96-1143-4ad6-8aff-d85b3a180e5d.jpg": "Container bekleed met larikse schaaldelen als gevelbekleding",
+};
+
 /** The opening sentences, up to ~260 characters, for the lead under the h1. */
 function clip(text: string) {
   if (text.length <= 260) return text;
@@ -149,7 +171,7 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
     seen.add(src);
     const link = $(img).closest("a[href]").attr("href");
     const caption = $(img).closest(".gallery-item").find(".gallery-caption").text().replace(/\s+/g, " ").trim();
-    photos.push({ src, alt: $(img).attr("alt") || caption || heading, href: link || src, caption });
+    photos.push({ src, alt: $(img).attr("alt") || PHOTO_ALTS[src] || caption || heading, href: link || src, caption });
   });
 
   const nav: LegacyNavLink[] = $(".gdlr-single-nav a[href]")
@@ -187,9 +209,12 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
       .remove();
   }
 
+  let bodyHtml = body.html() ?? "";
+  for (const [from, to] of TEXT_FIXES[page.pathname] ?? []) bodyHtml = bodyHtml.replace(from, to);
+
   const sections: Record<LegacyTab, string> = { omschrijving: "", prijzen: "", kenmerken: "", pluspunten: "", tips: "" };
   let started = false;
-  for (const section of splitSections(body.html() ?? "", { keepColon: true })) {
+  for (const section of splitSections(bodyHtml, { keepColon: true })) {
     // The page's opening heading, before any text, stays with the description.
     const tab = section.title && started ? legacyClassify(section.title, section.html) : "omschrijving";
     started = true;

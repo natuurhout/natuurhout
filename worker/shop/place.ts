@@ -10,11 +10,21 @@ import { ensureSchema, now } from "../crm/schema";
 import { upsertContact } from "../crm/store";
 import { loadCatalog } from "./catalog";
 import { createOrder, priceLine, type LineRow, type OrderRow } from "./orders";
+import { volumeUnits } from "../../src/lib/volume-pricing";
 
 export async function placeWebsiteOrder(db: D1Database, quote: Quote): Promise<{ order: OrderRow; lines: QuoteLine[] }> {
   await ensureSchema(db);
   const { byId } = await loadCatalog(db);
   const priced = quote.lines.map((l) => priceLine(byId, l));
+  // Staffelprijzen (src/lib/volume-pricing.ts), as at /afrekenen/.
+  const units = volumeUnits(priced.map((l) => ({ handle: l.handle, title: l.variant_id !== null ? (byId.get(l.variant_id)?.variant.title ?? "") : "", qty: l.qty })));
+  priced.forEach((l, i) => {
+    const unit = units[i];
+    if (unit !== null && unit < l.unit) {
+      l.unit = unit;
+      l.label = `${l.label} (staffelprijs)`;
+    }
+  });
   const contactId = await upsertContact(db, quote, now());
   const order = await createOrder(db, {
     contact_id: contactId,

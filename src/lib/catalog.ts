@@ -116,7 +116,8 @@ export const baseProducts = withPromotions(
       images: PRODUCT_COPY[product.handle]?.images ?? product.images.map((image) => {
         const file = image.src.split("?")[0].split("/").pop() ?? "";
         const replaced = REPLACED_SHOP_PHOTOS[product.handle]?.[file];
-        return replaced ? { ...image, ...replaced, width: 1600, height: 1600 } : image;
+        const alt = PRODUCT_COPY[product.handle]?.imageAlt ?? image.alt;
+        return replaced ? { ...image, ...replaced, width: 1600, height: 1600 } : { ...image, alt };
       }),
     })))),
   ),

@@ -159,7 +159,14 @@
     {
       "pathname": "/project/lariks-schaal-delen-2/",
       "approvedBy": "Xander",
-      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page. Nov 2026 (Xander): price, SEO and AI-search update: new title, description and h1, a standalone summary with the price per metre and the staffel (EUR 4,55 per metre from 100 m), a spec table, prices per length, how many metres per m2, delivery, a FAQ and Product/FAQPage structured data (src/components/LariksGuide.tsx); the old h1 and the lengths sentence that missed 2 m are in removedContent (the text now reads 2, 3, 4 en 5 meter: TEXT_FIXES in src/lib/legacy-product.ts); descriptive alt texts for the photos.",
+      "approvedTitle": "Lariks schaaldelen kopen | €4,95/m, vanaf 100 m €4,55",
+      "approvedDescription": "Larikse schaaldelen 22 mm, 17–25 cm breed, in 2 tot 5 m. €4,95/m incl. btw, vanaf 100 m €4,55/m. Afhalen in Zele of levering in heel België.",
+      "approvedHeading": "Lariks schaaldelen",
+      "removedContent": [
+        "Lariks Schaal Delen",
+        "Dit is een zeer duurzame houtsoort wat geen onderhoud nodig heeft. Breedte van de delen is ongeveer 17cm tot 25cm, de werkende breedte is +/-20cm De dikte van de lariks schaaldelen is +/- 22mm Lengtes verkrijgbaar in 3, 4 en 5 meter"
+      ],
       "preserveContent": true,
       "pricesFromShop": true,
       "pricesApprovedBy": "Xander",

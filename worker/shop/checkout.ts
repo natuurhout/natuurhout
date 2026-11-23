@@ -29,6 +29,7 @@ import { makeMailer, type MailEnv } from "./send";
 import { orderReceivedMail, shopInboxMail, type InboxState } from "./mail";
 import { binaryAttachments } from "../mail-attachments";
 import { backorder, overLimit } from "../../src/lib/order-limits";
+import { volumeUnits } from "../../src/lib/volume-pricing";
 import { formatIban, getSettings, missingSettings } from "./settings";
 
 export interface CheckoutEnv extends MspEnv, MailEnv {
@@ -114,6 +115,15 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
       note: later ? `${later.inStock} op voorraad, ${later.later} in nabestelling` : hit.variant.available ? "" : "op bestelling",
     });
   }
+  // Staffelprijzen (src/lib/volume-pricing.ts): e.g. lariks from 100 m in total.
+  const units = volumeUnits(lines.map((l) => ({ handle: l.handle, title: byId.get(l.id)?.variant.title ?? "", qty: l.qty })));
+  lines.forEach((l, i) => {
+    const unit = units[i];
+    if (unit !== null && unit < l.unit) {
+      l.unit = unit;
+      l.label = `${l.label} (staffelprijs)`;
+    }
+  });
   const subtotal = round2(lines.reduce((t, l) => t + l.qty * l.unit, 0));
   let delivery: Priced["delivery"] = null;
   let minimum: number | null = null;
