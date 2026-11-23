@@ -153,7 +153,7 @@ a{color:var(--link);text-underline-offset:2px;text-decoration:none}a:hover{text-
 aside{width:240px;flex:none;background:var(--frame);color:var(--side-ink);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:12px 8px 10px;overflow-y:auto}
 .brand{display:flex;align-items:center;gap:9px;color:var(--ink);text-decoration:none;font-weight:650;font-size:14px;padding:2px 8px 12px;line-height:1.2}.brand:hover{text-decoration:none}
 .brand small{display:block;font-weight:450;font-size:11.5px;color:var(--side-soft)}
-.logo{width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}.logo svg{width:16px;height:16px}
+.logo{width:30px;height:30px;border-radius:8px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);display:grid;place-items:center;flex:none}.logo img{width:24px;height:24px;display:block}
 .gsearch{position:relative;margin:0 4px 10px}.gsearch svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint);pointer-events:none}
 .gsearch input{margin:0;height:32px;padding:0 44px 0 30px;border-radius:10px;background:var(--card);border:0;box-shadow:inset 0 0 0 1px var(--line)}
 .gsearch kbd{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:11px/1 inherit;color:var(--faint);pointer-events:none}
@@ -434,7 +434,7 @@ ${tab("instellingen", "/instellingen", "Instellingen", "settings")}
 <link rel="icon" type="image/png" sizes="64x64" href="${ADMIN_FAVICON}">
 <style>${raw(CSS)}</style>
 <script src="${base}/app.js" defer></script></head><body>
-<div class="layout"><aside><a class="brand" href="${base}/"><span class="logo">${icon("tree")}</span><span>Natuurhout<small>Beheer</small></span></a>${nav}</aside>
+<div class="layout"><aside><a class="brand" href="${base}/"><span class="logo"><img src="${ADMIN_FAVICON}" alt="" width="24" height="24"></span><span>Natuurhout<small>Beheer</small></span></a>${nav}</aside>
 <div class="main"><main${opts.wide ? raw(' class="wide"') : ""}>${opts.flash ? html`<div class="flash" role="status">${opts.flash}</div>` : ""}${opts.body}</main></div></div>
 </body></html>`}`;
 }
