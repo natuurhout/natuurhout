@@ -28,6 +28,7 @@ import { addOrderNote, cancelUnpaid, mailPaymentRequest, markPaid } from "./paid
 import { makeMailer, type MailEnv } from "./send";
 import { orderReceivedMail, shopInboxMail, type InboxState } from "./mail";
 import { binaryAttachments } from "../mail-attachments";
+import type { DeliveryEstimate } from "../../src/lib/quote-email";
 import { backorder, overLimit } from "../../src/lib/order-limits";
 import { volumeUnits } from "../../src/lib/volume-pricing";
 import { formatIban, getSettings, missingSettings } from "./settings";
@@ -159,6 +160,21 @@ export async function quote(request: Request, env: CheckoutEnv): Promise<Respons
     total: p.total,
     vat: round2((p.total * VAT_RATE) / (100 + VAT_RATE)),
   });
+}
+
+/**
+ * Delivery for a calculator quote (worker/offerte.ts): the same price the
+ * page showed the customer (/api/afrekenen/prijs/ with the same lines).
+ * null when nothing in the request has a price to deliver.
+ */
+export async function estimateDelivery(db: D1Database, items: { id: number; qty: number }[], postcode: string, city: string): Promise<DeliveryEstimate | null> {
+  if (!items.length || !/^\d{4}$/.test(postcode)) return null;
+  await ensureSchema(db);
+  const basket = parseBasket({ lines: items });
+  const p = await price(db, basket, true, postcode, city);
+  if (!p.lines.length || !p.delivery) return null;
+  const d = p.delivery;
+  return { ok: d.ok, price: d.price, label: d.label, km: d.km, reason: d.reason, atMinimum: p.atMinimum };
 }
 
 // ---------------------------------------------------------------- place the order

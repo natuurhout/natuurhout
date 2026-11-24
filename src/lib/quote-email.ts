@@ -32,7 +32,33 @@ export type Quote = {
   total: number | null;
   /** Plain-text version of the whole request, as the calculator wrote it. */
   text: string;
+  /**
+   * Delivery priced by the Worker for this postcode (calculator quotes with
+   * delivery, the same calculation as on the page and at checkout). Set on
+   * the server only, never taken from the browser.
+   */
+  deliveryEstimate?: DeliveryEstimate | null;
 };
+
+export type DeliveryEstimate = {
+  ok: boolean;
+  price: number;
+  /** "3090 Overijse" */
+  label: string;
+  km: number | null;
+  /** Why delivery is not possible as asked (below the minimum, too far …). */
+  reason: string;
+  /** Below the minimum: what delivery costs once the order reaches it (the reason says so too). */
+  atMinimum: number | null;
+};
+
+/** One line for the plain text and the CRM. */
+export function deliveryText(d: DeliveryEstimate): string {
+  const where = `${d.label}${d.km !== null ? ` (± ${Math.round(d.km)} km)` : ""}`;
+  return d.ok
+    ? `Levering naar ${where}: ${euro(d.price)}`
+    : `Levering naar ${where}: niet mogelijk zoals gevraagd. ${d.reason}`;
+}
 
 import { logoImage, mascotImage, type EmailImage } from "@/lib/email-assets";
 
@@ -200,6 +226,33 @@ function detailsTable(q: Quote, linkContact: boolean): string {
   ].join("")}</table>`;
 }
 
+/**
+ * The delivery under the lines: the price the Worker calculated (and the total
+ * with it), why it is not possible as asked, or, without an estimate, the
+ * postcode to price it for.
+ */
+function deliveryBlock(q: Quote, inbox: boolean): string {
+  if (!q.delivery) return "";
+  const d = q.deliveryEstimate;
+  if (!d) {
+    return inbox ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : "";
+  }
+  const where = `${escapeHtml(d.label)}${d.km !== null ? ` <span style="color:${C.soft}">(± ${Math.round(d.km)} km)</span>` : ""}`;
+  const cell = `${FONT};font-size:14px;color:${C.ink}`;
+  if (!d.ok) {
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px"><tr>
+<td style="padding:10px 0;border-top:1px solid ${C.line};${cell};line-height:1.5"><strong>Levering naar ${where}</strong><br><span style="font-size:13px;color:${C.soft}">Niet mogelijk zoals gevraagd. ${escapeHtml(d.reason)}</span></td></tr></table>`;
+  }
+  const withDelivery = q.total === null ? null : q.total + d.price;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:10px">
+<tr><td style="padding:10px 12px 10px 0;border-top:1px solid ${C.line};${cell}">Levering naar ${where}${inbox ? `<br><span style="font-size:12px;color:${C.soft}">Berekend met de instellingen van Checkout, zoals de klant het op de site zag.</span>` : ""}</td>
+<td style="padding:10px 0;border-top:1px solid ${C.line};${cell};font-weight:600;text-align:right;white-space:nowrap;vertical-align:top">${d.price === 0 ? "gratis" : euro(d.price)}</td></tr>${
+    withDelivery === null
+      ? ""
+      : `<tr><td style="padding:12px 12px 12px 0;border-top:2px solid ${C.ink};${FONT};font-size:14px;font-weight:700;color:${C.ink}">Richtprijs incl. levering, incl. btw</td><td style="padding:12px 0;border-top:2px solid ${C.ink};${FONT};font-size:16px;font-weight:700;color:${C.ink};text-align:right;white-space:nowrap">${euro(withDelivery)}</td></tr>`
+  }</table>`;
+}
+
 function remarksBlock(q: Quote): string {
   return q.remarks
     ? `<p style="margin:20px 0 6px;${FONT};font-size:13px;font-weight:700;color:${C.ink}">Opmerkingen</p><p style="margin:0;${FONT};font-size:14px;line-height:1.55;color:${C.ink};white-space:pre-wrap">${escapeHtml(q.remarks)}</p>`
@@ -257,7 +310,7 @@ export function internalMail(q: Quote, photos: MailAttachment[] = []): Mail {
   }</p>
 ${detailsTable(q, true)}
 <div style="margin-top:22px">${q.lines.length ? linesTable(q) : plainOverview(q)}</div>
-${q.delivery ? `<p style="margin:14px 0 0;${FONT};font-size:13px;color:${C.soft}">Levering gevraagd: bepaal de kosten op basis van postcode ${escapeHtml(q.postcode)}.</p>` : ""}
+${deliveryBlock(q, true)}
 ${remarksBlock(q)}`;
   const subject = order
     ? `${q.inStock ? "Bestelling" : "Aanvraag op bestelling"} – ${who(q)}`
@@ -290,13 +343,14 @@ export function confirmationMail(q: Quote): Mail {
         q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
       } bevestigen we per mail.`
     : `Dit zijn richtprijzen incl. btw op basis van onze actuele webshopprijzen. Voorraad, maatwerk${
-        q.delivery ? " en de leveringskosten (op basis van uw postcode)" : ""
+        q.delivery ? (q.deliveryEstimate ? " en de levering" : " en de leveringskosten (op basis van uw postcode)") : ""
       } bevestigen we in uw offerte.`;
   const inner = `<p style="margin:0 0 14px;${FONT};font-size:16px;color:${C.ink}">Beste ${escapeHtml(first)},</p>
 <p style="margin:0 0 12px;${FONT};font-size:15px;line-height:1.6;color:${C.ink}">${thanks}</p>
 <p style="margin:0 0 22px;${FONT};font-size:15px;line-height:1.6;color:${C.ink}">Iets vergeten of wilt u iets aanpassen? Antwoord gewoon op deze mail.</p>
 <p style="margin:0 0 4px;${FONT};font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${C.accent}">Overzicht van uw aanvraag</p>
 ${q.lines.length ? linesTable(q) : plainOverview(q)}
+${deliveryBlock(q, false)}
 ${footnote ? `<p style="margin:12px 0 0;${FONT};font-size:12px;line-height:1.55;color:${C.soft}">${footnote}</p>` : ""}
 <p style="margin:22px 0 8px;${FONT};font-size:13px;font-weight:700;color:${C.ink}">Uw gegevens</p>
 ${detailsTable(q, false)}

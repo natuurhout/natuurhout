@@ -25,7 +25,8 @@
  * customer's mail program.
  */
 
-import { confirmationMail, internalMail, parsePhotos, parseQuote, type Mail } from "../src/lib/quote-email";
+import { confirmationMail, deliveryText, internalMail, parsePhotos, parseQuote, type Mail } from "../src/lib/quote-email";
+import { estimateDelivery } from "./shop/checkout";
 import { saveSubmission, setMailStatus, type MailStatus } from "./crm/store";
 import { placeWebsiteOrder, setOrderMailStatus } from "./shop/place";
 import { binaryAttachments } from "./mail-attachments";
@@ -93,6 +94,18 @@ export async function POST(request: Request, env: OfferteEnv) {
   }
 
   const photos = quote.kind === "vraag" ? parsePhotos(body) : [];
+
+  // A calculator quote with delivery: price it like the page did for the
+  // customer, so the inbox, the confirmation and the CRM show it. Best effort.
+  if (env.DB && quote.kind === "calculator" && quote.delivery) {
+    try {
+      const items = quote.lines.filter((l) => l.id !== undefined && l.unit !== null).map((l) => ({ id: l.id!, qty: l.qty }));
+      quote.deliveryEstimate = await estimateDelivery(env.DB, items, quote.postcode, quote.city);
+      if (quote.deliveryEstimate) quote.text = `${quote.text}\n\n${deliveryText(quote.deliveryEstimate)}`;
+    } catch (error) {
+      console.error("Delivery estimate for quote failed", error);
+    }
+  }
 
   // Into the CRM first, so the request is on record whatever the mail does.
   let requestId: number | null = null;

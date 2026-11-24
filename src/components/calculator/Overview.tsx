@@ -299,7 +299,8 @@ export function OverviewStep({ state, update, lines }: StepProps & { lines: Line
           postcode: c.postcode,
           city: c.city,
           remarks: c.remarks,
-          lines: lines.map((l) => ({ group: l.group, label: l.label, detail: lineDetail(l), qty: l.qty, unit: l.unit })),
+          // The variant id lets the server price the delivery as the page showed it (deliveryBasket).
+          lines: lines.map((l) => ({ id: l.variant && l.unit !== null ? l.variant.id : undefined, group: l.group, label: l.label, detail: lineDetail(l), qty: l.qty, unit: l.unit })),
           total: total(lines),
           text,
           website: honeypot,
