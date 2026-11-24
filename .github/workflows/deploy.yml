@@ -62,6 +62,15 @@ jobs:
       - name: Test
         if: github.event_name != 'schedule' || steps.sync.outputs.changed == 'true'
         run: npm test
+      # WebP copies of the photos (scripts/build-images.mjs), by content hash:
+      # only new or changed photos are encoded again.
+      - name: Image cache
+        if: github.event_name != 'schedule' || steps.sync.outputs.changed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .cache/images
+          key: images-${{ github.run_id }}
+          restore-keys: images-
       - name: Deploy
         if: github.event_name != 'schedule' || steps.sync.outputs.changed == 'true'
         run: npm run deploy

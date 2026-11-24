@@ -152,7 +152,7 @@ export default function LandelijkeAfsluitingPage() {
                 src="/fotos/realisaties/lievegem-robinia-1.jpg"
                 alt="Robinia hekwerk langs de straat in Lievegem, geplaatst door Natuurhout"
                 fill
-                priority
+                preload
                 sizes="(max-width: 1024px) 100vw, 460px"
                 className="object-cover"
               />

@@ -125,7 +125,9 @@ function auditHandBuilt(page, route, built$) {
         rootNode.find("img[src]").map((_, img) => {
           const src = built$(img).attr("src");
           const optimized = /^\/_next\/image\/?\?url=([^&]+)/.exec(src);
-          return optimized ? decodeURIComponent(optimized[1]) : src;
+          // WebP copy of a photo (src/lib/image-loader.ts): /_img/w<width><original>.webp
+          const webp = /^\/_img\/w\d+(\/.+)\.webp$/.exec(src);
+          return optimized ? decodeURIComponent(optimized[1]) : webp ? webp[1] : src;
         }).get(),
       );
       const missingImages = page.blocks

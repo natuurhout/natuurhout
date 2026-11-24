@@ -123,7 +123,7 @@ export default function PhotoLightbox({ photos, onChange }: { photos: LightboxPh
           fill
           sizes="100vw"
           className="object-contain px-2 sm:px-20"
-          priority
+          loading="eager"
         />
         {count > 1 && (
           <>

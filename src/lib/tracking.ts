@@ -116,4 +116,49 @@ export function trackLead(kind: "offerte" | "bestelling" | "calculator" | "conta
   window.fbq?.("track", "Lead", { content_name: kind });
 }
 
+/*
+ * SEO/SEA batch 2 (Nov 2026): the events the Google Ads plan needs, on the
+ * dataLayer (GTM) and to GA4. Like trackLead they only reach Google after
+ * consent: before it, dataLayer and gtag do not exist and nothing is sent.
+ */
+export function trackEvent(name: string, params: Record<string, unknown> = {}) {
+  window.dataLayer?.push({ event: name, ...params });
+  window.gtag?.("event", name, params);
+}
+
+/** A click on the phone number, WhatsApp or the e-mail address (any link on the site). */
+export function trackContactClick(href: string) {
+  const kind = href.startsWith("tel:") ? "click_phone" : href.startsWith("mailto:") ? "click_email" : /wa\.me|whatsapp/i.test(href) ? "click_whatsapp" : null;
+  if (!kind) return;
+  trackEvent(kind, { link_url: href.replace(/\?.*$/, ""), page_path: window.location.pathname });
+  window.fbq?.("track", "Contact", { content_name: kind });
+}
+
+/** The calculator reached its overview: a material list with a price. */
+export function trackCalculatorComplete(value: number) {
+  trackEvent("calculator_complete", { value: Math.round(value * 100) / 100, currency: "EUR" });
+}
+
+/**
+ * An order placed at /afrekenen/ (paid online, or by bank transfer): GA4
+ * "purchase" with its value, once per order and browser.
+ */
+export function trackPurchase(order: { number: string; total: number; payment: string; items: { id: string; name: string; quantity: number; price: number }[] }) {
+  try {
+    const key = `nh-purchase-${order.number}`;
+    if (window.localStorage.getItem(key)) return;
+    window.localStorage.setItem(key, "1");
+  } catch {
+    // storage blocked: still count it once for this page view
+  }
+  trackEvent("purchase", {
+    transaction_id: order.number,
+    value: order.total,
+    currency: "EUR",
+    payment_type: order.payment,
+    items: order.items.map((i) => ({ item_id: i.id, item_name: i.name, quantity: i.quantity, price: i.price })),
+  });
+  window.fbq?.("track", "Purchase", { value: order.total, currency: "EUR" });
+}
+
 export const OPEN_CONSENT_EVENT = "nh:consent-open";

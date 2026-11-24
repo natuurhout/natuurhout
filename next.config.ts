@@ -7,8 +7,13 @@ const nextConfig: NextConfig = {
   // redirects() below (it imports this file), with the same 308s as Next.
   output: "export",
   images: {
-    // No image optimisation server on a static host.
-    unoptimized: true,
+    // No image optimisation server on a static host: the loader points at WebP
+    // copies that scripts/build-images.mjs writes after the build (SEO batch 2).
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
+    // Fewer, matching widths (photos in public/fotos/web are at most 1400 px).
+    deviceSizes: [640, 828, 1080, 1400, 1920],
+    imageSizes: [64, 128, 256, 384],
     remotePatterns: [
       // Shop product images stay on the Shopify CDN (catalog is copied from
       // natuurhout.shop; the shop itself is never modified — rule 8).
@@ -29,9 +34,10 @@ const nextConfig: NextConfig = {
       ["/afsluitingen-kopen-vlaanderen", "/landelijke-afsluiting/"],
       ["/eiken-palen-kopen-vlaanderen", "/project/eiken-palen/"],
       ["/houten-moestuinbak", "/project/moestuinbak/"],
-      ["/kastanje-palen", "/"],
+      // SEO batch 2 (Nov 2026): to the page that matches, not the homepage (Google reads that as a soft 404).
+      ["/kastanje-palen", "/project/kastanjepalen/"],
       ["/kastanje-poort", "/project/franse-poorten/"],
-      ["/lariks-schaaldelen-kopen-vlaanderen", "/"],
+      ["/lariks-schaaldelen-kopen-vlaanderen", "/project/lariks-schaal-delen-2/"],
       ["/moestuinbak-kopen-vlaanderen", "/project/moestuinbak/"],
       ["/plantenbakken-kopen", "/project/moestuinbak/"],
     ];

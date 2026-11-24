@@ -3,10 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Calculator } from "lucide-react";
+import JsonLd from "@/components/JsonLd";
 import ProductCard from "@/components/ProductCard";
 import { getProduct, type Product } from "@/lib/catalog";
 import { categories } from "@/lib/categories";
 import { groupHref, productMenu, QUOTE_HREF } from "@/lib/navigation";
+import { breadcrumbStructuredData } from "@/lib/seo";
 
 /*
  * Overview page per product group of the main menu (Afsluitingen, Poorten,
@@ -45,6 +47,13 @@ export default async function ProductGroupPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-[80rem] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+      <JsonLd
+        data={breadcrumbStructuredData([
+          { name: "Home", path: "/" },
+          { name: "Producten", path: "/producten/" },
+          { name: group.title, path: groupHref(group) },
+        ])}
+      />
       <nav aria-label="Kruimelpad" className="text-sm text-ink/60">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>

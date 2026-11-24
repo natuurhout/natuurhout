@@ -23,6 +23,7 @@ import { clearCart } from "@/lib/cart";
 import { formatPrice, getProduct } from "@/lib/catalog";
 import { ADDRESS, EMAIL, PHONE, WHATSAPP } from "@/lib/contact";
 import { HOURS_TEXT } from "@/lib/opening-hours";
+import { trackPurchase } from "@/lib/tracking";
 
 /*
  * /afrekenen/bedankt/?o=NH-00012&t=<token>: where MultiSafepay sends the
@@ -274,6 +275,16 @@ function Hero({ icon, tone, eyebrow, title, children }: { icon: ReactNode; tone:
 
 function Confirmation({ s }: { s: Status }) {
   const paid = s.state === "betaald";
+  // GA4 "purchase" (and the Meta pixel), once per order; never for test payments.
+  useEffect(() => {
+    if (s.test) return;
+    trackPurchase({
+      number: s.number,
+      total: s.total,
+      payment: paid ? "online" : "overschrijving",
+      items: (s.lines ?? []).map((l) => ({ id: `${l.handle}${l.label ? ` ${l.label}` : ""}`, name: l.product, quantity: l.qty, price: l.qty ? Math.round((l.total / l.qty) * 100) / 100 : l.total })),
+    });
+  }, [s, paid]);
   const name = s.firstName ? `, ${s.firstName}` : "";
   const finalStep: Step = s.delivery
     ? { title: "Levering", icon: Truck, text: "Wij voeren de levering zelf uit en contacteren u op voorhand wanneer we komen leveren." }

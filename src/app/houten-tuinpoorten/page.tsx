@@ -148,7 +148,7 @@ export default function HoutenTuinpoortenPage() {
                 src="/fotos/kastanje-premium-poort-hekwerk.jpg"
                 alt="Kastanje premium poort, half open, in een kastanje hekwerk"
                 fill
-                priority
+                preload
                 sizes="(max-width: 1024px) 100vw, 460px"
                 className="object-cover"
               />

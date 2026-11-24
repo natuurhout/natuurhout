@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { trackCalculatorComplete } from "@/lib/tracking";
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import type { CalculatorData } from "@/lib/calculator-pricing";
@@ -61,6 +62,14 @@ export default function FenceCalculator({ data }: { data: CalculatorData }) {
     const keuze = new URLSearchParams(window.location.search).get("keuze") as ProductType | null;
     if (keuze && PRODUCT_TYPES.includes(keuze)) setState((s) => (s.types.length ? s : toggleType(s, keuze)));
   }, []);
+
+  // GA4 "calculator_complete": the overview with a priced list, once per visit.
+  const counted = useRef(false);
+  useEffect(() => {
+    if (current !== "overzicht" || counted.current || sum <= 0) return;
+    counted.current = true;
+    trackCalculatorComplete(sum);
+  }, [current, sum]);
 
   useEffect(() => {
     if (firstRender.current) {

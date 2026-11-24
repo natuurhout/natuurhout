@@ -70,7 +70,7 @@ export default function Navbar() {
               width={557}
               height={107}
               className="h-auto w-[220px] xl:w-[260px]"
-              priority
+              preload
             />
           </Link>
           <SearchBox items={searchIndex} className="w-full max-w-[420px]" />

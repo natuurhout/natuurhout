@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { preload } from "react-dom";
 import { ArrowRight, ArrowUpRight, Calculator, Handshake, Leaf, Recycle, ShieldCheck, Store, Truck } from "lucide-react";
@@ -75,6 +75,8 @@ const localBusiness = {
   areaServed: [
     { "@type": "Country", name: "België" },
   ],
+  // The yard in Zele (scripts/build-delivery-distances.mjs, YARD).
+  geo: { "@type": "GeoCoordinates", latitude: 51.0790489, longitude: 4.0584665 },
   openingHoursSpecification: HOURS.flatMap((hours, day) =>
     hours ? [{ "@type": "OpeningHoursSpecification", dayOfWeek: DAY_CODES[day], opens: hhmm(hours.open), closes: hhmm(hours.close) }] : [],
   ),
@@ -320,9 +322,13 @@ const rails = homeSections
   }))
   .filter((section) => section.items.length > 0);
 
+const HERO_PHOTO = "/fotos/web/kastanje-rasterwerk-120cm.jpg";
+
 export default function HomePage() {
-  // LCP image: preload at high priority (the static export emits no preload link for priority images).
-  preload("/fotos/web/kastanje-rasterwerk-120cm.jpg", { as: "image", fetchPriority: "high" });
+  // LCP image: preload at high priority (the static export emits no preload link
+  // for it), with the same WebP srcset the hero <img> uses.
+  const hero = getImageProps({ src: HERO_PHOTO, alt: "", fill: true, sizes: "100vw" }).props;
+  preload(hero.src, { as: "image", fetchPriority: "high", imageSrcSet: hero.srcSet, imageSizes: hero.sizes });
   return (
     <>
       {page?.structuredData && <JsonLd data={withPageMeta(page.structuredData, TITLE, DESCRIPTION)} />}
@@ -331,11 +337,11 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-brand-dark">
         <Image
-          src="/fotos/web/kastanje-rasterwerk-120cm.jpg"
+          src={HERO_PHOTO}
           alt="Kastanje hekwerk van 1,20 meter langs een oprit"
           fill
           sizes="100vw"
-          priority
+          loading="eager"
           fetchPriority="high"
           className="object-cover opacity-60"
         />

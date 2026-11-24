@@ -57,7 +57,7 @@ export default function ProjectLayout({
               src={hero.src}
               alt={hero.alt}
               fill
-              priority
+              preload
               sizes="(max-width: 1024px) 100vw, 60vw"
               className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
             />

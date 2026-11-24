@@ -235,7 +235,7 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
               <div className="grid grid-cols-3 gap-x-8 gap-y-7 xl:grid-cols-6 xl:gap-x-7">
                 {productMenu.map((group) => (
                   <div key={group.title}>
-                    <h2 className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.1em] text-ink [hyphens:manual]">
+                    <p className="border-b-2 border-accent pb-2 text-xs font-bold uppercase tracking-[0.1em] text-ink [hyphens:manual]">
                       <Link
                         href={groupHref(group)}
                         onClick={() => setMegaOpen(false)}
@@ -245,7 +245,7 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
                         {group.menuTitle ?? group.title}
                         <ArrowRight aria-hidden className="h-3.5 w-3.5 shrink-0 text-accent transition-transform group-hover/kop:translate-x-0.5" />
                       </Link>
-                    </h2>
+                    </p>
                     <ul className="mt-2">
                       {group.links.map((link) => (
                         <li key={link.href}>
@@ -298,7 +298,7 @@ export default function MainNav({ searchItems, promoCount }: { searchItems: Sear
             below 400px the call button goes (the numbers are in the menu). */}
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-1.5 px-4 min-[380px]:gap-2 sm:px-6">
           <Link href="/" aria-label="Natuurhout home" className="mr-auto shrink-0">
-            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[108px] min-[380px]:w-[128px] min-[400px]:w-[150px] sm:w-[190px]" priority />
+            <Image src="/wp-content/uploads/2016/01/logo-natuurhout-new-1.png" alt="Natuurhout" width={557} height={107} className="h-auto w-[108px] min-[380px]:w-[128px] min-[400px]:w-[150px] sm:w-[190px]" preload />
           </Link>
           <button
             type="button"

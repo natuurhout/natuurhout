@@ -19,13 +19,16 @@ walk(outputDir);
 const referenced = new Set();
 const hotlinks = [];
 for (const file of htmlFiles) {
+  // WebP copies (src/lib/image-loader.ts) name their original: /_img/w<width><original>.webp.
   const html = fs.readFileSync(file, "utf8");
   for (const match of html.matchAll(/https:\/\/(?:www\.)?natuurhout\.be\/wp-content\/uploads\/[^\s"'<>)]+/gi)) {
     hotlinks.push(`${path.relative(outputDir, file)}: ${match[0]}`);
   }
   // Paths also appear inside the escaped JSON of the RSC payload
   // (\"/wp-content/...\"), so a backslash ends a path just like a quote does.
-  for (const match of html.matchAll(/\/wp-content\/uploads\/[^\s"'<>)\\]+/gi)) {
+  // WebP copies (src/lib/image-loader.ts) name their original: /_img/w<width><original>.webp.
+  const originals = html.replace(/\/_img\/w\d+(\/[^\s"'<>)\\,]+?)\.webp/g, "$1");
+  for (const match of originals.matchAll(/\/wp-content\/uploads\/[^\s"'<>)\\]+/gi)) {
     referenced.add(match[0].split("?")[0]);
   }
 }

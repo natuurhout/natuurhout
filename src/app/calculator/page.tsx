@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import FenceCalculator from "@/components/FenceCalculator";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbStructuredData } from "@/lib/seo";
 import { calculatorData } from "@/lib/calculator";
 
 // New page (no live .be equivalent) — concept references
@@ -15,6 +17,12 @@ export const metadata: Metadata = {
 export default function CalculatorPage() {
   return (
     <div className="mx-auto w-full max-w-[80rem] px-4 py-12 sm:px-6 lg:px-10">
+      <JsonLd
+        data={breadcrumbStructuredData([
+          { name: "Home", path: "/" },
+          { name: "Calculator", path: "/calculator/" },
+        ])}
+      />
       <div className="max-w-3xl">
         <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
           <span aria-hidden className="h-px w-8 bg-accent" />

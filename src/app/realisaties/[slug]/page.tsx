@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import JsonLd from "@/components/JsonLd";
 import ProjectLayout from "@/components/ProjectLayout";
+import { breadcrumbStructuredData } from "@/lib/seo";
 import { getNewProject, NEW_PROJECTS, newProjectHref, newProjectProducts } from "@/lib/realisaties";
 
 /*
@@ -45,6 +47,14 @@ export default async function ProjectPage({ params }: Props) {
   ].filter((link): link is { href: string; rel: "prev" | "next"; title: string } => Boolean(link));
 
   return (
+    <>
+    <JsonLd
+      data={breadcrumbStructuredData([
+        { name: "Home", path: "/" },
+        { name: "Realisaties", path: "/onze-realisaties/" },
+        { name: project.title, path: newProjectHref(project) },
+      ])}
+    />
     <ProjectLayout
       title={project.title}
       description={project.description.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -52,5 +62,6 @@ export default async function ProjectPage({ params }: Props) {
       photos={project.photos}
       nav={nav}
     />
+    </>
   );
 }

@@ -85,7 +85,7 @@ export default async function ArtikelPage({ params }: Props) {
       </header>
 
       <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-card bg-brand-soft/50">
-        <Image src={artikel.image.src} alt={artikel.image.alt} fill priority sizes="(max-width: 960px) 100vw, 900px" className="object-cover" />
+        <Image src={artikel.image.src} alt={artikel.image.alt} fill preload sizes="(max-width: 960px) 100vw, 900px" className="object-cover" />
       </div>
 
       <div className="artikel mt-10" dangerouslySetInnerHTML={{ __html: artikel.html }} />

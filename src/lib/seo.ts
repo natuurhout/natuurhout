@@ -134,3 +134,12 @@ export function productStructuredData(product: Product): Record<string, unknown>
     ],
   };
 }
+
+/** BreadcrumbList for a hand-built page, the same trail as its visible "Kruimelpad". */
+export function breadcrumbStructuredData(trail: { name: string; path: string }[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: trail.map((step, i) => ({ "@type": "ListItem", position: i + 1, name: step.name, item: `${siteUrl}${step.path}` })),
+  };
+}

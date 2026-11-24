@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/flatten-rsc.mjs",
+    "postbuild": "node scripts/flatten-rsc.mjs && node scripts/build-images.mjs",
     "start": "wrangler dev",
     "dev:beheer": "wrangler dev --host localhost",
     "deploy": "npm run build && wrangler deploy",

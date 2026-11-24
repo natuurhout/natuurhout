@@ -1,6 +1,7 @@
 import legacyPagesJson from "@/data/legacy-pages.json";
 import handBuiltJson from "../../migration/handbuilt-routes.json";
 import { renameDeep } from "@/lib/renames.mjs";
+import imageLoader from "@/lib/image-loader";
 
 export type LegacyBlock =
   | { type: "heading"; level: number; text: string }
@@ -42,9 +43,54 @@ function mainTelephone(value: unknown): unknown {
   );
 }
 
+/*
+ * SEO batch 2 (Nov 2026): the old plugin's structured data, tidied on load.
+ * Relative "url" values (the logo) become absolute, as schema.org requires; the
+ * WordPress author ("Person", with a gravatar) goes from pages that are no
+ * article (a product page has no author); and the WebPage name/description
+ * follow an approved new title/description (handbuilt-routes.json).
+ */
+const SITE = "https://www.natuurhout.be";
+// A WordPress upload in the schema points at its WebP copy (src/lib/image-loader.ts),
+// never at /wp-content/ itself: no absolute WordPress media URLs on the site.
+const schemaPath = (path: string) => (/^\/wp-content\/uploads\/.+\.(jpe?g|png|webp)$/i.test(path) ? imageLoader({ src: path, width: 1080 }) : path);
+
+function absoluteUrls(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(absoluteUrls);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, key === "url" && typeof child === "string" && child.startsWith("/") ? `${SITE}${schemaPath(child)}` : absoluteUrls(child)]),
+  );
+}
+function tidySchema(pathname: string, data: Record<string, unknown>): Record<string, unknown> {
+  const fixed = absoluteUrls(mainTelephone(data)) as Record<string, unknown>;
+  const graph = Array.isArray(fixed["@graph"]) ? (fixed["@graph"] as Record<string, unknown>[]) : null;
+  if (!graph) return fixed;
+  const isArticle = graph.some((node) => ["Article", "BlogPosting", "NewsArticle"].includes(String(node["@type"])));
+  const approved = (handBuiltJson.routes as { pathname: string; approvedTitle?: string; approvedDescription?: string }[]).find((r) => r.pathname === pathname);
+  return {
+    ...fixed,
+    "@graph": graph
+      .filter((node) => isArticle || node["@type"] !== "Person")
+      .map((node) => {
+        let out = node;
+        if (!isArticle && ("author" in out || "creator" in out)) {
+          const { author: _a, creator: _c, ...rest } = out;
+          void _a;
+          void _c;
+          out = rest;
+        }
+        if (out["@type"] === "WebPage" && approved) {
+          out = { ...out, ...(approved.approvedTitle ? { name: approved.approvedTitle } : {}), ...(approved.approvedDescription ? { description: approved.approvedDescription } : {}) };
+        }
+        return out;
+      }),
+  };
+}
+
 // Approved product renames (src/lib/renames.mjs) are applied on load.
 export const legacyPages = renameDeep(legacyPagesJson as LegacyPage[]).map((page) =>
-  page.structuredData ? { ...page, structuredData: mainTelephone(page.structuredData) as Record<string, unknown> } : page,
+  page.structuredData ? { ...page, structuredData: tidySchema(page.pathname, page.structuredData) } : page,
 );
 
 const permanentNoindexPaths = new Set([

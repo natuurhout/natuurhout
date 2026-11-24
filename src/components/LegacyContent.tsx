@@ -1,5 +1,28 @@
+import { load } from "cheerio/slim";
 import type { LegacyPage } from "@/lib/legacy";
 import JsonLd from "@/components/JsonLd";
+
+/*
+ * SEO batch 2 (Nov 2026): the FAQ page's questions (WordPress accordion) as
+ * FAQPage structured data, word for word what the page shows.
+ */
+const FAQ_PATHS = new Set(["/veelgesteldevragen/"]);
+function faqSchema(html: string): Record<string, unknown> | null {
+  const $ = load(html, null, false);
+  const items = $(".accordion-tab")
+    .toArray()
+    .map((tab) => ({
+      q: $(tab).find(".accordion-title").text().replace(/\s+/g, " ").trim().replace(/:$/, ""),
+      a: $(tab).find(".accordion-content").text().replace(/\s+/g, " ").trim(),
+    }))
+    .filter((item) => item.q && item.a);
+  if (!items.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({ "@type": "Question", name: item.q, acceptedAnswer: { "@type": "Answer", text: item.a } })),
+  };
+}
 
 type EditorialSource = { title: string; url: string };
 
@@ -43,10 +66,12 @@ export default function LegacyContent({ page }: { page: LegacyPage }) {
   const structuredData = page.structuredData
     ? (addCitations(page.structuredData, sources) as Record<string, unknown>)
     : undefined;
+  const faq = FAQ_PATHS.has(page.pathname) ? faqSchema(page.html) : null;
 
   return (
     <>
       {structuredData && <JsonLd data={structuredData} />}
+      {faq && <JsonLd data={faq} />}
       <article
         className={`legacy-page legacy-page--${page.kind}`}
         data-source-path={page.pathname}

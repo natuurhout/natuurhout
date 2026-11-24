@@ -141,8 +141,10 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
 
   const file = FILE_WITH_SLASH.exec(path);
   if (file) return redirect(`/${file[1]}${url.search}`);
-  if (PAGE_WITHOUT_SLASH.test(path)) return redirect(`${path}/${url.search}`);
 
+  // redirects() first: a redirected URL without its slash goes to its target in
+  // one hop instead of two (308 slash, then 308 target). Patterns match with
+  // or without the trailing slash, as in Next.
   for (const { pattern, names, destination } of await compile()) {
     const match = pattern.exec(path);
     if (!match) continue;
@@ -152,6 +154,8 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
     );
     return redirect(`${target}${url.search}`);
   }
+
+  if (PAGE_WITHOUT_SLASH.test(path)) return redirect(`${path}/${url.search}`);
 
   // Backend catalogue edits, published for the site build (scripts/sync-catalog.mjs).
   if (path === "/api/catalogus/") {
@@ -185,6 +189,15 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
     return env.ASSETS.fetch(
       new Request(new URL("/__not-found__/", url), request),
     );
+  }
+
+  // WebP copies of photos (src/lib/image-loader.ts, scripts/build-images.mjs):
+  // when a copy was not built, serve the original instead of a broken image.
+  const webp = /^\/_img\/w\d+(\/.+)\.webp$/.exec(path);
+  if (webp) {
+    const copy = await env.ASSETS.fetch(request);
+    if (copy.status !== 404) return copy;
+    return env.ASSETS.fetch(new Request(new URL(webp[1], url), request));
   }
 
   return env.ASSETS.fetch(request);

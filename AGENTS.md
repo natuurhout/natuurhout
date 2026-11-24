@@ -113,7 +113,10 @@ historical).
 - **Images on hand-built pages** use web-sized JPEG copies in `public/fotos/web/`
   (max 1400px). The WordPress originals under `public/wp-content/uploads/` stay
   for the legacy snapshot pages and for Google Images (all image-sitemap URLs of
-  the old site resolve). Security headers are set in `worker/index.ts`.
+  the old site resolve). `next/image` uses a custom loader (`src/lib/image-loader.ts`): own photos
+  become `/_img/w<width><path>.webp`, written after the build by `scripts/build-images.mjs`
+  (cache `.cache/images`, kept in CI); a missing copy falls back to the original in the Worker.
+  Use `preload` (not the deprecated `priority`) for an above-the-fold image. Security headers are set in `worker/index.ts`.
 - `npm run typecheck` also checks the Worker (`worker/tsconfig.json`). After
   changing `wrangler.jsonc`, run `npm run cf:types`.
 
