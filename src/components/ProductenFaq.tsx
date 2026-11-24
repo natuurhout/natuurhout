@@ -53,11 +53,11 @@ const FAQS: Faq[] = [
   {
     q: "Levering goederen mogelijk:",
     plain:
-      "Ja, wij leveren zelf in heel België en in delen van Nederland. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. De leveringsprijs is aan te vragen: die hangt af van de plaats en de grootte van uw bestelling.",
+      "Ja, wij leveren zelf in heel België. Levering in Nederland is ook mogelijk: neem dan even contact met ons op. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. De leveringsprijs is aan te vragen: die hangt af van de plaats en de grootte van uw bestelling.",
     a: (
       <>
         <p>
-          Ja, wij leveren <strong>zelf</strong> in <strong>heel België</strong> en in delen van <strong>Nederland</strong>. Wat op
+          Ja, wij leveren <strong>zelf</strong> in <strong>heel België</strong>. Levering in Nederland is ook mogelijk: neem dan even contact met ons op. Wat op
           voorraad is, leveren we <strong>binnen de week</strong>, of sneller als het moet. De leveringsprijs is aan te vragen: die hangt
           af van de plaats en de grootte van uw bestelling.
         </p>

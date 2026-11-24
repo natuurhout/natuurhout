@@ -9,6 +9,7 @@ import { REPLACED_SHOP_PHOTOS } from "@/lib/extra-photos";
 import { WEBSITE_PRODUCT_COLLECTIONS, WEBSITE_PRODUCTS } from "@/lib/website-products";
 import { MERGED_HANDLES, withMerges } from "@/lib/merged-products";
 import { withRentals } from "@/lib/rentals";
+import { mainPage } from "@/lib/canonical-pages";
 import { PRODUCT_COPY } from "@/lib/product-copy";
 
 // Product content (titles, prices, descriptions, images) is copied verbatim
@@ -61,7 +62,7 @@ export type Collection = {
 };
 
 /** A product's page on this site. */
-export const productPage = (product: { handle: string }) => `/shop/${product.handle}/`;
+export const productPage = (product: { handle: string }) => mainPage(product.handle);
 
 // natuurhout.shop links inside the shop copy: a product link opens that
 // product's page here, anything else the shop overview.
@@ -74,7 +75,7 @@ function localShopLinks(html: string): string {
     .replace(SHOP_LINK, (_, path: string | undefined) => {
       const linked = /^\/products\/([\w-]+)/.exec(path ?? "")?.[1];
       const handle = linked ? (OLD_HANDLES[linked] ?? linked) : undefined;
-      return handle && KNOWN_HANDLES.has(handle) ? `/shop/${handle}/` : "/shop/";
+      return handle && KNOWN_HANDLES.has(handle) ? mainPage(handle) : "/shop/";
     })
     // Pages on this site open in the same tab.
     .replace(/(href="\/shop\/[^"]*")\s+target="_blank"(\s+rel="noopener")?/g, "$1");

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { mainPage } from "@/lib/canonical-pages";
 import { ArrowRight } from "lucide-react";
 import {
   compareAtPrice,
@@ -36,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link
-      href={`/shop/${product.handle}/`}
+      href={mainPage(product.handle)}
       className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg hover:shadow-ink/10"
     >
       <div className="relative aspect-square overflow-hidden bg-brand-soft/50">

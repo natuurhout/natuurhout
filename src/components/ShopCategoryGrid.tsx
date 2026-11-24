@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ArrowDown } from "lucide-react";
+import { mainPage } from "@/lib/canonical-pages";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
 import { orderTerm } from "@/lib/made-to-order";
@@ -73,7 +74,7 @@ export default function ShopCategoryGrid({ categories }: { categories: ShopCateg
                   return (
                     <li key={product.handle}>
                       <a
-                        href={`/shop/${product.handle}/`}
+                        href={mainPage(product.handle)}
                         className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-brand-soft/70"
                       >
                         <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-brand-soft/60">

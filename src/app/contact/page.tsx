@@ -171,7 +171,7 @@ export default function ContactPage() {
           <div className="flex gap-3 rounded-card bg-brand-dark p-5 text-sm leading-6 text-white/80">
             <Truck aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-accent-bright" />
             <p>
-              <strong className="text-white">Liever geleverd?</strong> We leveren zelf in heel België en delen van Nederland. Wat op
+              <strong className="text-white">Liever geleverd?</strong> We leveren zelf in heel België; levering in Nederland kan na overleg. Wat op
               voorraad is, staat binnen de week bij u.
             </p>
           </div>

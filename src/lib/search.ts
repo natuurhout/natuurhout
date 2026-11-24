@@ -1,3 +1,4 @@
+import { mainPage } from "@/lib/canonical-pages";
 import { categories } from "@/lib/categories";
 import { formatPrice, getProduct, isListed, products } from "@/lib/catalog";
 import { CARD_PHOTOS } from "@/lib/extra-photos";
@@ -86,7 +87,7 @@ function build(): SearchItem[] {
     if (!isListed(product)) continue;
     add({
       title: product.title,
-      href: `/shop/${product.handle}/`,
+      href: mainPage(product.handle),
       kind: "Webshop",
       keywords: product.tags.join(" "),
       image: CARD_PHOTOS[product.handle] ?? product.images[0]?.src,

@@ -4,9 +4,9 @@
     {
       "pathname": "/",
       "approvedBy": "Xander",
-      "reason": "Homepage rebuilt as a storefront: category tiles (now an auto-playing carousel of every product group), per-collection product rails, a calculator shortcut in the hero, company/SEO copy and the Natuurhout mascots. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go. Oct 2026 (Xander): the page is refocused on the main goal, selling kastanje, robinia and hazelaar hekwerk and their gates: new title, description and h1 (approvedTitle, approvedDescription, approvedHeading), featured hekwerk and gate cards with prices, posts, screens and planters next, rails and carousel in that priority, local-business structured data and a FAQ.",
+      "reason": "Homepage rebuilt as a storefront: category tiles (now an auto-playing carousel of every product group), per-collection product rails, a calculator shortcut in the hero, company/SEO copy and the Natuurhout mascots. The snapshot's only image was a 'Verlof' (holiday closure) notice that had to go. Oct 2026 (Xander): the page is refocused on the main goal, selling kastanje, robinia and hazelaar hekwerk and their gates: new title, description and h1 (approvedTitle, approvedDescription, approvedHeading), featured hekwerk and gate cards with prices, posts, screens and planters next, rails and carousel in that priority, local-business structured data and a FAQ. Nov 2026 SEO batch 1 (Xander): delivery area is heel België (Nederland on request), placement without a region, hazelaar about 10 years; the description follows.",
       "approvedTitle": "Kastanje, robinia & hazelaar hekwerk en poorten | Natuurhout",
-      "approvedDescription": "Hekwerk en houten poorten in kastanje, robinia en hazelaar, rechtstreeks van de specialist in Zele. Ook palen, vlechtschermen en moestuinbakken. Levering in heel Vlaanderen.",
+      "approvedDescription": "Hekwerk en houten poorten in kastanje, robinia en hazelaar, rechtstreeks van de specialist in Zele. Ook palen, vlechtschermen en moestuinbakken. Levering in heel België.",
       "approvedHeading": "Hekwerk en poorten in kastanje, robinia en hazelaar",
       "retargetedLinks": {
         "/project/robiniarasterwerk/": {
@@ -430,9 +430,9 @@
     {
       "pathname": "/houten-tuinpoorten/",
       "approvedBy": "Xander",
-      "reason": "Houten tuinpoorten landing page rewritten on Xander's request (Oct 2026) for 'tuinpoorten in Vlaanderen': Natuurhout's own gate photo, the gates actually sold (kastanje premium, geschroefd and maatwerk, robinia, hazelaar, Cleft & Field) with links to their pages and a small photo on hover, advantages, placement and delivery, a quote block and realisations. Title, description and h1 are replaced (approvedTitle, approvedDescription, approvedHeading; the old description also ended in a stray '}'). Canonical and structured data are the snapshot's; every internal link stays, two retargeted to the page their old URL redirects to.",
+      "reason": "Houten tuinpoorten landing page rewritten on Xander's request (Oct 2026) for 'tuinpoorten in Vlaanderen': Natuurhout's own gate photo, the gates actually sold (kastanje premium, geschroefd and maatwerk, robinia, hazelaar, Cleft & Field) with links to their pages and a small photo on hover, advantages, placement and delivery, a quote block and realisations. Title, description and h1 are replaced (approvedTitle, approvedDescription, approvedHeading; the old description also ended in a stray '}'). Canonical and structured data are the snapshot's; every internal link stays, two retargeted to the page their old URL redirects to. Nov 2026 SEO batch 1 (Xander): delivery area is heel België (Nederland on request), placement without a region, hazelaar about 10 years; the description follows.",
       "approvedTitle": "Houten tuinpoorten in Vlaanderen | Natuurhout",
-      "approvedDescription": "Houten tuinpoorten in kastanje, robinia en hazelaar: premium, geschroefd of op maat, en Cleft & Field veldpoorten. Levering in heel Vlaanderen vanuit Zele.",
+      "approvedDescription": "Houten tuinpoorten in kastanje, robinia en hazelaar: premium, geschroefd of op maat, en Cleft & Field veldpoorten. Levering in heel België vanuit Zele.",
       "approvedHeading": "Houten tuinpoorten in Vlaanderen",
       "retargetedLinks": {
         "/project/robiniarasterwerk/": { "to": "/project/robinia-rasterwerk/", "reason": "Old URL; redirects to /project/robinia-rasterwerk/ (next.config)." },
@@ -442,9 +442,9 @@
     {
       "pathname": "/landelijke-afsluiting/",
       "approvedBy": "Xander",
-      "reason": "Landelijke afsluitingen landing page rewritten on Xander's request (Oct 2026) for 'tuinafsluiting in Vlaanderen': Natuurhout's own project photo, the snapshot's three quality points, the fences, screens, lariks, Post & Rail, gates and posts actually sold, with links to their pages and a small photo on hover, the choice of wood, delivery and placement, a quote block and realisations. Title, description and h1 are replaced (approvedTitle, approvedDescription, approvedHeading). Canonical and structured data are the snapshot's; every internal link stays, two retargeted to the page their old URL redirects to.",
+      "reason": "Landelijke afsluitingen landing page rewritten on Xander's request (Oct 2026) for 'tuinafsluiting in Vlaanderen': Natuurhout's own project photo, the snapshot's three quality points, the fences, screens, lariks, Post & Rail, gates and posts actually sold, with links to their pages and a small photo on hover, the choice of wood, delivery and placement, a quote block and realisations. Title, description and h1 are replaced (approvedTitle, approvedDescription, approvedHeading). Canonical and structured data are the snapshot's; every internal link stays, two retargeted to the page their old URL redirects to. Nov 2026 SEO batch 1 (Xander): delivery area is heel België (Nederland on request), placement without a region, hazelaar about 10 years; the description follows.",
       "approvedTitle": "Landelijke tuinafsluiting in Vlaanderen | Natuurhout",
-      "approvedDescription": "Landelijke tuinafsluitingen in kastanje, robinia en hazelaar: hekwerk, vlechtschermen, lariks en Post & Rail. Levering en plaatsing in heel Vlaanderen vanuit Zele.",
+      "approvedDescription": "Landelijke tuinafsluitingen in kastanje, robinia en hazelaar: hekwerk, vlechtschermen, lariks en Post & Rail. Levering in heel België en plaatsing vanuit Zele.",
       "approvedHeading": "Landelijke afsluitingen in Vlaanderen",
       "retargetedLinks": {
         "/project/robiniarasterwerk/": { "to": "/project/robinia-rasterwerk/", "reason": "Old URL; redirects to /project/robinia-rasterwerk/ (next.config)." },

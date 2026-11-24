@@ -15,8 +15,18 @@ export const RENAMES_APPROVAL = {
     "Oct 2026: deze website vervangt natuurhout.shop, dus de link 'www.natuurhout.shop – voor rechtstreekse bestelling' " +
     "wijst naar de shop op deze site (natuurhout.be/shop). " +
     "Nov 2026: geen emoji's op de website (Google Ads weigert ze, ze helpen SEO niet en ogen onprofessioneel); " +
-    "het vinkje ✓ is een gewoon tekstteken en blijft.",
+    "het vinkje ✓ is een gewoon tekstteken en blijft. " +
+    "Nov 2026 (SEO batch 1): hazelaar gaat overal 'ongeveer 10 jaar' mee, zoals op de rest van de site; de oude teksten zeiden 8 tot 15 jaar.",
 };
+
+/*
+ * Facts corrected in the frozen text (Xander, Nov 2026), so every page says the
+ * same: hazelaar lasts about 10 years.
+ */
+const FACT_RULES = [
+  ["levensduur ± 8 tot 15 jaar", "levensduur ± 10 jaar"],
+  ["gemiddeld 8 tot 15 jaar", "gemiddeld 10 jaar"],
+];
 
 /*
  * No emoji anywhere on the website (Xander, Nov 2026: "haal ze overal weg"),
@@ -60,6 +70,9 @@ const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** @param {string} value */
 export function applyRenames(value) {
+  if (value && value.includes("8 tot 15 jaar")) {
+    for (const [from, to] of FACT_RULES) value = value.split(from).join(to);
+  }
   if (value && value.includes("natuurhout.shop")) {
     for (const [from, to] of SHOP_RULES) value = value.split(from).join(to);
   }

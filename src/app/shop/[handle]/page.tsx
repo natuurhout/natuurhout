@@ -7,6 +7,7 @@ import Realisaties from "@/components/Realisaties";
 import JsonLd from "@/components/JsonLd";
 import { getProduct, products } from "@/lib/catalog";
 import { realisatiesFor } from "@/lib/realisaties";
+import { mainPage, SHOP_CANONICAL } from "@/lib/canonical-pages";
 import { boughtTogether, includedIn, productFacts, productSections, pairedWith } from "@/lib/product-info";
 import { productHighlights } from "@/lib/product-highlights";
 import {
@@ -24,14 +25,16 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   const product = getProduct(handle);
   if (!product) return {};
   const title = productMetadataTitle(product);
+  // Option A: products with a /project/ page point there (src/lib/canonical-pages.ts).
+  const canonical = `https://www.natuurhout.be${mainPage(product.handle)}`;
   return {
     title,
     description: productDescription(product),
-    alternates: { canonical: `https://www.natuurhout.be/shop/${product.handle}/` },
+    alternates: { canonical },
     openGraph: {
       title,
       description: productDescription(product),
-      url: `https://www.natuurhout.be/shop/${product.handle}/`,
+      url: canonical,
       images: product.images[0] ? [product.images[0].src] : [],
     },
   };
@@ -50,7 +53,7 @@ export default async function ShopProductPage({ params }: { params: Promise<{ ha
   // photo + price list, then product information in tabs, then cross-sell.
   return (
     <div className="mx-auto w-full max-w-[80rem] px-4 py-8 sm:px-6 lg:px-10">
-      <JsonLd data={productStructuredData(product)} />
+      {!SHOP_CANONICAL[product.handle] && <JsonLd data={productStructuredData(product)} />}
       <nav className="text-sm text-ink/60" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li><Link href="/" className="hover:text-accent">Home</Link></li>

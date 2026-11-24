@@ -25,7 +25,7 @@ const page = getLegacyPageByPath("/landelijke-afsluiting/");
 
 const TITLE = "Landelijke tuinafsluiting in Vlaanderen | Natuurhout";
 const DESCRIPTION =
-  "Landelijke tuinafsluitingen in kastanje, robinia en hazelaar: hekwerk, vlechtschermen, lariks en Post & Rail. Levering en plaatsing in heel Vlaanderen vanuit Zele.";
+  "Landelijke tuinafsluitingen in kastanje, robinia en hazelaar: hekwerk, vlechtschermen, lariks en Post & Rail. Levering in heel België en plaatsing vanuit Zele.";
 const HEADING = "Landelijke afsluitingen in Vlaanderen";
 
 export const metadata: Metadata = {
@@ -73,10 +73,10 @@ function faqs(): FaqItem[] {
     },
     {
       q: "Hoe lang gaat een houten afsluiting mee?",
-      text: "Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15 jaar. Kastanje palen van ø 8-10 cm gaan in de grond zo’n 10 jaar mee, afhankelijk van de omstandigheden; daarom raden we een postsaver aan: die verlengt de levensduur van de palen.",
+      text: "Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 10 jaar. Kastanje palen van ø 8-10 cm gaan in de grond zo’n 10 jaar mee, afhankelijk van de omstandigheden; daarom raden we een postsaver aan: die verlengt de levensduur van de palen.",
       body: (
         <>
-          Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 8 tot 15
+          Zonder behandeling gaat kastanje hekwerk ongeveer 15 tot 25 jaar mee, robinia ongeveer 25 tot 40 jaar en hazelaar ongeveer 10
           jaar. Kastanje palen van ø 8-10 cm gaan in de grond zo’n 10 jaar mee, afhankelijk van de omstandigheden; daarom raden we een{" "}
           <Link href="/project/postsaver-voor-palen/" className={textLink}>postsaver</Link> aan: die verlengt de levensduur van de palen. Lees ook{" "}
           <Link href="/kastanje-hazelaar-of-robinia-hekwerk-wat-is-het-verschil/" className={textLink}>het verschil tussen kastanje, hazelaar en robinia</Link>.
@@ -99,8 +99,8 @@ function faqs(): FaqItem[] {
       ),
     },
     {
-      q: "Leveren en plaatsen jullie afsluitingen in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele leveren we zelf in heel Vlaanderen, de rest van België en delen van Nederland. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. Op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      q: "Leveren en plaatsen jullie afsluitingen?",
+      text: `Ja. Vanuit Zele leveren we zelf in heel België. Levering in Nederland is ook mogelijk: neem dan even contact met ons op. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. Op aanvraag plaatsen we uw afsluiting. Afhalen kan ook, in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
   ];
 }
@@ -129,7 +129,7 @@ export default function LandelijkeAfsluitingPage() {
               <strong className="text-ink">kastanje</strong>, <strong className="text-ink">robinia</strong> en{" "}
               <strong className="text-ink">hazelaar</strong>: van hekwerk op rol tot vlechtschermen, lariks en Post &amp; Rail.
             </p>
-            <p>We leveren in heel Vlaanderen, en ook in de rest van België, en plaatsen uw afsluiting ook voor u.</p>
+            <p>We leveren zelf in heel België, en plaatsen uw afsluiting ook voor u.</p>
             <ul className="space-y-1.5 text-base">
               {USPS.map((usp) => (
                 <li key={usp} className="flex items-center gap-2 font-medium text-ink">
@@ -231,9 +231,9 @@ export default function LandelijkeAfsluitingPage() {
           </ul>
         </Section>
 
-        <Section title="Levering en plaatsing in heel Vlaanderen">
+        <Section title="Levering in heel België en plaatsing">
           <p>
-            Vanuit Zele (Oost-Vlaanderen) leveren we in heel Vlaanderen, en ook in de rest van België; afhalen kan ook. Wij plaatsen uw
+            Vanuit Zele (Oost-Vlaanderen) leveren we zelf in heel België; afhalen kan ook. Levering in Nederland is ook mogelijk: neem dan even contact met ons op. Wij plaatsen uw
             afsluiting graag voor u, of u doet het zelf met onze{" "}
             <Link href="/tipsenideeen/kastanje-hekwerk-en-poort-plaatsen/" className={textLink}>handleiding hekwerk en poort plaatsen</Link>.
             Met de <Link href="/calculator/?keuze=hekwerk" className={textLink}>calculator</Link> berekent u meteen hoeveel rollen,
@@ -242,7 +242,7 @@ export default function LandelijkeAfsluitingPage() {
           </p>
         </Section>
 
-        <Section title="Tuinafsluitingen geplaatst in heel Vlaanderen">
+        <Section title="Al 15 jaar tuinafsluitingen in Vlaanderen">
           <p>
             Natuurhout zit in Zele, in het hart van Oost-Vlaanderen, en heeft al zo’n 15 jaar ervaring met kastanje afsluitingen. We
             plaatsten al landelijke afsluitingen in onder meer {PLACES.slice(0, -1).join(", ")} en {PLACES[PLACES.length - 1]}.

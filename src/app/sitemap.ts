@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { isPermanentlyNoindexLegacyPath, legacyPages } from "@/lib/legacy";
 import { products } from "@/lib/catalog";
+import { SHOP_CANONICAL } from "@/lib/canonical-pages";
 import { groupHref, productMenu } from "@/lib/navigation";
 import { NEW_PROJECTS, newProjectHref } from "@/lib/realisaties";
 import { ARTIKELS, artikelHref } from "@/lib/artikels";
@@ -26,7 +27,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: page.kind === "archive" ? "weekly" : "monthly",
       priority: page.kind === "project" ? 0.7 : 0.6,
     }));
-  const catalogue: MetadataRoute.Sitemap = products.map((product) => ({
+  // Products whose main page is a /project/ page are not listed twice (src/lib/canonical-pages.ts).
+  const catalogue: MetadataRoute.Sitemap = products.filter((product) => !SHOP_CANONICAL[product.handle]).map((product) => ({
     url: `${siteUrl}/shop/${product.handle}/`,
     lastModified: product.publishedAt ? new Date(product.publishedAt) : undefined,
     changeFrequency: "weekly",

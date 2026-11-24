@@ -34,7 +34,7 @@ const page = getLegacyPageByPath("/");
 // in migration/handbuilt-routes.json.
 const TITLE = "Kastanje, robinia & hazelaar hekwerk en poorten | Natuurhout";
 const DESCRIPTION =
-  "Hekwerk en houten poorten in kastanje, robinia en hazelaar, rechtstreeks van de specialist in Zele. Ook palen, vlechtschermen en moestuinbakken. Levering in heel Vlaanderen.";
+  "Hekwerk en houten poorten in kastanje, robinia en hazelaar, rechtstreeks van de specialist in Zele. Ook palen, vlechtschermen en moestuinbakken. Levering in heel België.";
 const HEADING = "Hekwerk en poorten in kastanje, robinia en hazelaar";
 
 export const metadata: Metadata = {
@@ -73,7 +73,6 @@ const localBusiness = {
     addressCountry: "BE",
   },
   areaServed: [
-    { "@type": "AdministrativeArea", name: "Vlaanderen" },
     { "@type": "Country", name: "België" },
   ],
   openingHoursSpecification: HOURS.flatMap((hours, day) =>
@@ -165,7 +164,7 @@ function homeFaqs(): FaqItem[] {
   return [
     {
       q: "Welk hekwerk kies ik: kastanje, robinia of hazelaar?",
-      text: "Kastanje is de klassieker: duurzaam zonder behandeling (ongeveer 15 tot 25 jaar) en in de meeste hoogtes. Robinia is de duurzaamste Europese houtsoort (ongeveer 25 tot 40 jaar) en heel stevig. Hazelaar is lichter en speelser van uitzicht en past mooi rond borders en moestuinen (ongeveer 8 tot 15 jaar).",
+      text: "Kastanje is de klassieker: duurzaam zonder behandeling (ongeveer 15 tot 25 jaar) en in de meeste hoogtes. Robinia is de duurzaamste Europese houtsoort (ongeveer 25 tot 40 jaar) en heel stevig. Hazelaar is lichter en speelser van uitzicht en past mooi rond borders en moestuinen (ongeveer 10 jaar).",
     },
     {
       q: "Wat kost kastanje hekwerk?",
@@ -176,8 +175,8 @@ function homeFaqs(): FaqItem[] {
       text: "Ja. Bij kastanje hekwerk horen de kastanje premium poorten, geschroefde poorten en poorten op maat; daarnaast zijn er robinia en hazelaar poorten en Cleft & Field veldpoorten voor weides. De meeste poorten worden geleverd met poortpalen en hang- en sluitwerk.",
     },
     {
-      q: "Leveren jullie in heel Vlaanderen?",
-      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we zelf in heel Vlaanderen, de rest van België en delen van Nederland. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. Op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
+      q: "Leveren jullie in heel België?",
+      text: `Ja. Vanuit Zele (Oost-Vlaanderen) leveren we zelf in heel België. Levering in Nederland is ook mogelijk: neem dan even contact met ons op. Wat op voorraad is, leveren we binnen de week, of sneller als het moet. Op aanvraag plaatsen we uw afsluiting. Afhalen kan in de ${ADDRESS.street} in ${ADDRESS.city}.`,
     },
     {
       q: "Moet kastanjehout behandeld worden?",
@@ -189,7 +188,7 @@ function homeFaqs(): FaqItem[] {
 const usps = [
   { icon: ShieldCheck, title: "Familiebedrijf, 15 jaar ervaring", text: "Advies van mensen die het hout kennen." },
   { icon: Store, title: "Grote voorraad", text: "Wat op voorraad is, leveren we binnen de week, of sneller als het moet." },
-  { icon: Truck, title: "Eigen levering", text: "Wij leveren zelf in heel België en delen van Nederland, of u haalt af in Zele." },
+  { icon: Truck, title: "Eigen levering", text: "Wij leveren zelf in heel België (Nederland op aanvraag), of u haalt af in Zele." },
   { icon: Handshake, title: "Hulp bij inladen", text: "Afhalen in Zele? We helpen u inladen en geven advies." },
 ];
 
@@ -355,7 +354,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/80">
               Onbehandeld hekwerk op rol en bijpassende houten tuinpoorten, rechtstreeks uit eigen voorraad in Zele. Ook
-              palen, vlechtschermen en moestuinbakken. Al zo’n vijftien jaar, met levering in heel Vlaanderen.
+              palen, vlechtschermen en moestuinbakken. Al zo’n vijftien jaar, met levering in heel België.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -577,7 +576,7 @@ export default function HomePage() {
                 <Link href="/project/hazelaarrasterwerk/" className="font-medium text-accent underline underline-offset-2">hazelaar hekwerk</Link>, met
                 de bijpassende{" "}
                 <Link href="/houten-tuinpoorten/" className="font-medium text-accent underline underline-offset-2">houten poorten</Link>, aan
-                particulieren, overheden en bedrijven in heel Vlaanderen — van
+                particulieren, overheden en bedrijven in heel België — van
                 één rol hekwerk voor een voortuin tot de volledige omheining
                 van een paardenweide.
               </p>
@@ -649,10 +648,10 @@ export default function HomePage() {
               </p>
 
               <h3 className="pt-4 font-display text-xl font-semibold text-ink">
-                Geleverd en geplaatst in heel Vlaanderen
+                Geleverd in heel België, en geplaatst als u dat wilt
               </h3>
               <p>
-                Vanuit Zele leveren we in heel Vlaanderen, en ook in de rest van België, of u haalt af in onze opslag. We plaatsten al
+                Vanuit Zele leveren we zelf in heel België, of u haalt af in onze opslag. Nederland? Neem even contact op. We plaatsten al
                 afsluitingen en poorten in onder meer {PLACES.slice(0, 12).join(", ")} en {PLACES[12]}. Bekijk onze{" "}
                 <Link href="/onze-realisaties/" className="font-medium text-accent underline underline-offset-2">realisaties</Link>{" "}
                 of lees in de{" "}

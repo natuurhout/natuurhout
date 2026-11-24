@@ -8,6 +8,7 @@ import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestFor
 import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
 import { volumeProgress, withVolumePrices } from "@/lib/volume-pricing";
+import { mainPage } from "@/lib/canonical-pages";
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
 import { backorderNote } from "@/lib/order-limits";
@@ -37,7 +38,7 @@ const PAGE: Record<string, string> = {
   "eiken-palen-met-postsaver": "/shop/eiken-palen/",
   "postsaver-aanbrengen": "/project/postsaver-voor-palen/",
 };
-const pageOf = (line: CartLine) => PAGE[line.handle] ?? `/shop/${line.handle}/`;
+const pageOf = (line: CartLine) => PAGE[line.handle] ?? mainPage(line.handle);
 
 type Availability = { ready: boolean; online: boolean; testOnline: boolean };
 

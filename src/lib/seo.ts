@@ -56,6 +56,34 @@ export function productMetadataTitle(product: Product) {
   return `${product.title} | Natuurhout`;
 }
 
+/**
+ * A Product node for the page that is the product's main page (pageUrl):
+ * one offer per variant, incl. btw. Not in stock is "BackOrder": it can still
+ * be ordered (op bestelling / op aanvraag).
+ */
+export function productNode(product: Product, pageUrl: string): Record<string, unknown> {
+  return {
+    "@type": "Product",
+    "@id": `${pageUrl}#product-${product.handle}`,
+    name: product.title,
+    description: plainTextFromHtml(product.bodyHtml) || `${product.title} van Natuurhout.`,
+    image: product.images.map((image) => (image.src.startsWith("http") ? image.src : `${siteUrl}${image.src}`)),
+    brand: { "@type": "Brand", name: "Natuurhout" },
+    category: product.tags.join(", ") || "Tuinproducten",
+    offers: product.variants.map((variant) => ({
+      "@type": "Offer",
+      name: variant.title === "Default Title" ? product.title : `${product.title} ${variant.title}`,
+      sku: String(variant.id),
+      price: variant.price,
+      priceCurrency: "EUR",
+      availability: `https://schema.org/${variant.available ? "InStock" : "BackOrder"}`,
+      itemCondition: "https://schema.org/NewCondition",
+      url: pageUrl,
+      seller: { "@id": `${siteUrl}/#organization` },
+    })),
+  };
+}
+
 export function productStructuredData(product: Product): Record<string, unknown> {
   const canonical = `${siteUrl}/shop/${product.handle}/`;
   const offers = product.variants.map((variant) => ({
@@ -63,7 +91,7 @@ export function productStructuredData(product: Product): Record<string, unknown>
     sku: String(variant.id),
     price: variant.price,
     priceCurrency: "EUR",
-    availability: `https://schema.org/${variant.available ? "InStock" : "OutOfStock"}`,
+    availability: `https://schema.org/${variant.available ? "InStock" : "BackOrder"}`,
     itemCondition: "https://schema.org/NewCondition",
     url: canonical,
     seller: { "@id": `${siteUrl}/#organization` },

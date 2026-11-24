@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Calculator, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import LariksGuide, { LARIKS_PATH, LariksPriceLine, lariksLead } from "@/components/LariksGuide";
+import { SHOP_CANONICAL } from "@/lib/canonical-pages";
+import { productNode } from "@/lib/seo";
 import Realisaties from "@/components/Realisaties";
 import { ProductHero } from "@/components/ProductDetail";
 import { BoughtTogether, PriceTableHtml, ProductInfo, productInfoTabs, ShopPriceMatrix } from "@/components/ProductInfo";
@@ -56,10 +58,16 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
   // Lariks schaaldelen (Xander, Nov 2026): a summary to be read on its own, the price per metre, and a guide below.
   const lariks = page.pathname === LARIKS_PATH && primary ? primary : undefined;
   const lead = lariks ? lariksLead(lariks) : info.lead;
+  // Option A (src/lib/canonical-pages.ts): the Product schema of the products whose main page this is
+  // (lariks has its own, with the staffel, in LariksGuide).
+  const mainFor = lariks ? [] : info.products.filter((p) => SHOP_CANONICAL[p.handle] === page.pathname);
 
   return (
     <div className="mx-auto w-full max-w-[80rem] px-4 py-8 sm:px-6 lg:px-10" data-legacy-product={page.pathname}>
       {page.structuredData && <JsonLd data={page.structuredData} />}
+      {mainFor.length > 0 && (
+        <JsonLd data={{ "@context": "https://schema.org", "@graph": mainFor.map((p) => productNode(p, `https://www.natuurhout.be${page.pathname}`)) }} />
+      )}
       <nav className="text-sm text-ink/60" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li><Link href="/" className="hover:text-accent">Home</Link></li>
