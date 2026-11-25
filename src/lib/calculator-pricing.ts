@@ -119,9 +119,8 @@ export const CUSTOM_GATE_TABLE: { width: number; prices: number[] }[] = [
   { width: 210, prices: [279, 299, 319, 339] },
 ];
 
-/** Post & Rail, from /project/post-rail-2/: a rail is 2.90 m; peeled costs €1.50 extra per post and per rail. */
+/** Post & Rail, from /project/post-rail-2/: a rail is 2.90 m; posts and rails are always peeled (Nov 2026). */
 export const RAIL_LENGTH_M = 2.9;
-export const PEELED_SURCHARGE = 1.5;
 
 /* ------------------------------------------------------------------ */
 /* Calculations                                                        */

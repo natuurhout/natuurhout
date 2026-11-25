@@ -150,7 +150,10 @@
     {
       "pathname": "/project/post-rail-2/",
       "approvedBy": "Xander",
-      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page.",
+      "reason": "Product page ('Producten & Prijzen' menu) moved into the shop's product layout on Xander's request: small photo beside the webshop's orderable price list, the page's own text sorted into tabs (Omschrijving, Prijstabel, Kenmerken, Pluspunten, Tips, Foto's), 'Vaak samen gekocht' below. All snapshot copy, photos and links stay on the page. 25 Nov 2026 (Xander): new prices (post 2 gats EUR 35,95, post 3 gats EUR 36,95, ligger EUR 24,95) and always peeled: the line 'Peeled (ontschorst): EUR 1,50 extra per Post en Rail' is replaced by 'automatisch ontschorst, in de prijs' (removedContent; TEXT_FIXES in src/lib/legacy-product.ts).",
+      "removedContent": [
+        "Peeled (ontschorst): €1,50 extra per Post en Rail"
+      ],
       "preserveContent": true,
       "pricesFromShop": true,
       "pricesApprovedBy": "Xander",

@@ -131,6 +131,8 @@ const ABOUT: Record<string, string> = {
  */
 const TEXT_FIXES: Record<string, [RegExp, string][]> = {
   "/project/lariks-schaal-delen-2/": [[/(Lengtes verkrijgbaar in\s*<strong>(?:&nbsp;|\u00a0|\s)*)3, 4 en 5 meter/, "$12, 3, 4 en 5 meter"]],
+  // Xander, 25 Nov 2026: posts and rails are always peeled now, in the price (no surcharge).
+  "/project/post-rail-2/": [[/Peeled \(ontschorst\): (?:€|&#x20ac;|&euro;)1,50 extra per Post en Rail/i, "Alle posts en rails worden automatisch ontschorst geleverd: dat zit in de prijs."]],
 };
 
 /** Descriptive alt texts for snapshot photos that had none (WordPress left alt=""). */

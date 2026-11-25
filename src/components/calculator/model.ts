@@ -5,7 +5,6 @@ import { MAATWERK_POORT, customGateVariantId } from "@/lib/order-only-products";
 import {
   BLACK_HARDWARE_SURCHARGE,
   OAK_WITH_POSTSAVER,
-  PEELED_SURCHARGE,
   POSTSAVER_FITTING,
   POSTS_PER_GATE,
   ROBINIA_POSTSAVER_EXTRA,
@@ -109,7 +108,7 @@ export type State = {
   types: ProductType[];
   fences: FenceLine[];
   screen: { handle: string; variantId: number | null; count: number };
-  postRail: { rails: 2 | 3; meters: number; corners: number; peeled: boolean };
+  postRail: { rails: 2 | 3; meters: number; corners: number };
   poles: PoleLine[];
   gates: Gate[];
   planters: Record<number, number>; // variantId → quantity
@@ -203,7 +202,7 @@ export function initialState(data: CalculatorData): State {
     types: [],
     fences: [newFenceLine(data)],
     screen: { handle: data.screens[0]?.handle ?? "", variantId: null, count: 4 },
-    postRail: { rails: 3, meters: 20, corners: 0, peeled: false },
+    postRail: { rails: 3, meters: 20, corners: 0 },
     poles: [{ id: newId(), handle: data.fencePoles[0]?.handle ?? "", variantId: null, count: null, saver: "none" }],
     gates: [],
     planters: {},
@@ -583,26 +582,26 @@ export function buildLines(data: CalculatorData, state: State): Line[] {
     const pr = data.postRail;
     const q = postRailFor(state.postRail.meters, state.postRail.corners, state.postRail.rails);
     const post = state.postRail.rails === 2 ? pr.post2 : pr.post3;
-    const extra = state.postRail.peeled ? PEELED_SURCHARGE : 0;
-    const peeled = state.postRail.peeled ? ", ontschorst" : "";
+    // Always peeled since Nov 2026, in the price.
+    const peeled = ", ontschorst";
     if (q.posts > 0) {
       lines.push({
         group: "Post & Rail",
         label: `${post.title} (2 m, 15 cm)${peeled}`,
         detail: `${state.postRail.meters} m met ${state.postRail.corners} ${state.postRail.corners === 1 ? "hoek" : "hoeken"}: ${q.sections} vakken`,
         qty: q.posts,
-        unit: post.price + extra,
+        unit: post.price,
         url: pr.shopUrl,
-        ...(extra ? {} : variantOf(pr.handle, pr.title, post)),
+        ...variantOf(pr.handle, pr.title, post),
       });
       lines.push({
         group: "Post & Rail",
         label: `${pr.rail.title} 2,90 m${peeled}`,
         detail: `${state.postRail.rails} liggers per vak`,
         qty: q.rails,
-        unit: pr.rail.price + extra,
+        unit: pr.rail.price,
         url: pr.shopUrl,
-        ...(extra ? {} : variantOf(pr.handle, pr.title, pr.rail)),
+        ...variantOf(pr.handle, pr.title, pr.rail),
       });
     }
   }

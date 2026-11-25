@@ -27,6 +27,12 @@ const VARIANT_PRICES: Record<string, Record<string, string>> = {
     "8-10cm / 250cm": "19.50",
     "8-10cm / 300cm": "21.00",
   },
+  // Post & Rail (Xander, 25 Nov 2026): always ontschorst now, in the price.
+  "post-rail-omheining": {
+    "Post 2 gats": "35.95",
+    "Post 3 gats": "36.95",
+    "Rail (Ligger)": "24.95",
+  },
   // Losse sleeves: Postsaver 02 (ø6-8), 004 (ø8-10) and 045 (120 mm).
   "kastanje-paal-met-postsaver": {
     "Postsaver ronde paal ø6-8cm": "3.95",

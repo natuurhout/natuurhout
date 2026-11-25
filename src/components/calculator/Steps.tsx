@@ -11,7 +11,6 @@ import {
   CUSTOM_GATE_MAX_WIDTH,
   CUSTOM_GATE_MIN,
   CUSTOM_GATE_TABLE,
-  PEELED_SURCHARGE,
   POSTSAVER_KEYS,
   POSTS_PER_GATE,
   SCREEN_POST_CM,
@@ -311,19 +310,12 @@ export function PostRailStep({ data, state, update }: StepProps) {
       <Question title="Hoeveel hoeken?" hint="Elke hoek begint een nieuwe rechte lijn.">
         <Stepper label="Aantal hoeken" value={state.postRail.corners} onChange={(v) => set({ corners: v })} />
       </Question>
-      <Question title="Afwerking">
-        <div className="flex flex-wrap gap-2">
-          <Chip active={!state.postRail.peeled} onClick={() => set({ peeled: false })}>Met schors</Chip>
-          <Chip active={state.postRail.peeled} onClick={() => set({ peeled: true })}>
-            Ontschorst (+{formatPrice(PEELED_SURCHARGE)} per paal en ligger)
-          </Chip>
-        </div>
-      </Question>
       <div className="rounded-xl bg-brand-soft/60 p-4 text-sm text-ink/80">
         <p className="font-semibold text-ink">Uw Post &amp; Rail</p>
         <p className="mt-1">
           {q.sections} vakken van max. 2,90 m → <strong>{q.posts} palen</strong> en <strong>{q.rails} liggers</strong> van 2,90 m.
         </p>
+        <p className="mt-1 text-ink/70">Palen en liggers worden automatisch ontschorst geleverd, inbegrepen in de prijs.</p>
       </div>
     </div>
   );
