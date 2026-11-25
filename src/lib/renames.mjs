@@ -16,7 +16,9 @@ export const RENAMES_APPROVAL = {
     "wijst naar de shop op deze site (natuurhout.be/shop). " +
     "Nov 2026: geen emoji's op de website (Google Ads weigert ze, ze helpen SEO niet en ogen onprofessioneel); " +
     "het vinkje ✓ is een gewoon tekstteken en blijft. " +
-    "Nov 2026 (SEO batch 1): hazelaar gaat overal 'ongeveer 10 jaar' mee, zoals op de rest van de site; de oude teksten zeiden 8 tot 15 jaar.",
+    "Nov 2026 (SEO batch 1): hazelaar gaat overal 'ongeveer 10 jaar' mee, zoals op de rest van de site; de oude teksten zeiden 8 tot 15 jaar. " +
+    "25 Nov 2026: bij de blogberichten staat 'Natuurhout' als schrijver, niet meer aziz, syto of Sebastiaan Dijkstra; " +
+    "het uittreksel van 'Kastanjes bewaren' volgt de herschreven blog.",
 };
 
 /*
@@ -69,7 +71,26 @@ const SHOP_RULES = [
 const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** @param {string} value */
+/*
+ * Blog authors (Xander, 25 Nov 2026: "verander het gewoon allemaal naar
+ * Natuurhout"): the WordPress author links (aziz, syto, Sebastiaan Dijkstra)
+ * become plain "Natuurhout".
+ */
+const AUTHOR_LINK = /<a href="\/author\/[a-z-]+\/" rel="author">[^<]*<\/a>/g;
+
+/* Excerpts of rewritten blog posts on the listing pages. */
+const EXCERPT_RULES = [
+  [
+    "Kastanjes zijn vrij kwetsbaar en hebben wat aandacht nodig om goed bewaard te worden. Het is zonde als ze beschimmeld of uitgedroogd raken. Ongepelde kastanjes kunnen op een droge plaats...",
+    "Kastanjes bewaren in de koelkast, diepvries of gedroogd: zo blijven ze lekker. Plus tips om ze te bereiden en het verschil met de paardenkastanje.",
+  ],
+];
+
 export function applyRenames(value) {
+  if (value && value.includes('rel="author"')) value = value.replace(AUTHOR_LINK, "Natuurhout");
+  if (value && value.includes("Ongepelde kastanjes kunnen op een droge plaats...")) {
+    for (const [from, to] of EXCERPT_RULES) value = value.split(from).join(to);
+  }
   if (value && value.includes("8 tot 15 jaar")) {
     for (const [from, to] of FACT_RULES) value = value.split(from).join(to);
   }

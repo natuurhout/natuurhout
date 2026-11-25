@@ -71,14 +71,15 @@ function tidySchema(pathname: string, data: Record<string, unknown>): Record<str
   return {
     ...fixed,
     "@graph": graph
-      .filter((node) => isArticle || node["@type"] !== "Person")
+      // No people as authors (Xander, 25 Nov 2026): a blog post is by Natuurhout.
+      .filter((node) => node["@type"] !== "Person")
       .map((node) => {
         let out = node;
-        if (!isArticle && ("author" in out || "creator" in out)) {
+        if ("author" in out || "creator" in out) {
           const { author: _a, creator: _c, ...rest } = out;
           void _a;
           void _c;
-          out = rest;
+          out = isArticle && "author" in node ? { ...rest, author: { "@type": "Organization", name: "Natuurhout", url: `${SITE}/` } } : rest;
         }
         if (out["@type"] === "WebPage" && approved) {
           out = { ...out, ...(approved.approvedTitle ? { name: approved.approvedTitle } : {}), ...(approved.approvedDescription ? { description: approved.approvedDescription } : {}) };
