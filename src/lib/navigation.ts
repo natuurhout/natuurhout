@@ -16,6 +16,7 @@ export type MenuGroup = {
   links: MenuLink[];
 };
 
+// Order of the menu, left to right (Xander, 25 Nov 2026).
 export const productMenu: MenuGroup[] = [
   {
     title: "Afsluitingen & omheiningen",
@@ -32,39 +33,6 @@ export const productMenu: MenuGroup[] = [
       { href: "/project/robinia-rasterwerk/", label: "Robinia hekwerk" },
       { href: "/project/hazelaarrasterwerk/", label: "Hazelaar hekwerk" },
       { href: "/project/post-rail-2/", label: "Post & Rail" },
-    ],
-  },
-  {
-    title: "Vlechtschermen",
-    slug: "vlechtschermen",
-    intro: "Gevlochten hazelaar schermen en schermen met halve latten, voor privacy en beschutting met een natuurlijke uitstraling.",
-    products: ["hazelaar-vlechtscherm-hasseltre", "hazelaar-scherm-trepanel"],
-    links: [
-      { href: "/project/hazelaarvlechtschermen/", label: "Hazelaar vlechtschermen" },
-      { href: "/project/hazelaar-vlechtscherm-hasseltre/", label: "Hazelaar vlechtschermen – halve latten" },
-    ],
-  },
-  {
-    title: "Palen",
-    slug: "palen",
-    intro: "Palen in kastanje, robinia en eik, rond of gezaagd, en Postsavers voor een langere levensduur in de grond.",
-    products: [
-      "palen",
-      "kastanje-palen-copy",
-      "robinia-palen",
-      "vierkant-gezaagde-robinia-palen",
-      "halfronde-palen",
-      "eiken-palen",
-      "kastanje-paal-met-postsaver",
-      "paalhouder-met-punt-rond",
-    ],
-    links: [
-      { href: "/project/kastanjepalen/", label: "Kastanje palen" },
-      { href: "/shop/halfronde-palen/", label: "Halfronde kastanje palen" },
-      { href: "/project/robinia-palen/", label: "Robinia palen" },
-      { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "Gezaagde robinia palen" },
-      { href: "/project/eiken-palen/", label: "Eiken palen" },
-      { href: "/project/postsaver-voor-palen/", label: "Postsaver voor palen" },
     ],
   },
   {
@@ -92,6 +60,39 @@ export const productMenu: MenuGroup[] = [
     ],
   },
   {
+    title: "Palen",
+    slug: "palen",
+    intro: "Palen in kastanje, robinia en eik, rond of gezaagd, en Postsavers voor een langere levensduur in de grond.",
+    products: [
+      "palen",
+      "kastanje-palen-copy",
+      "robinia-palen",
+      "vierkant-gezaagde-robinia-palen",
+      "halfronde-palen",
+      "eiken-palen",
+      "kastanje-paal-met-postsaver",
+      "paalhouder-met-punt-rond",
+    ],
+    links: [
+      { href: "/project/kastanjepalen/", label: "Kastanje palen" },
+      { href: "/shop/halfronde-palen/", label: "Halfronde kastanje palen" },
+      { href: "/project/robinia-palen/", label: "Robinia palen" },
+      { href: "/shop/vierkant-gezaagde-robinia-palen/", label: "Gezaagde robinia palen" },
+      { href: "/project/eiken-palen/", label: "Eiken palen" },
+      { href: "/project/postsaver-voor-palen/", label: "Postsaver voor palen" },
+    ],
+  },
+  {
+    title: "Vlechtschermen",
+    slug: "vlechtschermen",
+    intro: "Gevlochten hazelaar schermen en schermen met halve latten, voor privacy en beschutting met een natuurlijke uitstraling.",
+    products: ["hazelaar-vlechtscherm-hasseltre", "hazelaar-scherm-trepanel"],
+    links: [
+      { href: "/project/hazelaarvlechtschermen/", label: "Hazelaar vlechtschermen" },
+      { href: "/project/hazelaar-vlechtscherm-hasseltre/", label: "Hazelaar vlechtschermen – halve latten" },
+    ],
+  },
+  {
     title: "Tuinproducten",
     slug: "tuinproducten",
     intro: "Plantenbakken en lariks schaaldelen om uw tuin verder af te werken.",
@@ -116,7 +117,7 @@ export const productMenu: MenuGroup[] = [
       { href: "/shop/grondboor/", label: "Grondboren" },
       { href: "/shop/snelbeton/", label: "Snelbeton" },
     ],
-  },
+  }
 ];
 
 /** The promotions page; keeps its WordPress URL and title ("Aanbiedingen"). */
