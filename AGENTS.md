@@ -201,5 +201,9 @@ historical).
   agent with a daily random salt (`visit_salt`, deleted after the day). Bots and admins (cookie `nh_beheer`
   on `.natuurhout.be`, set by the backend) are skipped. "Nu op de site" = `visits_live` in the last 5 minutes
   (sidebar badge, Overzicht). The 5-minute cron keeps day totals in `visit_days` and deletes rows after 90 days.
+- **Landen blokkeren (2026-11-25, `worker/geo-block.ts`):** the public site answers 403 for the continents
+  and countries set in the backend (Instellingen → Landen blokkeren; D1 `settings` key `geoBlock`; default
+  Africa, Asia, South America and Tor). Never blocked: EEA + UK, CH, UA, search engine bots, the MultiSafepay
+  webhook, `/api/catalogus/` and the backend host. Tested by `worker/shop/geo-block.test.ts`.
 - **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` has no D1 permission. That is
   fine as long as `database_id` stays pinned in `wrangler.jsonc`; without it the deploy fails.

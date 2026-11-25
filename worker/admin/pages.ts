@@ -13,6 +13,7 @@ import { visitorsOn } from "./visitors";
 import { orderTable } from "./shop-orders";
 import { getSettings, missingSettings, saveSettings, SETTING_FIELDS, validIban, type ShopSettings } from "../shop/settings";
 import { myOpenTasks, tasksPanel } from "./tasks";
+import { ALWAYS_ALLOWED, CONTINENTS, loadGeoBlock, parseCodes, saveGeoBlock } from "../geo-block";
 import { ago, euro, euroRound, html, icon, initials, lines, page, raw, when, type Badges, type Safe, type Section } from "./html";
 
 export type Ctx = {
@@ -767,6 +768,8 @@ ${e.actor ? html`<b>${who(ctx, e.actor)}</b> ` : ""}${what(e)}</li>`,
 export async function settings(ctx: Ctx): Promise<Response> {
   const shop = await getSettings(ctx.db);
   const missing = missingSettings(shop);
+  const geo = await loadGeoBlock(ctx.db);
+  const blockedCountries = geo.countries.filter((c) => c !== "T1");
   return respond(
     ctx,
     "Instellingen",
@@ -780,6 +783,19 @@ ${missing.length ? html`<p class="warn small">Nog in te vullen voor betaalverzoe
     )}</div>
 <p class="muted small">Klanten betalen per overschrijving naar dit rekeningnummer (iBanFirst), met de gestructureerde mededeling van de bestelling. Deze gegevens staan op elke factuur.</p>
 <button>Opslaan</button></form>
+<form class="card" method="post" action="${ctx.base}/instellingen" id="landen"><input type="hidden" name="action" value="geo">
+<h2>Landen blokkeren</h2>
+<p class="muted small">Bezoekers uit deze regio's krijgen de website niet te zien (een korte melding "Niet beschikbaar in uw regio"). Altijd toegelaten, wat hier ook staat: heel Europa (EER), het VK, Zwitserland en Oekraïne, de zoekmachines (Google, Bing …) en uw backend. Wie een VPN gebruikt, komt er wel door: dit houdt het meeste spam- en aanvalsverkeer tegen, niet alles.</p>
+<fieldset style="border:0;padding:0;margin:0 0 12px"><legend class="small" style="font-weight:600;margin-bottom:6px">Werelddelen blokkeren</legend>${CONTINENTS.map(
+      (c) => html`<label class="check" style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="checkbox" name="continent" value="${c.code}" ${geo.continents.includes(c.code) ? raw("checked") : ""}><span>${c.label}${c.hint ? html` <span class="muted small">(${c.hint})</span>` : ""}</span></label>`,
+    )}
+<label class="check" style="display:flex;gap:8px;align-items:flex-start;margin:4px 0"><input type="checkbox" name="tor" value="1" ${geo.countries.includes("T1") ? raw("checked") : ""}><span>Tor-netwerk <span class="muted small">(anoniem verkeer, vaak misbruikt)</span></span></label></fieldset>
+<div class="fields">
+<label>Extra landen blokkeren<input name="countries" value="${blockedCountries.join(", ")}" placeholder="bv. RU, BY"><span class="muted small">Landcodes met een komma ertussen (RU = Rusland, BY = Wit-Rusland, US = Verenigde Staten).</span></label>
+<label>Toch toelaten<input name="allow" value="${geo.allow.join(", ")}" placeholder="bv. TR, IL"><span class="muted small">Landen uit een geblokkeerd werelddeel die wel op de site mogen.</span></label>
+</div>
+<p class="muted small">Welke landen de site bezoeken, ziet u onder <a href="${ctx.base}/bezoekers?periode=30d">Bezoekers</a>. Een wijziging geldt binnen een minuut.</p>
+<button>Opslaan</button></form>
 <section class="card"><h2>Levering en online betalen</h2><p class="muted small" style="margin:0">Leveringsprijzen, regels en MultiSafepay staan onder <a href="${ctx.base}/checkout">Checkout</a>.</p></section>
 <form class="card" method="post" action="${ctx.base}/instellingen"><input type="hidden" name="action" value="me">
 <label>Je naam (zichtbaar bij notities en toewijzingen)<input name="name" value="${ctx.user.name}" required maxlength="60"></label>
@@ -791,6 +807,13 @@ ${missing.length ? html`<p class="warn small">Nog in te vullen voor betaalverzoe
 }
 
 export async function settingsPost(ctx: Ctx, form: FormData): Promise<Response> {
+  if (field(form, "action") === "geo") {
+    const continents = form.getAll("continent").map(String).filter((c) => CONTINENTS.some((k) => k.code === c));
+    const countries = parseCodes(field(form, "countries", 400)).filter((c) => !ALWAYS_ALLOWED.has(c) && c !== "T1");
+    if (field(form, "tor") === "1") countries.push("T1");
+    await saveGeoBlock(ctx.db, { continents, countries, allow: parseCodes(field(form, "allow", 400)) });
+    return seeOther(ctx, "/instellingen", "saved");
+  }
   if (field(form, "action") === "shop") {
     const values: Partial<ShopSettings> = {};
     for (const f of SETTING_FIELDS) values[f.key] = field(form, f.key, f.key === "invoiceFooter" ? 1000 : 200);

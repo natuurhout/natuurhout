@@ -25,6 +25,7 @@ import { POST, type OfferteEnv } from "./offerte";
 import { publishSite, type PublishEnv } from "./shop/publish";
 import * as checkout from "./shop/checkout";
 import { recordVisit, sweepVisits } from "./visits";
+import { geoBlock } from "./geo-block";
 
 interface Env extends OfferteEnv, AdminEnv, PublishEnv, checkout.CheckoutEnv {
   ASSETS: Fetcher;
@@ -102,6 +103,10 @@ export default {
       if (request.method === "POST") sync();
       return response;
     }
+
+    // Regions blocked in the backend (worker/geo-block.ts): a 403 before anything else.
+    const blocked = await geoBlock(request, env.DB, url.pathname);
+    if (blocked) return withSecurityHeaders(blocked);
 
     // Apex → www (canonical host, see src/lib/site.ts).
     if (url.hostname === "natuurhout.be") {
