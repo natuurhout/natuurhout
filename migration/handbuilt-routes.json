@@ -496,6 +496,14 @@
       "approvedBy": "Xander",
       "reason": "Legal pages checked and updated on Xander's request (Nov 2026): the WordPress page described a Complianz form that no longer exists. Now: how to ask for, correct or delete your data by mail (prefilled subjects), how we check it is you, the one-month answer. Stays noindex.",
       "approvedDescription": "Vraag inzage in uw gegevens bij Natuurhout, of laat ze verbeteren of wissen: stuur ons een mail, we antwoorden binnen één maand."
+    },
+    {
+      "pathname": "/kastanjes-bewaren/",
+      "approvedBy": "Xander",
+      "reason": "Blog rewritten by Natuurhout (PDF 'Blog - Kastanjes bewaren (herwerkt)', 25 Nov 2026): tamme kastanje and paardenkastanje told apart, the unsupported medical claims (kastanjeolie, bladthee, zalf) and the 'Bron: notenspecialist' line removed, storage times checked, the water test, cutting the shell and drying added, the part on chestnut wood nuanced, an intro and a closing call to action with links to the products. New title, description and h1 (approved*); the whole snapshot text is replaced.",
+      "approvedTitle": "Kastanjes bewaren: zo blijven ze lang lekker | Natuurhout",
+      "approvedDescription": "Kastanjes bewaren in de koelkast, diepvries of gedroogd: zo blijven ze lekker. Plus tips om ze te bereiden en het verschil met de paardenkastanje.",
+      "approvedHeading": "Kastanjes bewaren: zo blijven ze lang lekker"
     }
   ]
 }
