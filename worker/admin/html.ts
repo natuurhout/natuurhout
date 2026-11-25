@@ -94,6 +94,7 @@ const ICONS = {
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   package: '<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
   activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  eye: '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
   settings: '<path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
   plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
@@ -167,6 +168,7 @@ aside nav a.on{background:var(--side-on);font-weight:650;box-shadow:0 1px 0 #000
 aside nav a.sub{padding:4px 8px 4px 34px;min-height:28px;font-weight:450;color:var(--side-soft)}aside nav a.sub.on{color:var(--ink);font-weight:600;background:transparent;box-shadow:none}aside nav a.sub:hover{background:var(--side-hover)}
 .badge{font-size:11.5px;font-weight:550;min-width:20px;text-align:center;padding:0 7px;line-height:20px;border-radius:8px;background:#0000000f;color:var(--ink)}
 .badge.warn{background:var(--bad-bg);color:var(--bad-ink)}
+.badge.live{background:#d3f2dc;color:#0c5132}.badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#29845a;margin-right:5px;vertical-align:1px}
 .me{display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px;border-radius:10px;font-size:13px}.me:hover{background:var(--side-hover)}
 .me .who{flex:1;min-width:0;line-height:1.3}.me .who b,.me .who span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.me .who b{font-weight:600}.me .who span{color:var(--side-soft);font-size:12px}
 .me a{color:var(--side-soft);padding:5px;border-radius:8px}.me a:hover{color:var(--ink);background:var(--side-hover)}.me a svg{width:16px;height:16px}
@@ -343,6 +345,7 @@ details summary{cursor:pointer;color:var(--link);font-weight:450}
 .bars .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;height:100%;justify-content:flex-end}
 .bars .bar i{display:block;width:100%;max-width:42px;background:#4fb8f7;border-radius:6px 6px 2px 2px;min-height:2px}
 .bars .bar span{font-size:11px;color:var(--soft);white-space:nowrap}.bars .bar b{font-size:10.5px;font-weight:600;white-space:nowrap}
+.bars.dense{gap:2px}.bars.dense .bar i{border-radius:3px 3px 1px 1px}
 .meter{height:8px;border-radius:99px;background:var(--chip);overflow:hidden}.meter i{display:block;height:100%;background:#4fb8f7}
 .k-low{color:var(--bad-ink);font-weight:700}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 16px;border-radius:10px;font-weight:550;box-shadow:var(--shadow-lg);z-index:30}
@@ -376,11 +379,12 @@ export type Section =
   | "facturen"
   | "voorraad"
   | "rapporten"
+  | "bezoekers"
   | "zoeken"
   | "checkout";
 
 /** Counters in the sidebar. */
-export type Badges = { nieuw: number; taken: number; takenLaat: number; orders: number; lowStock: number };
+export type Badges = { nieuw: number; taken: number; takenLaat: number; orders: number; lowStock: number; live: number };
 
 export function page(opts: {
   title: string;
@@ -416,6 +420,7 @@ ${tab("klanten", "/klanten", "Klanten", "users")}
 ${tab("aanvragen", "/aanvragen", "Aanvragen", "inbox", badge(badges?.nieuw))}
 ${open("aanvragen", "offertes", "taken") ? html`${tab("offertes", "/aanvragen?soort=offertes", "Offertes", null)}${tab("taken", "/taken", "Taken", null, badge(badges?.takenLaat || badges?.taken, Boolean(badges?.takenLaat)))}` : ""}
 ${tab("rapporten", "/rapporten", "Rapporten", "chart")}
+${tab("bezoekers", "/bezoekers", "Bezoekers", "eye", badges?.live ? html`<span class="badge live" title="Nu op de site">${badges.live}</span>` : "")}
 ${tab("activiteit", "/activiteit", "Activiteit", "activity")}
 <span class="group">Verkoopkanalen</span>
 <a href="https://www.natuurhout.be/" target="_blank" rel="noopener">${icon("external")}<span class="l">Webshop natuurhout.be</span></a>

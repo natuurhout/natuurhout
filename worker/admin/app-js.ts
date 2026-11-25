@@ -5,10 +5,17 @@
  *   (POST with header x-board: 1, answered with 204). On any failure,
  *   including an expired Access session, the card moves back.
  * - Toolbar selects submit their form on change.
+ * - Pages with data-autorefresh reload themselves (Bezoekers, live counts).
  */
 export const APP_JS = String.raw`"use strict";
 (() => {
   for (const s of document.querySelectorAll("form.toolbar select, form.period select")) s.addEventListener("change", () => s.form.requestSubmit());
+  // Live pages (Bezoekers): reload every N seconds while the tab is visible.
+  const auto = document.querySelector("[data-autorefresh]");
+  if (auto) {
+    const ms = Number(auto.getAttribute("data-autorefresh")) * 1000 || 30000;
+    setInterval(() => { if (document.visibilityState === "visible") location.reload(); }, ms);
+  }
   // Ctrl/Cmd K jumps to the sidebar search, like Shopify.
   const find = document.querySelector("[data-hotkey]");
   document.addEventListener("keydown", (e) => {

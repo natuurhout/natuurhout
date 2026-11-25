@@ -24,6 +24,7 @@ import { ADMIN_HOST, handleAdmin, type AdminEnv } from "./admin";
 import { POST, type OfferteEnv } from "./offerte";
 import { publishSite, type PublishEnv } from "./shop/publish";
 import * as checkout from "./shop/checkout";
+import { recordVisit, sweepVisits } from "./visits";
 
 interface Env extends OfferteEnv, AdminEnv, PublishEnv, checkout.CheckoutEnv {
   ASSETS: Fetcher;
@@ -108,6 +109,9 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
+    // Anonymous visitor counter (worker/visits.ts).
+    if (url.pathname === "/api/bezoek/") return recordVisit(request, env, ctx);
+
     const response = withSecurityHeaders(await handle(request, env, url));
     if (request.method === "POST" && (url.pathname === "/api/offerte/" || url.pathname.startsWith("/api/afrekenen/") || url.pathname === "/api/multisafepay/webhook/")) sync();
 
@@ -126,6 +130,8 @@ export default {
     ctx.waitUntil(publishSite(env, { retry: true }).then((state) => console.log("Site sync:", state)));
     // Online orders nobody paid: cancel after a few days so the stock comes back.
     ctx.waitUntil(checkout.sweepAbandoned(env).then((n) => n && console.log("Checkout: cancelled unpaid orders:", n)));
+    // Visitor counts: day totals kept, rows after 90 days and old salts deleted.
+    ctx.waitUntil(sweepVisits(env).catch((error) => console.error("Visits sweep failed", error)));
   },
 } satisfies ExportedHandler<Env>;
 

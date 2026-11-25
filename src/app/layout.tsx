@@ -7,6 +7,7 @@ import { siteIndexingEnabled } from "@/lib/site";
 import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
 import ClickTracking from "@/components/ClickTracking";
+import VisitCounter from "@/components/VisitCounter";
 
 // Figtree (body) and Fraunces (headings), both SIL Open Font License — see
 // public/fonts/*-LICENSE-OFL.txt. Self-hosted variable fonts (latin subset,
@@ -88,6 +89,7 @@ export default function RootLayout({
         <WhatsAppFloat />
         <CookieConsent />
         <ClickTracking />
+        <VisitCounter />
       </body>
     </html>
   );

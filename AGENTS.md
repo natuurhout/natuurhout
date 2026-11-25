@@ -195,5 +195,11 @@ historical).
   15-minute schedule is only a backup (GitHub delays it). So that file is
   written by a bot: **pull before you push**, and don't edit it by hand. Code-level price
   rules (`price-updates.ts`, `promotions.ts`) still work; a backend edit wins over them.
+- **Bezoekers (2026-11-25, `worker/visits.ts`, `worker/admin/visitors.ts`):** anonymous visitor counts,
+  no cookies, no IP addresses (privacyverklaring says so). `src/components/VisitCounter.tsx` beacons
+  `POST /api/bezoek/` per page plus a ping every minute while visible; a visitor is a SHA-256 of IP + user
+  agent with a daily random salt (`visit_salt`, deleted after the day). Bots and admins (cookie `nh_beheer`
+  on `.natuurhout.be`, set by the backend) are skipped. "Nu op de site" = `visits_live` in the last 5 minutes
+  (sidebar badge, Overzicht). The 5-minute cron keeps day totals in `visit_days` and deletes rows after 90 days.
 - **Deploy token:** the GitHub secret `CLAUDE_CLOUDFLARE` has no D1 permission. That is
   fine as long as `database_id` stays pinned in `wrangler.jsonc`; without it the deploy fails.

@@ -8,7 +8,8 @@ import { now } from "../crm/schema";
 import type { Mailer } from "../shop/send";
 import type { PublishEnv } from "../shop/publish";
 import type { CheckoutEnv } from "../shop/checkout";
-import type { OrderRow } from "../shop/orders";
+import { todayBE, type OrderRow } from "../shop/orders";
+import { visitorsOn } from "./visitors";
 import { orderTable } from "./shop-orders";
 import { getSettings, missingSettings, saveSettings, SETTING_FIELDS, validIban, type ShopSettings } from "../shop/settings";
 import { myOpenTasks, tasksPanel } from "./tasks";
@@ -192,6 +193,7 @@ export async function overview(ctx: Ctx): Promise<Response> {
     .prepare("SELECT status, COUNT(*) AS n, COALESCE(SUM(total), 0) AS sum FROM orders WHERE status IN ('nieuw', 'bevestigd', 'betaald', 'klaar') GROUP BY status")
     .all<{ status: string; n: number; sum: number }>();
   const shopN = new Map(shop.map((s) => [s.status, s]));
+  const visitorsToday = await visitorsOn(ctx.db, todayBE());
   const mine = (open.results as RequestRow[]).filter((r) => r.assigned_to?.toLowerCase() === ctx.user.email).length;
   return respond(
     ctx,
@@ -213,6 +215,11 @@ ${(["nieuw", "in_behandeling", "offerte_verstuurd", "gewonnen"] as Status[]).map
 <a class="stat" href="${ctx.base}/bestellingen?status=betaald"><span><i class="dot os-betaald"></i>Betaald, klaarzetten</span><b>${shopN.get("betaald")?.n ?? 0}</b></a>
 <a class="stat" href="${ctx.base}/bestellingen?status=klaar"><span><i class="dot os-klaar"></i>Klaar voor levering</span><b>${shopN.get("klaar")?.n ?? 0}</b></a>
 <a class="stat" href="${ctx.base}/voorraad"><span>Voorraad laag of op</span><b class="${ctx.badges.lowStock ? "warn" : ""}">${ctx.badges.lowStock}</b></a>
+</div>
+<h2 style="margin:4px 0 10px">Website</h2>
+<div class="stats">
+<a class="stat" href="${ctx.base}/bezoekers?periode=2u"><span><i class="dot" style="background:#29845a"></i>Nu op de site</span><b>${ctx.badges.live}</b></a>
+<a class="stat" href="${ctx.base}/bezoekers?periode=24u"><span>Bezoekers vandaag</span><b>${visitorsToday}</b></a>
 </div>
 <div class="grid two">
 <section class="card"><div class="head" style="margin-bottom:10px"><h2>Open aanvragen</h2><a class="small" href="${ctx.base}/aanvragen?weergave=lijst">alle aanvragen</a></div>

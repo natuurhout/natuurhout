@@ -20,6 +20,8 @@ import { checkoutPage, checkoutPost } from "./shop-checkout";
 import type { PublishEnv } from "../shop/publish";
 import type { MspEnv } from "../shop/msp";
 import { taskBadges, taskCreate, taskList, taskPost } from "./tasks";
+import { ADMIN_COOKIE } from "../visits";
+import { liveCount, visitorsPage } from "./visitors";
 
 export interface AdminEnv extends AuthEnv, MailEnv, PublishEnv, MspEnv {
   DB?: D1Database;
@@ -65,13 +67,20 @@ const defaultName = (email: string) => {
  *   "/__beheer" in local development (see worker/index.ts).
  */
 export async function handleAdmin(request: Request, env: AdminEnv, url: URL, base: string, local: boolean): Promise<Response> {
-  return withHeaders(await route(request, env, url, base, local));
+  const state = { authed: false };
+  const response = withHeaders(await route(request, env, url, base, local, state));
+  // Someone logged in here is not counted as a visitor of the site (worker/visits.ts).
+  if (state.authed && url.hostname === ADMIN_HOST) {
+    response.headers.append("Set-Cookie", `${ADMIN_COOKIE}=1; Domain=natuurhout.be; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax`);
+  }
+  return response;
 }
 
-async function route(request: Request, env: AdminEnv, url: URL, base: string, local: boolean): Promise<Response> {
+async function route(request: Request, env: AdminEnv, url: URL, base: string, local: boolean, state: { authed: boolean }): Promise<Response> {
   if (url.pathname === `${base}/app.js`) return new Response(APP_JS, { headers: { "content-type": "text/javascript; charset=utf-8" } });
   const auth = await authenticate(request, env, local);
   if (!auth.ok) return message(base, auth.status, "Geen toegang", auth.reason);
+  state.authed = true;
   if (!env.DB) return message(base, 503, "Database ontbreekt", "De CRM-database (binding DB) is niet gekoppeld aan de Worker.");
   const db = env.DB;
 
@@ -88,11 +97,12 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     .run();
   const { results: userRows } = await db.prepare("SELECT email, name FROM users ORDER BY name").all<{ email: string; name: string }>();
   const users = new Map(userRows.map((u) => [u.email.toLowerCase(), u.name]));
-  const [nieuw, taken, orders, lowStock] = await Promise.all([
+  const [nieuw, taken, orders, lowStock, live] = await Promise.all([
     db.prepare("SELECT COUNT(*) AS n FROM requests WHERE status = 'nieuw'").first<{ n: number }>(),
     taskBadges(db, auth.email),
     db.prepare("SELECT COUNT(*) AS n FROM orders WHERE status = 'nieuw'").first<{ n: number }>(),
     lowStockCount(db),
+    liveCount(db),
   ]);
   const ctx: pages.Ctx = {
     db,
@@ -100,7 +110,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     base,
     user: { email: auth.email, name: users.get(auth.email) ?? "" },
     users,
-    badges: { nieuw: nieuw?.n ?? 0, ...taken, orders: orders?.n ?? 0, lowStock },
+    badges: { nieuw: nieuw?.n ?? 0, ...taken, orders: orders?.n ?? 0, lowStock, live },
     board: request.headers.get("x-board") === "1",
     mail: makeMailer(env),
     publish: env,
@@ -148,6 +158,7 @@ async function route(request: Request, env: AdminEnv, url: URL, base: string, lo
     if (n !== null) return post ? notAllowed() : await invoicePdfResponse(ctx, n);
     if (path === "/voorraad") return post ? await stockPost(ctx, form) : await stockPage(ctx);
     if (path === "/rapporten") return post ? notAllowed() : await reports(ctx);
+    if (path === "/bezoekers") return post ? notAllowed() : await visitorsPage(ctx);
     if (path === "/activiteit") return post ? notAllowed() : await pages.activity(ctx);
     if (path === "/instellingen") return post ? await pages.settingsPost(ctx, form) : await pages.settings(ctx);
     if (path === "/favicon.ico" || path === "/robots.txt")

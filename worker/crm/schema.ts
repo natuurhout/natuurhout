@@ -316,6 +316,26 @@ const MIGRATIONS: string[][] = [
     `ALTER TABLE orders ADD COLUMN refund_amount REAL`,
     `ALTER TABLE orders ADD COLUMN refund_ref TEXT`, // 'multisafepay <refund id>' or 'overschrijving'
   ],
+  // 16: anonymous visitor counts (worker/visits.ts, backend tab Bezoekers). No cookies,
+  // no IP addresses: a visitor is a hash with a salt that changes every day.
+  [
+    `CREATE TABLE visits (
+      id INTEGER PRIMARY KEY,
+      at TEXT NOT NULL,          -- ISO time (UTC)
+      day TEXT NOT NULL,         -- local date (Europe/Brussels)
+      hour INTEGER NOT NULL,     -- local hour 0-23
+      visitor TEXT NOT NULL,     -- daily hash, unknowable the next day
+      path TEXT NOT NULL,
+      source TEXT NOT NULL,      -- where a visit came in from ('' = a page within the site)
+      device TEXT NOT NULL,      -- gsm, tablet, computer
+      country TEXT NOT NULL
+    )`,
+    `CREATE INDEX visits_at ON visits (at)`,
+    `CREATE INDEX visits_day ON visits (day, visitor)`,
+    `CREATE TABLE visits_live (visitor TEXT PRIMARY KEY, at TEXT NOT NULL, path TEXT NOT NULL, device TEXT NOT NULL, source TEXT NOT NULL)`,
+    `CREATE TABLE visit_days (day TEXT PRIMARY KEY, visitors INTEGER NOT NULL, views INTEGER NOT NULL)`,
+    `CREATE TABLE visit_salt (day TEXT PRIMARY KEY, salt TEXT NOT NULL)`,
+  ],
 ];
 
 /** SQL for a one-time stock count (see migrations 7 to 14). Counts are integers from code, never user input. */

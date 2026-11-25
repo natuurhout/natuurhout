@@ -40,7 +40,8 @@ export default function PrivacyPage() {
         <li><strong>Uw aanvraag of bestelling:</strong> de producten, aantallen, prijzen, opmerkingen en foto’s die u meestuurt.</li>
         <li><strong>Betaling:</strong> het bedrag, de betaalmethode en of de betaling gelukt is. Uw kaart- of bankgegevens bij een online betaling ziet u alleen bij MultiSafepay; die komen niet bij ons. Bij een overschrijving zien we de betaling op onze rekening.</li>
         <li><strong>Technische gegevens:</strong> uw IP-adres en browsergegevens, die onze hostingpartij kort bijhoudt om de website te beveiligen en misbruik (zoals spam) te weren.</li>
-        <li><strong>Websitegebruik:</strong> alleen als u statistiek- of marketingcookies toestaat (zie ons <Link href="/cookiebeleid-eu/">cookiebeleid</Link>).</li>
+        <li><strong>Bezoekersaantallen:</strong> we tellen anoniem hoeveel mensen de website bezoeken en welke pagina’s ze bekijken, zonder cookies en zonder uw IP-adres te bewaren. Een bezoeker wordt alleen die dag herkend, via een code die elke dag verandert; daarna is die niet meer met u te verbinden.</li>
+        <li><strong>Websitegebruik</strong> in Google Analytics en Meta: alleen als u statistiek- of marketingcookies toestaat (zie ons <Link href="/cookiebeleid-eu/">cookiebeleid</Link>).</li>
       </ul>
       <p>We vragen geen gevoelige gegevens en maken geen gebruikersaccounts aan.</p>
 
@@ -56,6 +57,7 @@ export default function PrivacyPage() {
           <tr><td>Facturen en boekhouding bewaren</td><td>Wettelijke verplichting</td></tr>
           <tr><td>Klantenbeheer: weten wat u eerder bestelde, als u ons opnieuw contacteert</td><td>Gerechtvaardigd belang</td></tr>
           <tr><td>De website beveiligen en spam weren</td><td>Gerechtvaardigd belang</td></tr>
+          <tr><td>Anoniem bezoekers tellen (aantallen, bekeken pagina’s, herkomst), zonder cookies</td><td>Gerechtvaardigd belang</td></tr>
           <tr><td>Statistieken over het websitegebruik (Google Analytics)</td><td>Uw toestemming (statistiekcookies)</td></tr>
           <tr><td>Onze advertenties meten en afstemmen (Meta Pixel)</td><td>Uw toestemming (marketingcookies)</td></tr>
         </tbody>
@@ -112,6 +114,11 @@ export default function PrivacyPage() {
             <td>Betaalgegevens (bedrag, betaalmethode, status)</td>
             <td>Datum van de betaling</td>
             <td>Zoals de factuur waar ze bij horen.</td>
+          </tr>
+          <tr>
+            <td>Anonieme bezoekersaantallen</td>
+            <td>Datum van uw bezoek</td>
+            <td>90 dagen; daarna blijven alleen de totalen per dag over. De dagcode die een bezoeker herkent, wissen we na die dag.</td>
           </tr>
           <tr>
             <td>Statistieken (Google Analytics)</td>

@@ -10,7 +10,7 @@ import type { LegacyPage } from "@/lib/legacy";
  * readable column, the date of the last change, links between them.
  */
 
-export const LEGAL_UPDATED = "20 november 2026";
+export const LEGAL_UPDATED = "25 november 2026";
 
 export const COMPANY = {
   name: "BEHO comm.v.",
