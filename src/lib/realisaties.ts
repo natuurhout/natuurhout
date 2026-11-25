@@ -88,7 +88,7 @@ export const NEW_PROJECTS: NewProject[] = [
     summary: "Kastanjehekwerk van 1,20 m hoog rond een wadi, met een bijpassende kastanje premium poort, geleverd en geplaatst door Natuurhout in Ninove.",
     description: [
       "In Ninove plaatsten we 120 meter kastanjehekwerk van 1,20 m hoog rond een wadi: een groene laagte die regenwater opvangt en langzaam in de bodem laat zakken. Het hekwerk volgt de bochten van het terrein en sluit het hele perceel mooi af. De kastanje palen van 180 cm (ø 8-10 cm) werden eerst uitgezet en daarna één voor één in de grond geklopt.",
-      "Tussen de palen spanden we spandraad, en daaraan hingen we het hekwerk op, zo'n 10 cm boven het maaiveld. Dat geeft het geheel extra stevigheid.",
+      "Tussen de palen spanden we spandraad en daaraan hingen we het hekwerk op. De spandraad geeft het geheel extra stevigheid. We hingen het hekwerk zo'n 10 cm boven het maaiveld, zodat er eronder nog gemaaid kan worden.",
       "Aan de toegang plaatsten we een kastanje premium poort van 1,20 m, in dezelfde hoogte als het hekwerk. Zo vormen hekwerk en poort één geheel. Kastanjehout is van nature duurzaam en vergrijst mooi met de jaren, zonder behandeling.",
     ],
     products: [
