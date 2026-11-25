@@ -202,6 +202,10 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
     );
   }
 
+  // Videos (public/video/): Safari only plays a video when the server answers
+  // byte ranges (206), so slice the file here when the asset itself did not.
+  if (path.startsWith("/video/") && /\.mp4$/.test(path)) return videoAsset(request, env);
+
   // WebP copies of photos (src/lib/image-loader.ts, scripts/build-images.mjs):
   // when a copy was not built, serve the original instead of a broken image.
   const webp = /^\/_img\/w\d+(\/.+)\.webp$/.exec(path);
@@ -212,4 +216,26 @@ async function handle(request: Request, env: Env, url: URL): Promise<Response> {
   }
 
   return env.ASSETS.fetch(request);
+}
+
+async function videoAsset(request: Request, env: Env): Promise<Response> {
+  const range = request.headers.get("range");
+  const asset = await env.ASSETS.fetch(new Request(request.url, { method: "GET" }));
+  if (!asset.ok || asset.status === 206) return asset;
+  const headers = new Headers(asset.headers);
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Cache-Control", "public, max-age=86400");
+  const m = range ? /^bytes=(\d*)-(\d*)$/.exec(range.trim()) : null;
+  if (!m) return new Response(request.method === "HEAD" ? null : asset.body, { status: 200, headers });
+  const body = await asset.arrayBuffer();
+  const size = body.byteLength;
+  let start = m[1] === "" ? size - Number(m[2]) : Number(m[1]);
+  let end = m[1] === "" || m[2] === "" ? size - 1 : Math.min(Number(m[2]), size - 1);
+  if (m[1] === "" && m[2] === "") return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${size}` } });
+  start = Math.max(0, start);
+  if (start > end || start >= size) return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${size}` } });
+  end = Math.min(end, size - 1);
+  headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
+  headers.set("Content-Length", String(end - start + 1));
+  return new Response(request.method === "HEAD" ? null : body.slice(start, end + 1), { status: 206, headers });
 }

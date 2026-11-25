@@ -27,6 +27,8 @@ export type NewProject = {
   /** The product pages the project shows. */
   products: { href: string; label: string }[];
   photos: ProjectPhoto[];
+  /** Optional film of the job (public/video/), shown under the photos. */
+  video?: { src: string; poster: string; title: string; width: number; height: number; uploadDate: string; seconds: number };
 };
 
 const lievegem = (n: number, alt: string, portrait = false): ProjectPhoto => ({
@@ -85,7 +87,8 @@ export const NEW_PROJECTS: NewProject[] = [
     title: "Project Ninove – Kastanje hekwerk & premium poort",
     summary: "Kastanjehekwerk van 1,20 m hoog rond een wadi, met een bijpassende kastanje premium poort, geleverd en geplaatst door Natuurhout in Ninove.",
     description: [
-      "In Ninove plaatsten we een kastanjehekwerk van 1,20 m hoog rond een wadi: een groene laagte die regenwater opvangt en langzaam in de bodem laat zakken. Het hekwerk volgt de bochten van het terrein en sluit het hele perceel mooi af. De palen werden eerst uitgezet en daarna één voor één in de grond geklopt. Daarna spanden we het hekwerk strak tussen de palen.",
+      "In Ninove plaatsten we 120 meter kastanjehekwerk van 1,20 m hoog rond een wadi: een groene laagte die regenwater opvangt en langzaam in de bodem laat zakken. Het hekwerk volgt de bochten van het terrein en sluit het hele perceel mooi af. De kastanje palen van 180 cm (ø 8-10 cm) werden eerst uitgezet en daarna één voor één in de grond geklopt.",
+      "Tussen de palen spanden we spandraad, en daaraan hingen we het hekwerk op, zo'n 10 cm boven het maaiveld. Dat geeft het geheel extra stevigheid.",
       "Aan de toegang plaatsten we een kastanje premium poort van 1,20 m, in dezelfde hoogte als het hekwerk. Zo vormen hekwerk en poort één geheel. Kastanjehout is van nature duurzaam en vergrijst mooi met de jaren, zonder behandeling.",
     ],
     products: [
@@ -99,7 +102,19 @@ export const NEW_PROJECTS: NewProject[] = [
       ninove("03-hekwerk", "Kastanjehekwerk 1,20 m langs een grasveld in Ninove", 1500, 1125),
       ninove("04-hekwerk-bocht", "Kastanjehekwerk dat in een bocht het terrein volgt", 1600, 1200),
       ninove("05-hekwerk-detail", "Detail van kastanjelatten en spandraad", 1200, 1600),
+      ninove("06-plaatsing", "Plaatsing van kastanjehekwerk door Natuurhout", 1200, 1600),
+      ninove("07-palen-uitzetten", "Kastanje palen uitgezet voor de plaatsing", 1200, 1600),
+      ninove("08-levering", "Levering met de Natuurhout-bestelbus en aanhanger", 1600, 1200),
     ],
+    video: {
+      src: "/video/ninove-kastanje-hekwerk-plaatsing.mp4",
+      poster: "/video/ninove-kastanje-hekwerk-plaatsing.jpg",
+      title: "Video van de plaatsing van kastanjehekwerk en een premium poort rond een wadi in Ninove",
+      width: 720,
+      height: 1280,
+      uploadDate: "2026-11-25",
+      seconds: 47,
+    },
   },
   {
     slug: "mariakerke-kastanje-hekwerk-maatwerk-poortjes",

@@ -13,6 +13,8 @@ type NavLink = { href: string; rel: "prev" | "next"; title: string };
  * photo beside the title and description, links to the products used, then
  * the other photos. Each photo opens in a pop-up viewer (PhotoLightbox).
  */
+export type ProjectVideo = { src: string; poster: string; title: string; width: number; height: number };
+
 export default function ProjectLayout({
   title,
   label = "Omschrijving",
@@ -20,6 +22,7 @@ export default function ProjectLayout({
   products,
   photos,
   nav = [],
+  video,
   rootProps,
 }: {
   title: string;
@@ -29,6 +32,8 @@ export default function ProjectLayout({
   products: ProjectProduct[];
   photos: Photo[];
   nav?: NavLink[];
+  /** A short film of the job (public/video/), under the photos; plays only when clicked. */
+  video?: ProjectVideo;
   /** Attributes for the outer element (the migration audit's content root). */
   rootProps?: Record<string, string>;
 }) {
@@ -124,6 +129,24 @@ export default function ProjectLayout({
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {video && (
+        <section aria-labelledby="project-video" className="mt-12">
+          <h2 id="project-video" className="font-display text-2xl font-semibold">Video van de plaatsing</h2>
+          <video
+            controls
+            playsInline
+            preload="none"
+            poster={video.poster}
+            width={video.width}
+            height={video.height}
+            className="mt-5 block h-auto max-h-[80vh] w-full max-w-sm rounded-card bg-ink/90"
+            aria-label={video.title}
+          >
+            <source src={video.src} type="video/mp4" />
+          </video>
         </section>
       )}
 

@@ -55,12 +55,27 @@ export default async function ProjectPage({ params }: Props) {
         { name: project.title, path: newProjectHref(project) },
       ])}
     />
+    {project.video && (
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "VideoObject",
+          name: project.title,
+          description: project.video.title,
+          thumbnailUrl: `https://www.natuurhout.be${project.video.poster}`,
+          contentUrl: `https://www.natuurhout.be${project.video.src}`,
+          uploadDate: project.video.uploadDate,
+          duration: `PT${project.video.seconds}S`,
+        }}
+      />
+    )}
     <ProjectLayout
       title={project.title}
       description={project.description.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       products={newProjectProducts(project)}
       photos={project.photos}
       nav={nav}
+      video={project.video}
     />
     </>
   );
