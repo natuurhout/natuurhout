@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   alternates: { canonical: page?.canonical },
 };
 
-const TEAM = ["/fotos/team/team-1.jpg", "/fotos/team/team-2.jpg", "/fotos/team/team-3.jpg", "/fotos/team/team-4.jpg"];
+const TEAM = ["/fotos/team/team-1-zw.jpg", "/fotos/team/team-2-zw.jpg", "/fotos/team/team-3-zw.jpg", "/fotos/team/team-4-zw.jpg"];
 
 const channels = [
   { icon: Phone, label: "Bel ons", value: PHONE.label, href: PHONE.href, note: "Tijdens de openingsuren" },

@@ -184,14 +184,15 @@ const WORKSHOP: Photo[] = [
 const ALL: Photo[] = [...STOCK, MAKER, DELIVERY, ...WORKSHOP];
 
 /*
- * The team (portraits supplied by Natuurhout, public/fotos/team/). Add a name
+ * The team (portraits supplied by Natuurhout, public/fotos/team/; made into the
+ * same neutral black and white, Nov 2026: *-zw.jpg). Add a name
  * and role per person to show them under the photo.
  */
 const TEAM: { src: string; name?: string; role?: string }[] = [
-  { src: "/fotos/team/team-1.jpg" },
-  { src: "/fotos/team/team-2.jpg" },
-  { src: "/fotos/team/team-3.jpg" },
-  { src: "/fotos/team/team-4.jpg" },
+  { src: "/fotos/team/team-1-zw.jpg" },
+  { src: "/fotos/team/team-2-zw.jpg" },
+  { src: "/fotos/team/team-3-zw.jpg" },
+  { src: "/fotos/team/team-4-zw.jpg" },
 ];
 
 /** The snapshot's blocks after a heading, up to the next heading. */
