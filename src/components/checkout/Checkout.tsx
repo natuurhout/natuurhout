@@ -1,5 +1,6 @@
 "use client";
 
+import DealNote from "@/components/DealNote";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Landmark, Lock, ShoppingCart, Store, Trash2, Truck } from "lucide-react";
@@ -370,6 +371,7 @@ export default function Checkout() {
           </p>
         </div>
       </div>
+      <DealNote lines={cart} className="mb-4" />
       <dl className="space-y-2 border-t border-line pt-4 text-sm">
         <div className="flex justify-between">
           <dt className="text-ink/70">Subtotaal</dt>

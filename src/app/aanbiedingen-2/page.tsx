@@ -4,7 +4,9 @@ import { ArrowRight, Phone, Smartphone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
 import ProductCard from "@/components/ProductCard";
 import { WhatsAppIcon } from "@/components/WhatsApp";
-import { promotions, saleProducts } from "@/lib/catalog";
+import { getProduct, promotions, saleProducts } from "@/lib/catalog";
+import { DealGate } from "@/components/Deal";
+import { BLACK_FRIDAY_HAZELAAR } from "@/lib/deals";
 import { MOBILE, PHONE, WHATSAPP } from "@/lib/contact";
 import { getLegacyPageByPath } from "@/lib/legacy";
 import { QUOTE_HREF } from "@/lib/navigation";
@@ -30,6 +32,7 @@ export const metadata: Metadata = {
 export default function OffersPage() {
   if (!page) throw new Error("The WordPress offers-page snapshot is missing.");
   const items = promotions();
+  const dealProducts = BLACK_FRIDAY_HAZELAAR.handles.map((handle) => getProduct(handle)).filter((p): p is NonNullable<typeof p> => Boolean(p));
   const sale = saleProducts();
 
   return (
@@ -45,6 +48,26 @@ export default function OffersPage() {
           Onze lopende promo&apos;s op kastanjehout en tuinproducten. De prijzen zijn incl. btw; bestellen kan
           meteen online, of vraag een offerte aan voor een grotere hoeveelheid.
         </p>
+
+        {/* Black Friday hazelaar deal (src/lib/deals.ts): only shown while it runs. */}
+        <DealGate>
+          <section id="black-friday" aria-labelledby="black-friday-titel" className="mt-10 scroll-mt-32 rounded-card bg-ink p-6 text-white sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Black Friday-weekend</p>
+            <h2 id="black-friday-titel" className="mt-2 font-display text-3xl font-bold tracking-tight">
+              Hazelaar deal: −{BLACK_FRIDAY_HAZELAAR.percent}%, vanaf € {BLACK_FRIDAY_HAZELAAR.threshold} −{BLACK_FRIDAY_HAZELAAR.bigPercent}%
+            </h2>
+            <p className="mt-2 max-w-2xl leading-relaxed text-white/75">
+              Op al ons hazelaar hekwerk en alle hazelaar poorten. De korting staat meteen in uw winkelmandje en bij het afrekenen. Tot en met
+              zondag 29 november.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-4 text-ink sm:gap-5 lg:grid-cols-4">
+              {dealProducts.map((product) => (
+                <ProductCard key={product.handle} product={product} />
+              ))}
+            </div>
+            <p className="mt-4 max-w-3xl text-xs leading-5 text-white/60">{BLACK_FRIDAY_HAZELAAR.terms}</p>
+          </section>
+        </DealGate>
 
         {items.length > 0 ? (
           <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">

@@ -8,6 +8,7 @@ import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
 import ClickTracking from "@/components/ClickTracking";
 import VisitCounter from "@/components/VisitCounter";
+import { DealBanner } from "@/components/Deal";
 
 // Figtree (body) and Fraunces (headings), both SIL Open Font License — see
 // public/fonts/*-LICENSE-OFL.txt. Self-hosted variable fonts (latin subset,
@@ -83,6 +84,7 @@ export default function RootLayout({
   return (
     <html lang="nl-BE" className={`${figtree.variable} ${fraunces.variable}`}>
       <body className="bg-ground font-sans text-ink antialiased">
+        <DealBanner />
         <Navbar />
         <main>{children}</main>
         <Footer />

@@ -8,6 +8,8 @@ import OrderRequestForm, { type RequestLine } from "@/components/OrderRequestFor
 import PaymentLogos, { SecuredBy } from "@/components/PaymentLogos";
 import { cartCount, cartTotal, clearCart, setCartQty, useCart, type CartLine } from "@/lib/cart";
 import { volumeProgress, withVolumePrices } from "@/lib/volume-pricing";
+import DealNote from "@/components/DealNote";
+import { withDealPrices } from "@/lib/deals";
 import { mainPage } from "@/lib/canonical-pages";
 import { formatPrice } from "@/lib/catalog";
 import { orderTerm } from "@/lib/made-to-order";
@@ -109,7 +111,8 @@ function Qty({ line }: { line: CartLine }) {
 export default function CartView() {
   const cart = useCart();
   // Staffelprijzen (src/lib/volume-pricing.ts): e.g. lariks € 4,55/m from 100 m in total.
-  const lines = withVolumePrices(cart, (l) => l.label);
+  // Then a running deal (src/lib/deals.ts), e.g. Black Friday hazelaar.
+  const lines = withDealPrices(withVolumePrices(cart, (l) => l.label));
   const lariks = volumeProgress("lariks-planken-delen", cart.map((l) => ({ handle: l.handle, title: l.label, qty: l.qty })));
   const [sent, setSent] = useState<{ onOrder: boolean } | null>(null);
   const [place, setPlace] = useState<{ postcode: string; city: string } | null>(null);
@@ -173,8 +176,11 @@ export default function CartView() {
                   <p className="text-sm text-ink/65">{line.label}</p>
                   {line.note && <p className="text-xs leading-5 text-ink/60">{line.note}</p>}
                   <p className="text-xs text-ink/55">
-                    {line.was !== undefined && <span className="mr-1 line-through">{formatPrice(line.was)}</span>}
+                    {(line.was ?? line.dealWas) !== undefined && <span className="mr-1 line-through">{formatPrice((line.was ?? line.dealWas)!)}</span>}
                     {formatPrice(line.unit)} per stuk{line.was !== undefined ? " (staffelprijs)" : ""}
+                    {line.deal !== undefined && (
+                      <span className="ml-2 rounded-full bg-ink px-2 py-0.5 font-semibold text-white">Black Friday −{line.deal}%</span>
+                    )}
                     {!line.available && (
                       <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 font-semibold text-accent-deep">
                         {orderTerm(line.handle).badge}
@@ -204,6 +210,7 @@ export default function CartView() {
             </span>
             <span className="text-xl font-semibold tabular-nums">{formatPrice(cartTotal(lines))}</span>
           </div>
+          <DealNote lines={cart} />
           {lariks && lariks.metres > 0 && (
             <p className="mt-2 rounded-xl bg-brand-soft/60 px-4 py-2.5 text-sm text-ink/75">
               {lariks.reached

@@ -31,6 +31,7 @@ import { binaryAttachments } from "../mail-attachments";
 import type { DeliveryEstimate } from "../../src/lib/quote-email";
 import { backorder, overLimit } from "../../src/lib/order-limits";
 import { volumeUnits } from "../../src/lib/volume-pricing";
+import { dealLabel, withDealPrices } from "../../src/lib/deals";
 import { formatIban, getSettings, missingSettings } from "./settings";
 
 export interface CheckoutEnv extends MspEnv, MailEnv {
@@ -123,6 +124,13 @@ async function price(db: D1Database, basket: BasketLine[], wantsDelivery: boolea
     if (unit !== null && unit < l.unit) {
       l.unit = unit;
       l.label = `${l.label} (staffelprijs)`;
+    }
+  });
+  // Time-limited deals (src/lib/deals.ts), never on delivery.
+  withDealPrices(lines).forEach((d, i) => {
+    if (d.deal) {
+      lines[i].unit = d.unit;
+      lines[i].label = `${lines[i].label} ${dealLabel(d.deal)}`;
     }
   });
   const subtotal = round2(lines.reduce((t, l) => t + l.qty * l.unit, 0));

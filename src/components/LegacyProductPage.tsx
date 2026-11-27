@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Calculator, Phone } from "lucide-react";
 import JsonLd from "@/components/JsonLd";
+import { DealProductLine } from "@/components/Deal";
 import LariksGuide, { LARIKS_PATH, LariksPriceLine, lariksLead } from "@/components/LariksGuide";
 import { SHOP_CANONICAL } from "@/lib/canonical-pages";
 import { productNode } from "@/lib/seo";
@@ -83,7 +84,7 @@ export default function LegacyProductPage({ page, info }: { page: LegacyPage; in
           heading={info.heading}
           lead={lead}
           fullLead={Boolean(lariks)}
-          intro={lariks ? <LariksPriceLine product={lariks} /> : undefined}
+          intro={lariks ? <LariksPriceLine product={lariks} /> : <DealProductLine handles={info.products.map((p) => p.handle)} />}
           images={info.photos}
           products={info.products}
         >

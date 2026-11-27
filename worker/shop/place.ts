@@ -11,6 +11,7 @@ import { upsertContact } from "../crm/store";
 import { loadCatalog } from "./catalog";
 import { createOrder, priceLine, type LineRow, type OrderRow } from "./orders";
 import { volumeUnits } from "../../src/lib/volume-pricing";
+import { dealLabel, withDealPrices } from "../../src/lib/deals";
 
 export async function placeWebsiteOrder(db: D1Database, quote: Quote): Promise<{ order: OrderRow; lines: QuoteLine[] }> {
   await ensureSchema(db);
@@ -23,6 +24,13 @@ export async function placeWebsiteOrder(db: D1Database, quote: Quote): Promise<{
     if (unit !== null && unit < l.unit) {
       l.unit = unit;
       l.label = `${l.label} (staffelprijs)`;
+    }
+  });
+  // Time-limited deals (src/lib/deals.ts), as at /afrekenen/.
+  withDealPrices(priced).forEach((d, i) => {
+    if (d.deal) {
+      priced[i].unit = d.unit;
+      priced[i].label = `${priced[i].label} ${dealLabel(d.deal)}`;
     }
   });
   const contactId = await upsertContact(db, quote, now());
