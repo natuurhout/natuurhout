@@ -59,3 +59,41 @@ export function DealProductLine({ handles }: { handles: string[] }) {
   );
 }
 
+
+function timeLeft(until: string): string {
+  const min = Math.max(0, Math.floor((Date.parse(until) - Date.now()) / 60_000));
+  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+  return d > 0 ? `nog ${d} ${d === 1 ? "dag" : "dagen"} en ${h} uur` : h > 0 ? `nog ${h} uur en ${m} min` : `nog ${m} min`;
+}
+
+/** Box in the homepage hero, under the buttons. */
+export function DealHeroBox() {
+  const deal = useRunningDeal();
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const timer = window.setInterval(() => tick((n) => n + 1), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  if (!deal) return null;
+  return (
+    <Link
+      href={deal.href}
+      className="group mt-8 flex max-w-xl flex-wrap items-center gap-x-6 gap-y-3 rounded-card border border-accent/60 bg-black/45 p-5 text-white backdrop-blur-sm transition-colors hover:border-accent hover:bg-black/55"
+    >
+      <span className="min-w-0 flex-1 basis-64">
+        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-bright">
+          <Tag aria-hidden className="h-4 w-4" /> Black Friday-weekend · {timeLeft(deal.until)}
+        </span>
+        <span className="mt-1.5 block font-display text-2xl font-bold leading-snug">
+          −{deal.percent}% op hazelaar hekwerk en poorten
+        </span>
+        <span className="mt-1 block text-sm text-white/75">
+          −{deal.bigPercent}% vanaf € {deal.threshold} aan hazelaar. T.e.m. zondag 29 november.
+        </span>
+      </span>
+      <span className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-ink transition-colors group-hover:bg-accent group-hover:text-white">
+        Bekijk de deal <ArrowRight aria-hidden className="h-4 w-4" />
+      </span>
+    </Link>
+  );
+}

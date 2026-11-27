@@ -6,6 +6,7 @@ import { ArrowRight, ArrowUpRight, Calculator, Handshake, Leaf, Recycle, ShieldC
 import CategoryCarousel from "@/components/CategoryCarousel";
 import Faq, { type FaqItem } from "@/components/Faq";
 import JsonLd from "@/components/JsonLd";
+import { DealHeroBox } from "@/components/Deal";
 import { PLACES, withPageMeta } from "@/components/LandingParts";
 import ProductSlider from "@/components/ProductSlider";
 import { formatPrice, getProduct, isListed, pricePerMeterFrom, products, type Product } from "@/lib/catalog";
@@ -377,6 +378,8 @@ export default function HomePage() {
                 Offerte aanvragen
               </Link>
             </div>
+            {/* A running deal (src/lib/deals.ts), only while it runs. */}
+            <DealHeroBox />
           </div>
 
           {/* Calculator shortcut; the waving mascot stands on its top edge. */}
