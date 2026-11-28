@@ -56,7 +56,7 @@ const REQUEST_ONLY: Record<string, Product[]> = {
 
 /** Snapshot photos taken off a page (approved, see handbuilt-routes.json). */
 const REMOVED_PHOTOS: Record<string, string[]> = {
-  "/project/hazelaarvlechtschermen/": ["/fotos/web/promotie-vlechtscherm.jpg"],
+  "/project/hazelaarvlechtschermen/": ["/fotos/web/promotie-vlechtscherm.jpg", "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg"],
   // Xander, 25 Nov 2026: the photo with the yellow circles (hang- en sluitwerk) off the gallery.
   "/project/franse-poorten/": ["/wp-content/uploads/2020/10/PC230104.jpg"],
 };
