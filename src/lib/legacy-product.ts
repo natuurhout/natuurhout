@@ -61,6 +61,12 @@ const REMOVED_PHOTOS: Record<string, string[]> = {
   "/project/franse-poorten/": ["/wp-content/uploads/2020/10/PC230104.jpg"],
 };
 
+/** The photo that opens the gallery (Xander), when it is not the snapshot's first. */
+const LEAD_PHOTOS: Record<string, string> = {
+  // 28 Nov 2026: the woven hazelaar screen in the sun.
+  "/project/hazelaarvlechtschermen/": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
+};
+
 /** Marks where a replaced WordPress price table stood. */
 export const SHOP_PRICES_MARKER = "<!--shop-prices-->";
 
@@ -241,6 +247,10 @@ export function legacyProduct(page: LegacyPage): LegacyProduct | null {
   // Natuurhout's own recent photos lead the gallery; the snapshot's follow.
   const extra = (PAGE_EXTRA_PHOTOS[page.pathname] ?? []).map((p) => ({ src: p.src, alt: p.alt, href: p.src, caption: p.caption }));
   photos.unshift(...extra.filter((p) => !seen.has(p.src)));
+
+  // A snapshot photo Natuurhout chose to lead the gallery (moved, not added).
+  const leadIndex = photos.findIndex((p) => p.src === LEAD_PHOTOS[page.pathname]);
+  if (leadIndex > 0) photos.unshift(...photos.splice(leadIndex, 1));
 
   const products = pricesFromShop ? shopProducts : (REQUEST_ONLY[page.pathname] ?? []);
   const overview = [

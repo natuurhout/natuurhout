@@ -75,6 +75,8 @@ export const CARD_PHOTOS: Record<string, string> = {
   "robinia-hekwerk": ROBINIA_HEKWERK[0].src,
   "robinia-poort": "/fotos/robinia-poort.jpg",
   "kastanje-poorten": "/fotos/kastanje-premium-poort.jpg",
+  // Xander, 28 Nov 2026: the woven screen from the product page's gallery.
+  "hazelaar-scherm-trepanel": "/fotos/web/hazelaar-vlechtscherm-scaled.jpg",
   palen: "/fotos/kastanje-palen.jpg",
   "post-rail-omheining": POST_RAIL[0].src,
 };

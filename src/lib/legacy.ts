@@ -55,7 +55,7 @@ const SITE = "https://www.natuurhout.be";
 // never at /wp-content/ itself: no absolute WordPress media URLs on the site.
 // Photos taken off a page (REMOVED_PHOTOS in src/lib/legacy-product.ts) are not its schema image either.
 const SCHEMA_IMAGE_SWAP: Record<string, string> = {
-  "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg": "/wp-content/uploads/2022/04/IMG_8505-copy-scaled.jpeg",
+  "/wp-content/uploads/2016/01/Promotie-vlechtscherm.jpg": "/wp-content/uploads/2016/01/Hazelaar-vlechtscherm-scaled.webp",
 };
 const schemaPath = (original: string, path = SCHEMA_IMAGE_SWAP[original] ?? original) => (/^\/wp-content\/uploads\/.+\.(jpe?g|png|webp)$/i.test(path) ? imageLoader({ src: path, width: 1080 }) : path);
 
